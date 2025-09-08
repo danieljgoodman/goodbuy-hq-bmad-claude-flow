@@ -1,0 +1,174 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useParams } from 'next/navigation'
+import ProtectedRoute from '@/components/auth/protected-route'
+import ValuationResults from '@/components/evaluation/valuation-results'
+import HealthScore from '@/components/evaluation/health-score'
+import OpportunitiesList from '@/components/evaluation/opportunities-list'
+import { UnifiedResultsDashboard } from '@/components/evaluation/unified-results-dashboard'
+import { useEvaluationStore } from '@/stores/evaluation-store'
+import type { BusinessEvaluation } from '@/types'
+
+export default function EvaluationResultsPage() {
+  const params = useParams()
+  const evaluationId = params.id as string
+  const { evaluations, loadEvaluations } = useEvaluationStore()
+  const [evaluation, setEvaluation] = useState<BusinessEvaluation | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  
+  // Detect evaluation type (Epic 1 vs Epic 2)
+  const isEpic2Evaluation = (evaluation: BusinessEvaluation) => {
+    // Epic 2 evaluation detection based on enhanced features
+    return !!(
+      evaluation.businessData?.extractedFinancials ||  // Has document extracted data
+      evaluation.businessData?.documentQualityScore ||  // Has document quality score
+      evaluation.businessData?.lastDocumentUpdate ||    // Has document update timestamp
+      evaluation.valuations?.industryAdjustments?.length > 0 || // Has industry adjustments
+      evaluation.scoringFactors?.growth  // Has enhanced growth scoring (Epic 2 specific)
+    )
+  }
+
+  useEffect(() => {
+    const findEvaluation = async () => {
+      setIsLoading(true)
+      
+      // First try to find in store
+      let foundEvaluation = evaluations.find(evaluation => evaluation.id === evaluationId)
+      
+      if (!foundEvaluation) {
+        // Load evaluations if not already loaded
+        if (evaluations.length === 0) {
+          await loadEvaluations()
+          foundEvaluation = evaluations.find(evaluation => evaluation.id === evaluationId)
+        }
+        
+        // If still not found, try to fetch directly from API
+        if (!foundEvaluation) {
+          try {
+            const { EvaluationService } = await import('@/lib/services/evaluation-service')
+            const result = await EvaluationService.getEvaluation(evaluationId)
+            foundEvaluation = result as unknown as BusinessEvaluation | undefined
+          } catch (error) {
+            console.error('Failed to fetch evaluation:', error)
+          }
+        }
+      }
+
+      setEvaluation(foundEvaluation || null)
+      setIsLoading(false)
+    }
+
+    findEvaluation()
+  }, [evaluationId, evaluations, loadEvaluations])
+
+  if (isLoading) {
+    return (
+      <ProtectedRoute>
+        <div className="min-h-screen bg-gradient-to-br from-background to-secondary pt-20 pb-8">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-center min-h-[400px]">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Loading your evaluation results...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ProtectedRoute>
+    )
+  }
+
+  if (!evaluation) {
+    return (
+      <ProtectedRoute>
+        <div className="min-h-screen bg-gradient-to-br from-background to-secondary pt-20 pb-8">
+          <div className="container mx-auto px-4">
+            <div className="text-center">
+              <h1 className="text-3xl font-bold text-foreground mb-4">Evaluation Not Found</h1>
+              <p className="text-muted-foreground mb-8">
+                The evaluation you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to it.
+              </p>
+              <a 
+                href="/dashboard"
+                className="inline-flex items-center px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
+              >
+                Return to Dashboard
+              </a>
+            </div>
+          </div>
+        </div>
+      </ProtectedRoute>
+    )
+  }
+
+  return (
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gradient-to-br from-background to-secondary pt-20 pb-8">
+        <div className="container mx-auto px-4 max-w-6xl">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-foreground mb-2">
+              Business Evaluation Results
+            </h1>
+            <p className="text-lg text-muted-foreground">
+              Comprehensive AI-powered analysis of your business
+            </p>
+          </div>
+
+          {/* Main Content - Conditional based on evaluation type */}
+          {isEpic2Evaluation(evaluation) ? (
+            // Epic 2: Enhanced Results Dashboard
+            <UnifiedResultsDashboard 
+              evaluation={evaluation}
+              documentResults={evaluation.uploadedDocuments || []}
+              businessName={'Your Business'}
+              onExport={() => console.log('Export report')}
+              onShare={() => console.log('Share results')}
+            />
+          ) : (
+            // Epic 1: Classic Results Layout
+            <div className="grid gap-8 lg:grid-cols-3">
+              {/* Left Column - Health Score */}
+              <div className="lg:col-span-1">
+                <HealthScore 
+                  score={evaluation.healthScore}
+                  confidenceScore={evaluation.confidenceScore}
+                  scoringFactors={evaluation.scoringFactors}
+                />
+              </div>
+
+              {/* Right Column - Results and Opportunities */}
+              <div className="lg:col-span-2 space-y-8">
+                <ValuationResults evaluation={evaluation} />
+                <OpportunitiesList 
+                  opportunities={evaluation.opportunities}
+                  showImplementationGuides={false} // Free tier
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Action Buttons at Bottom */}
+          <div className="mt-12 text-center">
+            <div className="inline-flex space-x-4">
+              <a 
+                href="/dashboard"
+                className="px-6 py-3 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg"
+              >
+                Save and Return to Dashboard
+              </a>
+              <a 
+                href="/onboarding"
+                className="px-6 py-3 border border-input bg-background hover:bg-accent rounded-lg"
+              >
+                New Evaluation
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </ProtectedRoute>
+  )
+}
