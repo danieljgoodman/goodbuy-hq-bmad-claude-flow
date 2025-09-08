@@ -1,0 +1,95 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - link "GoodBuy HQ" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - heading "GoodBuy HQ" [level=1] [ref=e7] [cursor=pointer]
+      - generic [ref=e8]:
+        - heading "Join thousands of successful business professionals" [level=2] [ref=e9]
+        - paragraph [ref=e10]: Whether you're buying, selling, or brokering businesses, our platform provides the tools and insights you need to succeed.
+        - generic [ref=e11]:
+          - generic [ref=e12]:
+            - heading "For Business Buyers" [level=3] [ref=e13]
+            - paragraph [ref=e14]: Access verified listings, detailed financials, and professional evaluations.
+          - generic [ref=e15]:
+            - heading "For Business Owners" [level=3] [ref=e16]
+            - paragraph [ref=e17]: List your business, get professional valuations, and connect with qualified buyers.
+          - generic [ref=e18]:
+            - heading "For Brokers" [level=3] [ref=e19]
+            - paragraph [ref=e20]: Manage multiple listings, provide evaluations, and grow your client base.
+    - generic [ref=e23]:
+      - generic [ref=e24]:
+        - heading "Create Account" [level=1] [ref=e25]
+        - paragraph [ref=e26]: Join GoodBuy HQ and start your journey
+      - generic [ref=e27]:
+        - button "Continue with Google" [ref=e28] [cursor=pointer]:
+          - img
+          - text: Continue with Google
+        - button "Continue with LinkedIn" [ref=e29] [cursor=pointer]:
+          - img
+          - text: Continue with LinkedIn
+      - generic [ref=e34]: Or create account with email
+      - generic [ref=e35]:
+        - generic [ref=e36]:
+          - generic [ref=e37]:
+            - generic [ref=e38]: First Name *
+            - textbox "First Name *" [ref=e39]
+          - generic [ref=e40]:
+            - generic [ref=e41]: Last Name *
+            - textbox "Last Name *" [ref=e42]
+        - generic [ref=e43]:
+          - generic [ref=e44]: Email Address *
+          - textbox "Email Address *" [ref=e45]
+          - paragraph [ref=e46]: We'll send you a verification email at this address
+        - generic [ref=e47]:
+          - generic [ref=e48]: I am a *
+          - combobox "I am a *" [ref=e49] [cursor=pointer]:
+            - generic: Business Buyer
+            - img [ref=e50] [cursor=pointer]
+          - combobox [ref=e52]
+          - paragraph [ref=e53]: This helps us customize your experience
+        - generic [ref=e54]:
+          - generic [ref=e55]: Password *
+          - generic [ref=e56]:
+            - textbox "Create a password" [ref=e57]
+            - button "Show password" [ref=e58] [cursor=pointer]:
+              - img [ref=e59] [cursor=pointer]
+        - generic [ref=e62]:
+          - generic [ref=e63]: Confirm Password *
+          - generic [ref=e64]:
+            - textbox "Confirm your password" [ref=e65]
+            - button "Show password" [ref=e66] [cursor=pointer]:
+              - img [ref=e67] [cursor=pointer]
+        - generic [ref=e70]:
+          - checkbox "I agree to the Terms and Conditions and Privacy Policy *" [ref=e71] [cursor=pointer]
+          - checkbox
+          - generic [ref=e72]:
+            - generic [ref=e73]:
+              - text: I agree to the
+              - link "Terms and Conditions" [ref=e74] [cursor=pointer]:
+                - /url: /terms
+              - text: and
+              - link "Privacy Policy" [ref=e75] [cursor=pointer]:
+                - /url: /privacy
+              - text: "*"
+            - paragraph [ref=e76]: Required to create your account
+        - generic [ref=e77]:
+          - checkbox "Send me updates about new features and market insights" [ref=e78] [cursor=pointer]
+          - checkbox
+          - generic [ref=e79]:
+            - generic [ref=e80]: Send me updates about new features and market insights
+            - paragraph [ref=e81]: You can unsubscribe at any time
+        - button "Create Account" [ref=e82] [cursor=pointer]
+      - paragraph [ref=e84]:
+        - text: Already have an account?
+        - link "Sign in" [ref=e85] [cursor=pointer]:
+          - /url: /auth/signin
+  - generic [ref=e86]:
+    - heading "Command Palette" [level=2] [ref=e87]
+    - paragraph [ref=e88]: Type a command or search...
+  - region "Notifications alt+T"
+  - alert [ref=e89]
+```

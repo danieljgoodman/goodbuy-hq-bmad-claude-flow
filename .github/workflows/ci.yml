@@ -1,0 +1,78 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: 'apps/web/package-lock.json'
+
+    - name: Install dependencies
+      run: cd apps/web && npm ci
+
+    - name: Type check
+      run: cd apps/web && npm run typecheck
+
+    - name: Lint
+      run: cd apps/web && npm run lint
+
+    - name: Run unit tests
+      run: cd apps/web && npm test
+
+    - name: Build application
+      run: cd apps/web && npm run build
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: 'apps/web/package-lock.json'
+
+    - name: Install dependencies
+      run: cd apps/web && npm ci
+
+    - name: Install Playwright
+      run: cd apps/web && npx playwright install
+
+    - name: Run E2E tests
+      run: cd apps/web && npm run test:e2e
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [test, e2e]
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Deploy to Vercel
+      uses: amondnet/vercel-action@v25
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.ORG_ID }}
+        vercel-project-id: ${{ secrets.PROJECT_ID }}
+        working-directory: apps/web

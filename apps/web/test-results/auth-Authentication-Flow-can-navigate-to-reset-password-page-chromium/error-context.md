@@ -1,0 +1,59 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - link "GoodBuy HQ" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - heading "GoodBuy HQ" [level=1] [ref=e7] [cursor=pointer]
+      - generic [ref=e8]:
+        - heading "Welcome to the future of business transactions" [level=2] [ref=e9]
+        - paragraph [ref=e10]: Connect with verified business owners, access detailed evaluations, and make informed decisions with our professional platform.
+        - generic [ref=e11]:
+          - generic [ref=e12]:
+            - img [ref=e14]
+            - generic [ref=e16]: Verified business listings
+          - generic [ref=e17]:
+            - img [ref=e19]
+            - generic [ref=e21]: Professional evaluations
+          - generic [ref=e22]:
+            - img [ref=e24]
+            - generic [ref=e26]: Secure transactions
+    - generic [ref=e29]:
+      - generic [ref=e30]:
+        - heading "Welcome Back" [level=1] [ref=e31]
+        - paragraph [ref=e32]: Sign in to your GoodBuy HQ account
+      - generic [ref=e33]:
+        - button "Continue with Google" [ref=e34] [cursor=pointer]:
+          - img
+          - text: Continue with Google
+        - button "Continue with LinkedIn" [ref=e35] [cursor=pointer]:
+          - img
+          - text: Continue with LinkedIn
+      - generic [ref=e40]: Or continue with email
+      - generic [ref=e41]:
+        - generic [ref=e42]:
+          - generic [ref=e43]: Email Address
+          - textbox "Email Address" [ref=e44]
+          - paragraph [ref=e45]: Use the email address you registered with
+        - generic [ref=e46]:
+          - generic [ref=e47]: Password
+          - generic [ref=e48]:
+            - textbox "Enter your password" [ref=e49]
+            - button "Show password" [ref=e50] [cursor=pointer]:
+              - img [ref=e51] [cursor=pointer]
+          - paragraph [ref=e54]: Enter your account password
+        - link "Forgot your password?" [ref=e56] [cursor=pointer]:
+          - /url: /auth/forgot-password
+        - button "Sign In" [ref=e57] [cursor=pointer]
+      - paragraph [ref=e59]:
+        - text: Don't have an account?
+        - link "Sign up" [ref=e60] [cursor=pointer]:
+          - /url: /auth/signup
+  - generic [ref=e61]:
+    - heading "Command Palette" [level=2] [ref=e62]
+    - paragraph [ref=e63]: Type a command or search...
+  - region "Notifications alt+T"
+  - alert [ref=e64]
+```

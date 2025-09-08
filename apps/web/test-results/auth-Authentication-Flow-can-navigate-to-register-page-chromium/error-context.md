@@ -1,0 +1,46 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - heading "GoodBuy HQ" [level=1] [ref=e5]
+      - paragraph [ref=e6]: AI-Powered Business Intelligence
+    - generic [ref=e7]:
+      - generic [ref=e8]:
+        - heading "Create Account" [level=3] [ref=e9]
+        - paragraph [ref=e10]: Join GoodBuy HQ to get AI-powered business insights
+      - generic [ref=e12]:
+        - generic [ref=e13]:
+          - generic [ref=e14]: Email Address
+          - textbox "Email Address" [ref=e15]
+        - generic [ref=e16]:
+          - generic [ref=e17]: Password
+          - textbox "Password" [ref=e18]
+        - generic [ref=e19]:
+          - generic [ref=e20]: Business Name
+          - textbox "Business Name" [ref=e21]
+        - generic [ref=e22]:
+          - generic [ref=e23]: Industry
+          - combobox "Industry" [ref=e24]:
+            - option "Select an industry" [selected]
+            - option "Technology"
+            - option "Healthcare"
+            - option "Finance"
+            - option "Manufacturing"
+            - option "Retail"
+            - option "Real Estate"
+            - option "Food & Beverage"
+            - option "Education"
+            - option "Transportation"
+            - option "Construction"
+            - option "Other"
+        - generic [ref=e25]:
+          - generic [ref=e26]: Your Role
+          - combobox "Your Role" [ref=e27]:
+            - option "Business Owner" [selected]
+            - option "Manager"
+            - option "Advisor"
+        - button "Creating Account..." [disabled] [ref=e28]
+  - alert [ref=e29]
+```

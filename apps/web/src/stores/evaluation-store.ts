@@ -340,6 +340,32 @@ export const useEvaluationStore = create<EvaluationState>()(
             
             evaluations = await EvaluationService.getUserEvaluations(userId)
             console.log('📥✅ SUCCESS: Loaded', evaluations.length, 'evaluations from database')
+            
+            // If no evaluations found, try to migrate existing ones
+            if (evaluations.length === 0) {
+              console.log('📥 No evaluations found for current user, checking for migration...')
+              try {
+                const migrateResponse = await fetch('/api/evaluations/migrate', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ newUserId: userId })
+                })
+                
+                if (migrateResponse.ok) {
+                  const migrateResult = await migrateResponse.json()
+                  console.log('📥✅ Migration successful:', migrateResult)
+                  
+                  if (migrateResult.migratedCount > 0) {
+                    // Reload evaluations after migration
+                    evaluations = await EvaluationService.getUserEvaluations(userId)
+                    console.log('📥✅ After migration: Loaded', evaluations.length, 'evaluations')
+                  }
+                }
+              } catch (migrationError) {
+                console.log('📥 Migration failed or not needed:', migrationError)
+              }
+            }
+            
             console.log('📥 Evaluation details:', evaluations.map(e => ({ id: e.id, status: e.status, createdAt: e.createdAt })))
           } catch (apiError) {
             console.error('📥❌ Database fetch failed:', apiError)

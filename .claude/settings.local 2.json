@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(echo:*)",
+      "Read(//Users/danielgoodman/Documents/AI Projects/Goodbuy HQ/**)",
+      "Bash(md-tree explode:*)",
+      "Bash(mkdir:*)",
+      "Bash(npx create-next-app:*)",
+      "Bash(rm:*)",
+      "Bash(npm install)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx --package=typescript -- tsc --noEmit)",
+      "Bash(npm run:*)",
+      "Bash(npx prisma generate:*)",
+      "Bash(npm install:*)",
+      "Bash(npx playwright:*)",
+      "Bash(timeout 60 npx playwright test --project=chromium)",
+      "Bash(npm test:*)",
+      "Bash(cd:*)",
+      "Read(//var/folders/lg/jcr3rn7d4gjfjjympstp3lc40000gn/T/TemporaryItems/NSIRD_screencaptureui_1P4nb4/**)",
+      "Read(//var/folders/lg/jcr3rn7d4gjfjjympstp3lc40000gn/T/TemporaryItems/NSIRD_screencaptureui_kWFMqv/**)",
+      "Read(//var/folders/lg/jcr3rn7d4gjfjjympstp3lc40000gn/T/TemporaryItems/NSIRD_screencaptureui_S1E1iC/**)",
+      "Read(//var/folders/lg/jcr3rn7d4gjfjjympstp3lc40000gn/T/TemporaryItems/NSIRD_screencaptureui_wPcwbF/**)",
+      "Read(//Users/danielgoodman/Downloads/**)",
+      "Read(//var/folders/lg/jcr3rn7d4gjfjjympstp3lc40000gn/T/TemporaryItems/NSIRD_screencaptureui_ClAQOL/**)",
+      "Read(//var/folders/lg/jcr3rn7d4gjfjjympstp3lc40000gn/T/TemporaryItems/NSIRD_screencaptureui_j6yMqu/**)",
+      "Read(//var/folders/lg/jcr3rn7d4gjfjjympstp3lc40000gn/T/TemporaryItems/NSIRD_screencaptureui_mdjwnW/**)",
+      "Read(//var/folders/lg/jcr3rn7d4gjfjjympstp3lc40000gn/T/TemporaryItems/NSIRD_screencaptureui_N5qRLT/**)",
+      "Read(//var/folders/lg/jcr3rn7d4gjfjjympstp3lc40000gn/T/TemporaryItems/NSIRD_screencaptureui_dnxQW7/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
