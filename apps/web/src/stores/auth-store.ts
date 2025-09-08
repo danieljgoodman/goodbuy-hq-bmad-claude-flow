@@ -169,16 +169,14 @@ export const useAuthStore = create<AuthState>()(
           if (isDevMode) {
             console.log('🔓 Using development auth bypass')
             
-            // Use the existing consistent user ID from user-utils instead of generating new one
-            let devUserId = getCurrentUserId()
+            // Generate a consistent user ID based on email for proper user separation
+            const emailHash = btoa(email).replace(/[^A-Za-z0-9]/g, '').slice(0, 8)
+            const devUserId = `dev-${emailHash}-user`
             
-            // If no existing user ID, generate one based on email (but make it consistent)
-            if (!devUserId) {
-              devUserId = `dev-${btoa(email).slice(0, 8)}`
-              setUserId(devUserId)
-            }
+            // Always set the user ID based on email to ensure proper user separation
+            setUserId(devUserId)
             
-            console.log('🔓 Using consistent user ID:', devUserId)
+            console.log('🔓 Generated user-specific ID for:', email, '=> ID:', devUserId)
             
             // Create a mock user for development
             const mockUser: User = {

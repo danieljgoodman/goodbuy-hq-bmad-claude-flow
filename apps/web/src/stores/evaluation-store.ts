@@ -348,7 +348,10 @@ export const useEvaluationStore = create<EvaluationState>()(
                 const migrateResponse = await fetch('/api/evaluations/migrate', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ newUserId: userId })
+                  body: JSON.stringify({ 
+                    newUserId: userId,
+                    fromEmail: 'current-user' // Pass some user context for migration logic
+                  })
                 })
                 
                 if (migrateResponse.ok) {
