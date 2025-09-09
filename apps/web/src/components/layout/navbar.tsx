@@ -3,6 +3,8 @@
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Bell } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth-store'
 
 export default function Navbar() {
@@ -12,13 +14,26 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     await signOut()
-    router.push('/auth/login' as any)
+    router.push('/auth/login')
   }
 
   const navItems = [
     { href: '/dashboard', label: 'Dashboard' },
     { href: '/onboarding', label: 'New Evaluation' },
+    { href: '/guides', label: 'Implementation Guides' },
+    { href: '/analytics', label: 'Advanced Analytics' },
+    { href: '/benchmarking', label: 'Benchmarking' },
+    { href: '/reports', label: 'Reports' },
+    { href: '/support', label: 'Support' },
+    { href: '/notifications', label: 'Notifications' },
+    { href: '/subscription', label: 'Subscription' },
   ]
+
+  // Add admin link for admin users (mock check - in production would check user role)
+  const isAdmin = user?.email === 'admin@goodbuyhq.com' || user?.email?.includes('admin')
+  if (isAdmin) {
+    navItems.push({ href: '/admin', label: 'Admin' })
+  }
 
   return (
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -36,7 +51,7 @@ export default function Navbar() {
               {navItems.map((item) => (
                 <Link
                   key={item.href}
-                  href={item.href as any}
+                  href={item.href}
                   className={`text-sm font-medium transition-colors hover:text-primary ${
                     pathname === item.href
                       ? 'text-primary border-b-2 border-primary'
@@ -52,6 +67,19 @@ export default function Navbar() {
           <div className="flex items-center space-x-4">
             {user ? (
               <>
+                {/* Notification Bell */}
+                <Link href="/notifications">
+                  <Button variant="ghost" size="sm" className="relative">
+                    <Bell className="h-4 w-4" />
+                    <Badge 
+                      variant="destructive" 
+                      className="absolute -top-1 -right-1 h-5 w-5 text-xs p-0 flex items-center justify-center"
+                    >
+                      3
+                    </Badge>
+                  </Button>
+                </Link>
+                
                 <span className="text-sm text-muted-foreground">
                   {user.businessName || user.email}
                 </span>

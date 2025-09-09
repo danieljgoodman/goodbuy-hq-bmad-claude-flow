@@ -14,11 +14,19 @@ model User {
   industry         String
   role             Role      @default(OWNER)
   subscriptionTier Tier      @default(FREE)
+  stripeCustomerId String?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
   lastLoginAt      DateTime?
 
   evaluations BusinessEvaluation[]
+  subscriptions Subscription[]
+  payments Payment[]
+  implementationGuides ImplementationGuide[]
+  progressEntries ProgressEntry[]
+  valueImpacts ValueImpact[]
+  milestones Milestone[]
+  businessRevaluations BusinessRevaluation[]
 
   @@map("users")
 }
@@ -36,6 +44,8 @@ model BusinessEvaluation {
   updatedAt       DateTime          @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  implementationGuides ImplementationGuide[]
+  businessRevaluations BusinessRevaluation[]
 
   @@map("business_evaluations")
 }
@@ -62,4 +72,271 @@ enum EvaluationStatus {
   FAILED
 
   @@map("evaluation_status")
+}
+
+model Subscription {
+  id                    String             @id @default(uuid()) @db.Uuid
+  userId                String             @db.Uuid
+  stripeSubscriptionId  String             @unique
+  stripePriceId         String
+  status                SubscriptionStatus @default(TRIALING)
+  tier                  Tier               @default(FREE)
+  billingCycle          BillingCycle       @default(MONTHLY)
+  trialEndsAt           DateTime?
+  currentPeriodStart    DateTime
+  currentPeriodEnd      DateTime
+  cancelAtPeriodEnd     Boolean            @default(false)
+  cancelledAt           DateTime?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
+
+model Payment {
+  id                    String        @id @default(uuid()) @db.Uuid
+  userId                String        @db.Uuid
+  subscriptionId        String?       @db.Uuid
+  stripePaymentIntentId String        @unique
+  amount                Int           // in cents
+  currency              String        @default("usd")
+  status                PaymentStatus @default(PENDING)
+  receiptUrl            String?
+  createdAt             DateTime      @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  UNPAID
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+
+  @@map("subscription_status")
+}
+
+enum BillingCycle {
+  MONTHLY
+  ANNUAL
+
+  @@map("billing_cycle")
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+
+  @@map("payment_status")
+}
+
+model ImplementationGuide {
+  id                    String                @id @default(uuid()) @db.Uuid
+  userId                String                @db.Uuid
+  evaluationId          String                @db.Uuid
+  improvementCategory   String
+  title                 String
+  description           String
+  industry              String
+  businessContext       Json
+  steps                 GuideStep[]
+  estimatedDuration     Int                   // in hours
+  difficultyLevel       DifficultyLevel       @default(INTERMEDIATE)
+  resourceRequirements  Json
+  templates             Json[]
+  version               Int                   @default(1)
+  generatedAt           DateTime              @default(now())
+  lastUpdated           DateTime              @updatedAt
+  createdAt             DateTime              @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  evaluation BusinessEvaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  progressEntries ProgressEntry[]
+
+  @@map("implementation_guides")
+}
+
+model GuideStep {
+  id                    String                @id @default(uuid()) @db.Uuid
+  guideId               String                @db.Uuid
+  stepNumber            Int
+  title                 String
+  description           String
+  estimatedTime         Int                   // in minutes
+  difficulty            String
+  resources             Json[]
+  tips                  Json[]
+  commonPitfalls        Json[]
+  successMetrics        Json[]
+  completed             Boolean               @default(false)
+  completedAt           DateTime?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  guide ImplementationGuide @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  progressEntries ProgressEntry[]
+
+  @@map("guide_steps")
+}
+
+model Template {
+  id                    String                @id @default(uuid()) @db.Uuid
+  name                  String
+  category              String
+  description           String
+  templateType          TemplateType          @default(DOCUMENT)
+  content               String                // Template content or file path
+  variables             Json[]                // Template variables for customization
+  instructions          String
+  examples              Json[]
+  tags                  String[]
+  downloadCount         Int                   @default(0)
+  rating                Float?
+  industry              String[]
+  difficulty            DifficultyLevel       @default(INTERMEDIATE)
+  estimatedTime         String
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  @@map("templates")
+}
+
+enum DifficultyLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+
+  @@map("difficulty_level")
+}
+
+enum TemplateType {
+  DOCUMENT
+  SPREADSHEET
+  CHECKLIST
+  PROCESS
+  PRESENTATION
+
+  @@map("template_type")
+}
+
+model ProgressEntry {
+  id                    String                @id @default(uuid()) @db.Uuid
+  userId                String                @db.Uuid
+  guideId               String                @db.Uuid
+  stepId                String                @db.Uuid
+  improvementCategory   String
+  status                ProgressStatus        @default(NOT_STARTED)
+  evidence              Json[]                // Array of evidence objects
+  timeInvested          Float                 @default(0) // in hours
+  moneyInvested         Float                 @default(0) // in dollars
+  completedAt           DateTime?
+  verifiedAt            DateTime?
+  notes                 String?
+  aiValidationScore     Float?                // 0.0 to 1.0
+  manualValidation      Boolean               @default(false)
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  guide ImplementationGuide @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  step GuideStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  valueImpacts ValueImpact[]
+  milestones Milestone[]
+
+  @@unique([userId, stepId])
+  @@map("progress_entries")
+}
+
+model ValueImpact {
+  id                    String                @id @default(uuid()) @db.Uuid
+  userId                String                @db.Uuid
+  progressEntryId       String                @db.Uuid
+  baselineValuation     Float                 // Original valuation
+  updatedValuation      Float                 // New valuation after improvement
+  valuationIncrease     Float                 // Absolute increase
+  impactPercentage      Float                 // Percentage increase
+  confidenceScore       Float                 // AI confidence in calculation
+  improvementCategory   String
+  roi                   Float                 // Return on Investment
+  timeToValue           Int                   // Days to realize value
+  calculatedAt          DateTime              @default(now())
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  progressEntry ProgressEntry @relation(fields: [progressEntryId], references: [id], onDelete: Cascade)
+
+  @@map("value_impacts")
+}
+
+model Milestone {
+  id                    String                @id @default(uuid()) @db.Uuid
+  userId                String                @db.Uuid
+  progressEntryId       String?               @db.Uuid
+  title                 String
+  description           String
+  category              String                // e.g., "revenue", "efficiency", "growth"
+  targetDate            DateTime?
+  completedAt           DateTime?
+  status                MilestoneStatus       @default(PENDING)
+  rewardType            String?               // e.g., "badge", "certificate", "discount"
+  rewardData            Json?                 // Additional reward information
+  achievementData       Json?                 // Achievement metadata
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  progressEntry ProgressEntry? @relation(fields: [progressEntryId], references: [id], onDelete: SetNull)
+
+  @@map("milestones")
+}
+
+model BusinessRevaluation {
+  id                    String                @id @default(uuid()) @db.Uuid
+  userId                String                @db.Uuid
+  originalEvaluationId  String                @db.Uuid
+  triggeredByProgress   Boolean               @default(true)
+  baselineValuation     Float
+  updatedValuation      Float
+  valuationChange       Float
+  changePercentage      Float
+  confidenceScore       Float
+  improvementsIncluded  Json[]                // Array of improvement IDs
+  calculationMethod     String                // AI model/method used
+  calculationData       Json                  // Detailed calculation breakdown
+  revaluationReason     String                // Why revaluation was triggered
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  originalEvaluation BusinessEvaluation @relation(fields: [originalEvaluationId], references: [id], onDelete: Cascade)
+
+  @@map("business_revaluations")
+}
+
+enum ProgressStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  VERIFIED
+
+  @@map("progress_status")
+}
+
+enum MilestoneStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  OVERDUE
+
+  @@map("milestone_status")
 }
