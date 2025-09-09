@@ -8,14 +8,21 @@ import HealthScore from '@/components/evaluation/health-score'
 import OpportunitiesList from '@/components/evaluation/opportunities-list'
 import { UnifiedResultsDashboard } from '@/components/evaluation/unified-results-dashboard'
 import { useEvaluationStore } from '@/stores/evaluation-store'
+import { useAuthStore } from '@/stores/auth-store'
 import type { BusinessEvaluation } from '@/types'
 
 export default function EvaluationResultsPage() {
   const params = useParams()
   const evaluationId = params.id as string
-  const { evaluations, loadEvaluations } = useEvaluationStore()
+  
+  // Force component refresh timestamp: 2025-09-08-7:33pm
+  console.log('🔄 EvaluationResultsPage loaded with NEW save logic - v2.1')
+  const { evaluations, loadEvaluations, saveEvaluation } = useEvaluationStore()
+  const { user } = useAuthStore()
+  const userId = user?.id
   const [evaluation, setEvaluation] = useState<BusinessEvaluation | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
   
   // Detect evaluation type (Epic 1 vs Epic 2)
   const isEpic2Evaluation = (evaluation: BusinessEvaluation) => {
@@ -27,6 +34,34 @@ export default function EvaluationResultsPage() {
       evaluation.valuations?.industryAdjustments?.length > 0 || // Has industry adjustments
       evaluation.scoringFactors?.growth  // Has enhanced growth scoring (Epic 2 specific)
     )
+  }
+
+  // Save evaluation and navigate to dashboard
+  const handleSaveAndReturn = async () => {
+    if (!evaluation || !userId) return
+    
+    console.log('🚀 SAVE BUTTON CLICKED - New save logic v2 activated!')
+    console.log('📊 Evaluation to save:', { id: evaluation.id, status: evaluation.status, userId })
+    
+    setIsSaving(true)
+    try {
+      await saveEvaluation({
+        ...evaluation,
+        userId,
+        createdAt: evaluation.createdAt || new Date(),
+        updatedAt: new Date()
+      })
+      
+      console.log('✅ Save successful, navigating to dashboard...')
+      // Navigate to dashboard after successful save
+      window.location.href = '/dashboard'
+    } catch (error) {
+      console.error('❌ Save failed:', error)
+      // Still navigate on error - evaluation data is already processed
+      window.location.href = '/dashboard'
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   useEffect(() => {
@@ -152,12 +187,20 @@ export default function EvaluationResultsPage() {
           {/* Action Buttons at Bottom */}
           <div className="mt-12 text-center">
             <div className="inline-flex space-x-4">
-              <a 
-                href="/dashboard"
-                className="px-6 py-3 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg"
+              <button
+                onClick={handleSaveAndReturn}
+                disabled={isSaving}
+                className="px-6 py-3 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                Save and Return to Dashboard
-              </a>
+                {isSaving ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground"></div>
+                    Saving V2...
+                  </>
+                ) : (
+                  'Save and Return to Dashboard V2'
+                )}
+              </button>
               <a 
                 href="/onboarding"
                 className="px-6 py-3 border border-input bg-background hover:bg-accent rounded-lg"

@@ -1,1 +1,280 @@
-{}
+{
+  "e7eba041-daed-42c3-a8b5-dd7936cfba78": {
+    "id": "e7eba041-daed-42c3-a8b5-dd7936cfba78",
+    "userId": "d882e870-879b-4b93-8763-ba60b492a2ed",
+    "businessData": {
+      "businessType": "LLC",
+      "industryFocus": "General",
+      "yearsInBusiness": 13,
+      "businessModel": "B2B (Business to Business)",
+      "revenueModel": "Recurring Subscription",
+      "annualRevenue": 2525000,
+      "monthlyRecurring": 0,
+      "expenses": 1640000,
+      "cashFlow": 397000,
+      "assets": 1375000,
+      "liabilities": 700000,
+      "customerCount": 232,
+      "marketPosition": "Growing Player",
+      "grossMargin": 37,
+      "employeeCount": 13,
+      "competitiveAdvantages": [
+        "Proprietary Technology",
+        "Cost Leadership",
+        "Exclusive Partnerships"
+      ],
+      "primaryChannels": [
+        "Online/E-commerce",
+        "Other",
+        "Social Media"
+      ]
+    },
+    "valuations": {
+      "assetBased": {
+        "value": 675000,
+        "confidence": 80,
+        "methodology": "Net asset value approach",
+        "factors": [
+          "Total assets",
+          "Total liabilities",
+          "Asset quality"
+        ]
+      },
+      "incomeBased": {
+        "value": 4425000,
+        "confidence": 75,
+        "methodology": "Earnings multiple approach",
+        "multiple": 5,
+        "factors": [
+          "Net profit",
+          "Earnings consistency",
+          "Growth prospects"
+        ]
+      },
+      "marketBased": {
+        "value": 3787500,
+        "confidence": 70,
+        "methodology": "Revenue multiple approach",
+        "comparables": [
+          {
+            "companyName": "Industry Comparable A",
+            "industry": "General",
+            "revenue": 3030000,
+            "valuation": 4545000,
+            "multiple": 1.5,
+            "source": "Market data",
+            "relevanceScore": 80
+          }
+        ],
+        "factors": [
+          "Revenue multiple",
+          "Industry comparables",
+          "Market conditions"
+        ]
+      },
+      "weighted": {
+        "value": 3108750,
+        "confidence": 85,
+        "methodology": "Weighted average of all methodologies",
+        "weightings": {
+          "assetBased": 0.3,
+          "incomeBased": 0.4,
+          "marketBased": 0.3
+        }
+      },
+      "industryAdjustments": [
+        {
+          "factor": "Industry risk",
+          "adjustment": -0.05,
+          "reasoning": "Industry-specific risk factors",
+          "confidence": 70
+        }
+      ],
+      "valuationRange": {
+        "low": 2487000,
+        "high": 3730500,
+        "mostLikely": 3108750
+      },
+      "methodology": "AI-powered multi-methodology valuation using asset, income, and market approaches"
+    },
+    "healthScore": 84,
+    "confidenceScore": 80,
+    "opportunities": [
+      {
+        "id": "revenue-diversification",
+        "category": "strategic",
+        "title": "Revenue Stream Diversification",
+        "description": "Develop complementary revenue streams to reduce dependency and increase total addressable market.",
+        "impactEstimate": {
+          "dollarAmount": 883750,
+          "percentageIncrease": 35,
+          "confidence": 75,
+          "roiEstimate": 3.2,
+          "timeline": "12 months"
+        },
+        "difficulty": "high",
+        "timeframe": "9-18 months",
+        "priority": 2,
+        "requiredResources": [
+          "Market research",
+          "Product development",
+          "Sales team expansion"
+        ],
+        "specificAnalysis": "Current revenue concentration presents risk. Adding complementary streams could generate additional $883,750 annually while reducing business risk.",
+        "selectionRationale": "Critical for long-term sustainability and growth, addresses revenue concentration risk identified in analysis.",
+        "riskFactors": [
+          "Market acceptance uncertainty",
+          "Resource allocation challenges",
+          "Execution complexity"
+        ],
+        "prerequisites": [
+          "Market analysis",
+          "Resource planning",
+          "Pilot program validation"
+        ]
+      }
+    ],
+    "status": "completed",
+    "createdAt": "2025-09-09T13:44:49.173Z",
+    "updatedAt": "2025-09-09T13:44:49.434Z"
+  },
+  "c4a19e8d-8151-45bd-92ec-9806ab1ac262": {
+    "id": "c4a19e8d-8151-45bd-92ec-9806ab1ac262",
+    "userId": "d882e870-879b-4b93-8763-ba60b492a2ed",
+    "businessData": {
+      "businessType": "LLC",
+      "industryFocus": "General",
+      "yearsInBusiness": 13,
+      "businessModel": "B2B (Business to Business)",
+      "revenueModel": "Recurring Subscription",
+      "annualRevenue": 2525000,
+      "monthlyRecurring": 0,
+      "expenses": 1640000,
+      "cashFlow": 397000,
+      "assets": 1375000,
+      "liabilities": 700000,
+      "customerCount": 232,
+      "marketPosition": "Growing Player",
+      "grossMargin": 37,
+      "employeeCount": 13,
+      "competitiveAdvantages": [
+        "Proprietary Technology",
+        "Cost Leadership",
+        "Exclusive Partnerships"
+      ],
+      "primaryChannels": [
+        "Online/E-commerce",
+        "Other",
+        "Social Media"
+      ]
+    },
+    "valuations": {
+      "assetBased": {
+        "value": 675000,
+        "confidence": 80,
+        "methodology": "Net asset value approach",
+        "factors": [
+          "Total assets",
+          "Total liabilities",
+          "Asset quality"
+        ]
+      },
+      "incomeBased": {
+        "value": 4425000,
+        "confidence": 75,
+        "methodology": "Earnings multiple approach",
+        "multiple": 5,
+        "factors": [
+          "Net profit",
+          "Earnings consistency",
+          "Growth prospects"
+        ]
+      },
+      "marketBased": {
+        "value": 3787500,
+        "confidence": 70,
+        "methodology": "Revenue multiple approach",
+        "comparables": [
+          {
+            "companyName": "Industry Comparable A",
+            "industry": "General",
+            "revenue": 3030000,
+            "valuation": 4545000,
+            "multiple": 1.5,
+            "source": "Market data",
+            "relevanceScore": 80
+          }
+        ],
+        "factors": [
+          "Revenue multiple",
+          "Industry comparables",
+          "Market conditions"
+        ]
+      },
+      "weighted": {
+        "value": 3108750,
+        "confidence": 85,
+        "methodology": "Weighted average of all methodologies",
+        "weightings": {
+          "assetBased": 0.3,
+          "incomeBased": 0.4,
+          "marketBased": 0.3
+        }
+      },
+      "industryAdjustments": [
+        {
+          "factor": "Industry risk",
+          "adjustment": -0.05,
+          "reasoning": "Industry-specific risk factors",
+          "confidence": 70
+        }
+      ],
+      "valuationRange": {
+        "low": 2487000,
+        "high": 3730500,
+        "mostLikely": 3108750
+      },
+      "methodology": "AI-powered multi-methodology valuation using asset, income, and market approaches"
+    },
+    "healthScore": 84,
+    "confidenceScore": 80,
+    "opportunities": [
+      {
+        "id": "revenue-diversification",
+        "category": "strategic",
+        "title": "Revenue Stream Diversification",
+        "description": "Develop complementary revenue streams to reduce dependency and increase total addressable market.",
+        "impactEstimate": {
+          "dollarAmount": 883750,
+          "percentageIncrease": 35,
+          "confidence": 75,
+          "roiEstimate": 3.2,
+          "timeline": "12 months"
+        },
+        "difficulty": "high",
+        "timeframe": "9-18 months",
+        "priority": 2,
+        "requiredResources": [
+          "Market research",
+          "Product development",
+          "Sales team expansion"
+        ],
+        "specificAnalysis": "Current revenue concentration presents risk. Adding complementary streams could generate additional $883,750 annually while reducing business risk.",
+        "selectionRationale": "Critical for long-term sustainability and growth, addresses revenue concentration risk identified in analysis.",
+        "riskFactors": [
+          "Market acceptance uncertainty",
+          "Resource allocation challenges",
+          "Execution complexity"
+        ],
+        "prerequisites": [
+          "Market analysis",
+          "Resource planning",
+          "Pilot program validation"
+        ]
+      }
+    ],
+    "status": "completed",
+    "createdAt": "2025-09-09T13:58:48.123Z",
+    "updatedAt": "2025-09-09T13:58:48.136Z"
+  }
+}

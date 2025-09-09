@@ -6,27 +6,83 @@
 // In a real app, this would come from authentication
 let _cachedUserId: string | null = null
 
+// Function to get current user from auth store (avoid circular dependency)
+function getAuthStoreUser() {
+  if (typeof window === 'undefined') return null
+  
+  try {
+    // Try multiple possible keys that Zustand might use
+    const possibleKeys = ['auth-store', 'zustand-auth-store', 'authStore']
+    let authState = null
+    let foundKey = null
+    
+    console.log('🆔 DEBUG: Checking localStorage keys:', Object.keys(localStorage))
+    
+    for (const key of possibleKeys) {
+      const data = localStorage.getItem(key)
+      if (data) {
+        authState = data
+        foundKey = key
+        break
+      }
+    }
+    
+    console.log('🆔 DEBUG: Found auth data with key:', foundKey)
+    
+    if (authState) {
+      const parsed = JSON.parse(authState)
+      console.log('🆔 DEBUG: Auth store structure:', {
+        keys: Object.keys(parsed),
+        hasState: !!parsed.state,
+        hasUser: !!parsed.state?.user,
+        userId: parsed.state?.user?.id,
+        userEmail: parsed.state?.user?.email
+      })
+      console.log('🆔 Using auth store user:', parsed.state?.user?.id || 'no user')
+      return parsed.state?.user || null
+    }
+  } catch (error) {
+    console.log('🆔 ERROR parsing auth store:', error)
+  }
+  return null
+}
+
 export function getCurrentUserId(): string {
-  // Check if we already have a cached user ID
-  if (_cachedUserId) {
-    console.log('🆔 Using cached user ID:', _cachedUserId)
-    return _cachedUserId
+  // FORCE CLEAR: Always clear cached data on each call to ensure fresh auth check
+  _cachedUserId = null
+  
+  // PRIORITY 1: ALWAYS use auth store if available
+  const authUser = getAuthStoreUser()
+  
+  if (authUser?.id) {
+    console.log('🆔 FORCE USING auth store user ID:', authUser.id)
+    _cachedUserId = authUser.id
+    
+    // FORCE CLEAR stale localStorage
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('goodbuy-user-id')
+      if (stored && stored !== authUser.id) {
+        console.log('🆔 FORCE CLEARING stale localStorage:', stored, '→', authUser.id)
+      }
+      localStorage.removeItem('goodbuy-user-id') // Always clear
+      localStorage.setItem('goodbuy-user-id', authUser.id)
+    }
+    return authUser.id
   }
 
-  // Try to get from localStorage first (persistence across page reloads)
+  // PRIORITY 2: Only fallback to localStorage if NO auth user
   if (typeof window !== 'undefined') {
     const stored = localStorage.getItem('goodbuy-user-id')
     if (stored) {
       _cachedUserId = stored
-      console.log('🆔 Using stored user ID from localStorage:', stored)
+      console.log('🆔 FALLBACK: Using stored user ID from localStorage:', stored)
       return stored
     }
   }
 
-  // Generate a new user ID if none exists
+  // PRIORITY 3: Generate new if nothing exists
   const newUserId = crypto.randomUUID()
   
-  // Store it for persistence
   if (typeof window !== 'undefined') {
     localStorage.setItem('goodbuy-user-id', newUserId)
   }
@@ -76,4 +132,10 @@ export function setUserId(userId: string): void {
     localStorage.setItem('goodbuy-user-id', userId)
   }
   console.log('🔧 Force set user ID to:', userId)
+}
+
+// Clear all cached user data to force refresh
+export function refreshUserIdFromAuth(): void {
+  _cachedUserId = null
+  console.log('🔄 Cleared cached user ID - will refresh from auth store on next call')
 }

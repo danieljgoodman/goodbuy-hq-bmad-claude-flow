@@ -20,6 +20,7 @@ interface EvaluationState {
   setCurrentEvaluation: (evaluation: Partial<BusinessEvaluation>) => void
   updateBusinessData: (data: Partial<BusinessEvaluation['businessData']>) => void
   saveProgress: () => Promise<void>
+  saveEvaluation: (evaluation: BusinessEvaluation) => Promise<void>
   submitEvaluation: () => Promise<BusinessEvaluation>
   loadEvaluations: (force?: boolean) => Promise<void>
   setCurrentStep: (step: number) => void
@@ -83,6 +84,110 @@ export const useEvaluationStore = create<EvaluationState>()(
           console.error('Failed to save progress:', error)
         } finally {
           set({ isLoading: false })
+        }
+      },
+
+      saveEvaluation: async (evaluation: BusinessEvaluation) => {
+        console.log('💾 SAVE EVALUATION - Direct save called for:', evaluation.id)
+        
+        try {
+          const { EvaluationService } = await import('@/lib/services/evaluation-service')
+          
+          // Prepare business data with all required fields
+          const businessData = {
+            businessType: evaluation.businessData?.businessType || 'LLC',
+            industryFocus: evaluation.businessData?.industryFocus || 'General',
+            yearsInBusiness: evaluation.businessData?.yearsInBusiness || 1,
+            businessModel: evaluation.businessData?.businessModel || 'Direct Sales',
+            revenueModel: evaluation.businessData?.revenueModel || 'Product Sales',
+            annualRevenue: evaluation.businessData?.annualRevenue || 0,
+            monthlyRecurring: evaluation.businessData?.monthlyRecurring || 0,
+            expenses: evaluation.businessData?.expenses || 0,
+            cashFlow: evaluation.businessData?.cashFlow || 0,
+            assets: evaluation.businessData?.assets || 0,
+            liabilities: evaluation.businessData?.liabilities || 0,
+            customerCount: evaluation.businessData?.customerCount || 0,
+            marketPosition: evaluation.businessData?.marketPosition || 'Unknown',
+            grossMargin: evaluation.businessData?.grossMargin || 0,
+            employeeCount: evaluation.businessData?.employeeCount || 1,
+            competitiveAdvantages: evaluation.businessData?.competitiveAdvantages || [],
+            primaryChannels: evaluation.businessData?.primaryChannels || []
+          }
+          
+          let savedEvaluation
+          
+          try {
+            // First try to create the evaluation (safer approach)
+            console.log('💾 Creating new evaluation with ID:', evaluation.id)
+            savedEvaluation = await EvaluationService.createEvaluation(businessData, evaluation.userId)
+            console.log('💾 Created evaluation, now updating with complete data...')
+            
+            // Now update it with the complete data
+            savedEvaluation = await EvaluationService.updateEvaluation(savedEvaluation.id, {
+              status: evaluation.status,
+              valuations: evaluation.valuations as any,
+              healthScore: evaluation.healthScore,
+              confidenceScore: evaluation.confidenceScore,
+              opportunities: evaluation.opportunities,
+              updatedAt: evaluation.updatedAt
+            })
+            console.log('💾✅ Successfully created and updated evaluation')
+            
+            // Update the evaluation object with the new ID for consistency
+            evaluation.id = savedEvaluation.id
+          } catch (createError: any) {
+            // If create failed because it already exists, try to update
+            if (createError.message?.includes('already exists') || createError.message?.includes('409')) {
+              console.log('💾 Evaluation exists, attempting to update...')
+              savedEvaluation = await EvaluationService.updateEvaluation(evaluation.id, {
+                status: evaluation.status,
+                businessData,
+                valuations: evaluation.valuations as any,
+                healthScore: evaluation.healthScore,
+                confidenceScore: evaluation.confidenceScore,
+                opportunities: evaluation.opportunities,
+                updatedAt: evaluation.updatedAt
+              })
+              console.log('💾✅ Successfully updated existing evaluation')
+            } else {
+              console.log('💾❌ Create failed, trying update as fallback...')
+              // Fallback: try to update anyway
+              try {
+                savedEvaluation = await EvaluationService.updateEvaluation(evaluation.id, {
+                  status: evaluation.status,
+                  businessData,
+                  valuations: evaluation.valuations as any,
+                  healthScore: evaluation.healthScore,
+                  confidenceScore: evaluation.confidenceScore,
+                  opportunities: evaluation.opportunities,
+                  updatedAt: evaluation.updatedAt
+                })
+                console.log('💾✅ Successfully updated evaluation via fallback')
+              } catch (updateError: any) {
+                console.log('💾❌ Both create and update failed:', createError, updateError)
+                throw createError
+              }
+            }
+          }
+          
+          // Update store with saved evaluation
+          set(state => {
+            const existingIndex = state.evaluations.findIndex(e => e.id === evaluation.id)
+            if (existingIndex >= 0) {
+              // Update existing
+              const updatedEvaluations = [...state.evaluations]
+              updatedEvaluations[existingIndex] = evaluation
+              return { evaluations: updatedEvaluations }
+            } else {
+              // Add new
+              return { evaluations: [...state.evaluations, evaluation] }
+            }
+          })
+          
+          console.log('💾✅ SAVE EVALUATION - Successfully saved to database and store')
+        } catch (error) {
+          console.error('💾❌ SAVE EVALUATION - Failed:', error)
+          throw error
         }
       },
 

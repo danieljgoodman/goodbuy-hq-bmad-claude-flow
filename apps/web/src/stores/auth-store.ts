@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import { supabase } from '@/lib/supabase'
-import { setUserId, clearUserId, getCurrentUserId } from '@/lib/user-utils'
+import { setUserId, clearUserId, getCurrentUserId, refreshUserIdFromAuth } from '@/lib/user-utils'
 import type { User } from '@/types'
 
 // Database user type (snake_case)
@@ -58,9 +58,12 @@ interface AuthState {
   initialize: () => Promise<void>
 }
 
+import { persist } from 'zustand/middleware'
+
 export const useAuthStore = create<AuthState>()(
   devtools(
-    (set, get) => ({
+    persist(
+      (set, get) => ({
       user: null,
       isLoading: true,
       isAuthenticated: false,
@@ -88,11 +91,15 @@ export const useAuthStore = create<AuthState>()(
               .single()
 
             if (userData) {
+              const transformedUser = transformDatabaseUser(userData)
               set({ 
-                user: transformDatabaseUser(userData), 
+                user: transformedUser, 
                 isAuthenticated: true, 
                 isLoading: false 
               })
+              
+              // Force refresh user ID cache so evaluation system uses the correct ID
+              refreshUserIdFromAuth()
             }
           } else {
             set({ isLoading: false })
@@ -143,6 +150,9 @@ export const useAuthStore = create<AuthState>()(
               isAuthenticated: true, 
               isLoading: false 
             })
+            
+            // Force refresh user ID cache so evaluation system uses the correct ID
+            refreshUserIdFromAuth()
           }
         } catch (error) {
           set({ isLoading: false })
@@ -203,7 +213,16 @@ export const useAuthStore = create<AuthState>()(
               isAuthenticated: true, 
               isLoading: false 
             })
+            
+            // Force refresh user ID cache so evaluation system uses the correct ID
+            refreshUserIdFromAuth()
+            
             console.log('🔓 Auth state updated successfully')
+            console.log('🔓 User ID consistency check after sign-in:', {
+              authStoreId: mockUser.id,
+              userUtilsId: getCurrentUserId(),
+              match: mockUser.id === getCurrentUserId()
+            })
             return
           }
 
@@ -227,11 +246,15 @@ export const useAuthStore = create<AuthState>()(
                 .update({ last_login_at: new Date() })
                 .eq('id', data.user.id)
 
+              const transformedUser = transformDatabaseUser({ ...userData, last_login_at: new Date() })
               set({ 
-                user: transformDatabaseUser({ ...userData, last_login_at: new Date() }), 
+                user: transformedUser, 
                 isAuthenticated: true, 
                 isLoading: false 
               })
+              
+              // Force refresh user ID cache so evaluation system uses the correct ID
+              refreshUserIdFromAuth()
             }
           }
         } catch (error) {
@@ -288,8 +311,16 @@ export const useAuthStore = create<AuthState>()(
         } catch (error) {
           throw error
         }
-      },
+      }
     }),
-    { name: 'auth-store' }
+      {
+        name: 'auth-store', // localStorage key
+        partialize: (state) => ({
+          user: state.user,
+          isAuthenticated: state.isAuthenticated,
+        }),
+      }
+    ),
+    { name: 'auth-store-devtools' }
   )
 )

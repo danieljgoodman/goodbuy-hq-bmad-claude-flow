@@ -119,11 +119,9 @@ export interface HealthAnalysis {
 }
 
 export class ClaudeService {
-  private static baseUrl = 'https://api.anthropic.com/v1'
+  private static baseUrl = '/api/claude'
   private static headers = {
     'Content-Type': 'application/json',
-    'x-api-key': config.claude.apiKey,
-    'anthropic-version': '2023-06-01',
   }
 
   // Epic 2: Document Intelligence Methods
@@ -131,18 +129,13 @@ export class ClaudeService {
     const prompt = this.createDocumentExtractionPrompt(documentContent, fileType)
     
     try {
-      const response = await fetch(`${this.baseUrl}/messages`, {
+      const response = await fetch(this.baseUrl, {
         method: 'POST',
         headers: this.headers,
         body: JSON.stringify({
-          model: 'claude-3-5-sonnet-20241022',
-          max_tokens: 3000,
-          messages: [
-            {
-              role: 'user',
-              content: prompt
-            }
-          ]
+          type: 'document-extraction',
+          documentContent,
+          fileType
         }),
       })
 
@@ -151,7 +144,10 @@ export class ClaudeService {
       }
 
       const result = await response.json()
-      const analysisText = result.content[0].text
+      if (result.fallback) {
+        throw new Error('Claude API unavailable')
+      }
+      const analysisText = result.analysisText
       
       return this.parseDocumentExtractionResponse(analysisText)
     } catch (error) {
@@ -232,18 +228,12 @@ export class ClaudeService {
     const prompt = this.createValuationPrompt(businessData)
     
     try {
-      const response = await fetch(`${this.baseUrl}/messages`, {
+      const response = await fetch(this.baseUrl, {
         method: 'POST',
         headers: this.headers,
         body: JSON.stringify({
-          model: 'claude-3-5-sonnet-20241022',
-          max_tokens: 3000,
-          messages: [
-            {
-              role: 'user',
-              content: prompt
-            }
-          ]
+          type: 'multi-methodology-valuation',
+          businessData
         }),
       })
 
@@ -252,7 +242,10 @@ export class ClaudeService {
       }
 
       const result = await response.json()
-      const analysisText = result.content[0].text
+      if (result.fallback) {
+        throw new Error('Claude API unavailable')
+      }
+      const analysisText = result.analysisText
       
       return this.parseValuationResponse(analysisText, businessData)
     } catch (error) {
@@ -266,18 +259,12 @@ export class ClaudeService {
     const prompt = this.createEnhancedAnalysisPrompt(businessData)
     
     try {
-      const response = await fetch(`${this.baseUrl}/messages`, {
+      const response = await fetch(this.baseUrl, {
         method: 'POST',
         headers: this.headers,
         body: JSON.stringify({
-          model: 'claude-3-5-sonnet-20241022',
-          max_tokens: 4000,
-          messages: [
-            {
-              role: 'user',
-              content: prompt
-            }
-          ]
+          type: 'enhanced-health-analysis',
+          businessData
         }),
       })
 
@@ -286,7 +273,10 @@ export class ClaudeService {
       }
 
       const result = await response.json()
-      const analysisText = result.content[0].text
+      if (result.fallback) {
+        throw new Error('Claude API unavailable')
+      }
+      const analysisText = result.analysisText
       
       return this.parseEnhancedAnalysisResponse(analysisText, businessData)
     } catch (error) {
@@ -299,18 +289,12 @@ export class ClaudeService {
     const prompt = this.createAnalysisPrompt(businessData)
     
     try {
-      const response = await fetch(`${this.baseUrl}/messages`, {
+      const response = await fetch(this.baseUrl, {
         method: 'POST',
         headers: this.headers,
         body: JSON.stringify({
-          model: 'claude-3-5-sonnet-20241022',
-          max_tokens: 2000,
-          messages: [
-            {
-              role: 'user',
-              content: prompt
-            }
-          ]
+          type: 'basic-health-analysis',
+          businessData
         }),
       })
 
@@ -319,7 +303,10 @@ export class ClaudeService {
       }
 
       const result = await response.json()
-      const analysisText = result.content[0].text
+      if (result.fallback) {
+        throw new Error('Claude API unavailable')
+      }
+      const analysisText = result.analysisText
       
       return this.parseAnalysisResponse(analysisText, businessData)
     } catch (error) {

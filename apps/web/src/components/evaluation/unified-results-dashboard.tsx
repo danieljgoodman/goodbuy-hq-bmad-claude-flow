@@ -254,29 +254,29 @@ export function UnifiedResultsDashboard({
                     <div className="flex justify-between items-center">
                       <span>Financial:</span>
                       <div className="flex items-center gap-2">
-                        <Progress value={evaluation.scoringFactors.financial.score} className="w-20" />
-                        <span className="font-semibold">{evaluation.scoringFactors.financial.score}</span>
+                        <Progress value={evaluation.scoringFactors?.financial?.score || evaluation.scoringFactors?.financial || 0} className="w-20" />
+                        <span className="font-semibold">{evaluation.scoringFactors?.financial?.score || evaluation.scoringFactors?.financial || 0}</span>
                       </div>
                     </div>
                     <div className="flex justify-between items-center">
                       <span>Operational:</span>
                       <div className="flex items-center gap-2">
-                        <Progress value={evaluation.scoringFactors.operational.score} className="w-20" />
-                        <span className="font-semibold">{evaluation.scoringFactors.operational.score}</span>
+                        <Progress value={evaluation.scoringFactors?.operational?.score || evaluation.scoringFactors?.operational || 0} className="w-20" />
+                        <span className="font-semibold">{evaluation.scoringFactors?.operational?.score || evaluation.scoringFactors?.operational || 0}</span>
                       </div>
                     </div>
                     <div className="flex justify-between items-center">
                       <span>Market:</span>
                       <div className="flex items-center gap-2">
-                        <Progress value={evaluation.scoringFactors.market.score} className="w-20" />
-                        <span className="font-semibold">{evaluation.scoringFactors.market.score}</span>
+                        <Progress value={evaluation.scoringFactors?.market?.score || evaluation.scoringFactors?.market || 0} className="w-20" />
+                        <span className="font-semibold">{evaluation.scoringFactors?.market?.score || evaluation.scoringFactors?.market || 0}</span>
                       </div>
                     </div>
                     <div className="flex justify-between items-center">
                       <span>Risk:</span>
                       <div className="flex items-center gap-2">
-                        <Progress value={evaluation.scoringFactors.risk.score} className="w-20" />
-                        <span className="font-semibold">{evaluation.scoringFactors.risk.score}</span>
+                        <Progress value={evaluation.scoringFactors?.risk?.score || evaluation.scoringFactors?.risk || 0} className="w-20" />
+                        <span className="font-semibold">{evaluation.scoringFactors?.risk?.score || evaluation.scoringFactors?.risk || 0}</span>
                       </div>
                     </div>
                   </div>
