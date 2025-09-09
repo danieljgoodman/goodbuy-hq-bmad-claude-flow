@@ -38,7 +38,7 @@ supabase start
 # Run database migrations
 npm run db:migrate
 
-# Seed development data
+# Seed realistic development data (NO MOCK DATA - use real data structures)
 npm run db:seed
 ```
 
@@ -82,3 +82,11 @@ UPSTASH_REDIS_REST_TOKEN=your_redis_token
 DATABASE_URL=postgresql://postgres:postgres@localhost:54432/postgres
 NODE_ENV=development
 ```
+
+## Data Policy
+
+### Critical: No Mock Data Rule
+- **Production Code:** Never implement functionality with mock/placeholder data
+- **Development:** Use realistic data that matches production data structures
+- **APIs:** Always implement real data fetching, never return hardcoded mock responses
+- **Components:** Build with real data integration from day one

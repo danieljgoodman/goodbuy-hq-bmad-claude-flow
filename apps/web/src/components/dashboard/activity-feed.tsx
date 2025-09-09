@@ -25,7 +25,7 @@ interface ActivityFeedProps {
   className?: string
 }
 
-const getActivityIcon = (type: ActivityItem['type']) => {
+const getActivityIcon = (type: ActivityItem['type'], status?: ActivityItem['status']) => {
   const iconMap = {
     'evaluation_created': FileText,
     'data_updated': TrendingUp,
@@ -34,21 +34,23 @@ const getActivityIcon = (type: ActivityItem['type']) => {
   }
   
   const IconComponent = iconMap[type] || FileText
+  
+  // Consistent icon sizing and styling
   return <IconComponent className="h-4 w-4" />
 }
 
 const getActivityColor = (type: ActivityItem['type'], status?: ActivityItem['status']) => {
-  if (status === 'error') return 'text-red-600 bg-red-50'
-  if (status === 'warning') return 'text-yellow-600 bg-yellow-50'
+  if (status === 'error') return 'text-red-600 bg-red-50 border border-red-200'
+  if (status === 'warning') return 'text-yellow-600 bg-yellow-50 border border-yellow-200'
   
   const colorMap = {
-    'evaluation_created': 'text-blue-600 bg-blue-50',
-    'data_updated': 'text-green-600 bg-green-50', 
-    'document_processed': 'text-purple-600 bg-purple-50',
-    'settings_changed': 'text-gray-600 bg-gray-50'
+    'evaluation_created': 'text-blue-600 bg-blue-50 border border-blue-200',
+    'data_updated': 'text-green-600 bg-green-50 border border-green-200', 
+    'document_processed': 'text-purple-600 bg-purple-50 border border-purple-200',
+    'settings_changed': 'text-gray-600 bg-gray-50 border border-gray-200'
   }
   
-  return colorMap[type] || 'text-gray-600 bg-gray-50'
+  return colorMap[type] || 'text-gray-600 bg-gray-50 border border-gray-200'
 }
 
 const getStatusIcon = (status?: ActivityItem['status']) => {
@@ -155,11 +157,11 @@ export default function ActivityFeed({
             <p className="text-sm mt-1">Actions will appear here as you use the platform</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {displayedActivities.map((activity, index) => (
-              <div key={activity.id} className="flex items-start space-x-3">
+              <div key={activity.id} className="flex items-start space-x-3 p-2 rounded-lg hover:bg-muted/30 transition-colors">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${getActivityColor(activity.type, activity.status)}`}>
-                  {getActivityIcon(activity.type)}
+                  {getActivityIcon(activity.type, activity.status)}
                 </div>
                 
                 <div className="flex-1 min-w-0">
@@ -190,7 +192,7 @@ export default function ActivityFeed({
                     </div>
                     
                     {activity.metadata?.avatar && (
-                      <div className="h-6 w-6 ml-2 bg-primary rounded-full flex items-center justify-center text-xs text-primary-foreground">
+                      <div className="h-6 w-6 ml-2 bg-primary rounded-full flex items-center justify-center text-xs text-primary-foreground flex-shrink-0">
                         {activity.metadata.initials || 'U'}
                       </div>
                     )}

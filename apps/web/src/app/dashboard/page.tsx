@@ -7,7 +7,7 @@ import { useEvaluationStore } from '@/stores/evaluation-store';
 import ProtectedRoute from '@/components/auth/protected-route';
 import DashboardLayout from '@/components/dashboard/dashboard-layout';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { DashboardMetrics, ChartDataPoint, ActivityItem, HealthScoreBreakdown } from '@/types/dashboard';
+import type { DashboardMetrics, ChartDataPoint, ActivityItem, HealthScoreBreakdown, DashboardFilters, ComparisonState, ExportData } from '@/types/dashboard';
 
 function DashboardSkeleton() {
   return (
@@ -148,6 +148,54 @@ export default function DashboardPage() {
   const { user, isLoading: loading } = useAuthStore();
   const router = useRouter();
   const { evaluations, loadEvaluations, isLoading: evaluationsLoading } = useEvaluationStore();
+  
+  // Dashboard state
+  const [filters, setFilters] = useState<DashboardFilters>({
+    dateRange: {
+      start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+      end: new Date()
+    },
+    businessCategories: [],
+    evaluationTypes: ['completed', 'processing', 'failed']
+  });
+  
+  const [comparison, setComparison] = useState<ComparisonState>({
+    selectedEvaluations: [],
+    comparisonMode: 'side-by-side',
+    metrics: ['healthScore', 'valuation']
+  });
+
+  // Handler functions
+  const handleFiltersChange = (newFilters: DashboardFilters) => {
+    setFilters(newFilters);
+    // TODO: Apply filters to data
+  };
+
+  const handleComparisonChange = (newComparison: ComparisonState) => {
+    setComparison(newComparison);
+  };
+
+  const handleExport = async (exportData: ExportData): Promise<string> => {
+    // TODO: Implement actual export functionality
+    console.log('Export data:', exportData);
+    return '/fake-export-url';
+  };
+
+  const handleShareDashboard = () => {
+    // TODO: Implement share functionality
+    const shareUrl = `${window.location.origin}/dashboard/shared/${user?.id}`;
+    navigator.clipboard.writeText(shareUrl);
+    console.log('Dashboard shared:', shareUrl);
+  };
+
+  const handleUpdateLatestEvaluation = () => {
+    if (evaluations.length > 0) {
+      const latestEval = evaluations.sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )[0];
+      router.push(`/evaluation/${latestEval.id}/edit`);
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -197,10 +245,17 @@ export default function DashboardPage() {
             valuationData={valuationData}
             trendData={trendData}
             evaluations={evaluations}
+            filters={filters}
+            comparison={comparison}
             isLoading={evaluationsLoading}
             onRefresh={() => loadEvaluations(true)}
             onCreateEvaluation={() => router.push('/onboarding')}
             onViewEvaluation={(id) => router.push(`/evaluation/${id}`)}
+            onFiltersChange={handleFiltersChange}
+            onComparisonChange={handleComparisonChange}
+            onExport={handleExport}
+            onShareDashboard={handleShareDashboard}
+            onUpdateLatestEvaluation={handleUpdateLatestEvaluation}
           />
         </div>
       </div>

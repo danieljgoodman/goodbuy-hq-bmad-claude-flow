@@ -86,7 +86,7 @@ export default function HealthScoreGauge({
   }
 
   return (
-    <Card className={className}>
+    <Card className={`flex flex-col ${className}`}>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
@@ -101,17 +101,17 @@ export default function HealthScoreGauge({
           </Badge>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-6">
-          {/* Main Gauge */}
-          <div className="flex items-center justify-center">
+      <CardContent className="pb-4 flex-1 flex flex-col justify-between">
+        <div className="space-y-2">
+          {/* Main Gauge - Full Semicircle Visible */}
+          <div className="flex items-center justify-center -mb-2">
             <div className="relative">
-              <ResponsiveContainer width={size} height={size}>
+              <ResponsiveContainer width={size} height={size * 0.6}>
                 <PieChart>
                   <Pie
                     data={gaugeData}
                     cx="50%"
-                    cy="50%"
+                    cy="100%"
                     startAngle={180}
                     endAngle={0}
                     innerRadius={size / 2 - thickness}
@@ -119,7 +119,28 @@ export default function HealthScoreGauge({
                     paddingAngle={0}
                     dataKey="value"
                     labelLine={false}
-                    label={showValue ? <CustomLabel /> : false}
+                    label={showValue ? (props) => (
+                      <g>
+                        <text 
+                          x={props.cx} 
+                          y={props.cy - 30} 
+                          textAnchor="middle" 
+                          dominantBaseline="middle"
+                          className="fill-foreground font-bold text-3xl"
+                        >
+                          {healthScore}
+                        </text>
+                        <text 
+                          x={props.cx} 
+                          y={props.cy - 5} 
+                          textAnchor="middle" 
+                          dominantBaseline="middle"
+                          className="fill-muted-foreground text-sm"
+                        >
+                          {getScoreLabel(healthScore)}
+                        </text>
+                      </g>
+                    ) : false}
                   >
                     {gaugeData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
@@ -130,45 +151,8 @@ export default function HealthScoreGauge({
             </div>
           </div>
 
-          {/* Score Breakdown */}
-          {showBreakdown && breakdown && (
-            <div className="space-y-4">
-              <h4 className="font-medium text-sm">Score Breakdown</h4>
-              <div className="grid gap-3">
-                {breakdownData.map((item) => (
-                  <div key={item.name} className="space-y-2">
-                    <div className="flex justify-between items-center text-sm">
-                      <div className="flex items-center space-x-2">
-                        <div 
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: item.color }}
-                        />
-                        <span>{item.name}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-muted-foreground">
-                          {formatPercentage(item.weight * 100)} weight
-                        </span>
-                        <Badge variant="outline" className="text-xs">
-                          {item.value}/100
-                        </Badge>
-                      </div>
-                    </div>
-                    <Progress 
-                      value={item.value} 
-                      className="h-2"
-                      style={{
-                        '--progress-background': item.color,
-                      } as React.CSSProperties}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Key Metrics */}
-          <div className="grid grid-cols-3 gap-4 pt-4 border-t text-center">
+          {/* Key Metrics - Moved closer */}
+          <div className="grid grid-cols-3 gap-4 text-center">
             <div>
               <div className="text-2xl font-bold text-green-600">
                 {breakdownData.filter(d => d.value >= 70).length}
@@ -188,6 +172,31 @@ export default function HealthScoreGauge({
               <div className="text-xs text-muted-foreground">Needs Attention</div>
             </div>
           </div>
+
+          {/* Score Breakdown - Collapsed by default */}
+          {showBreakdown && breakdown && (
+            <details className="space-y-2">
+              <summary className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground">
+                View Score Breakdown
+              </summary>
+              <div className="grid gap-2 pt-2">
+                {breakdownData.map((item) => (
+                  <div key={item.name} className="flex justify-between items-center text-sm">
+                    <div className="flex items-center space-x-2">
+                      <div 
+                        className="w-2 h-2 rounded-full"
+                        style={{ backgroundColor: item.color }}
+                      />
+                      <span>{item.name}</span>
+                    </div>
+                    <Badge variant="outline" className="text-xs">
+                      {item.value}/100
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
         </div>
       </CardContent>
     </Card>

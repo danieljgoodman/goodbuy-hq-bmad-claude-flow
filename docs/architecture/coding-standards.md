@@ -12,6 +12,7 @@
 - **Database Access:** Use repository pattern, never direct Supabase calls in API routes
 - **AI Processing:** Always include confidence scores and methodology explanations
 - **Input Validation:** Use Zod schemas for all API input validation
+- **Data Sources:** NEVER use mock data in functionality - always implement proper data fetching, generation, or real API integration
 
 ## Naming Conventions
 

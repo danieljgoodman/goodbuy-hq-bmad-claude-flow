@@ -92,11 +92,50 @@ export interface TrendData {
   riskLevels: ChartDataPoint[]
 }
 
+export interface DashboardFilters {
+  dateRange: {
+    start: Date;
+    end: Date;
+  };
+  businessCategories: string[];
+  evaluationTypes: ('completed' | 'processing' | 'failed')[];
+  customTimeframe?: {
+    label: string;
+    days: number;
+  };
+}
+
+export interface ComparisonState {
+  selectedEvaluations: string[];
+  comparisonMode: 'side-by-side' | 'trend' | 'overlay';
+  metrics: string[];
+}
+
+export interface ExportData {
+  evaluations: any[];
+  filters: DashboardFilters;
+  generatedAt: Date;
+  format: 'pdf' | 'csv';
+  includeCharts: boolean;
+}
+
+export interface ExportHistory {
+  id: string;
+  userId: string;
+  filename: string;
+  format: 'pdf' | 'csv';
+  downloadUrl: string;
+  createdAt: Date;
+  expiresAt: Date;
+}
+
 export interface DashboardState {
   metrics: DashboardMetrics | null
   activities: ActivityItem[]
   trendData: TrendData | null
   selectedDateRange: DateRange
+  filters: DashboardFilters
+  comparison: ComparisonState
   isLoading: boolean
   lastRefresh: Date | null
   error: string | null
