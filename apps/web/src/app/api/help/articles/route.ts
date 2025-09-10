@@ -184,7 +184,7 @@ export async function POST(req: NextRequest) {
         difficulty,
         tags: tags || [],
         premium_only,
-        author: session.user.email || 'User'
+        author: session.user.email || 'User',
         status: 'draft', // Admin approval required
         view_count: 0,
         helpful_votes: 0
