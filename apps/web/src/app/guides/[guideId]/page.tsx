@@ -183,7 +183,7 @@ export default function GuideDetailPage() {
     <div className="container mx-auto px-4 py-8">
       {/* Navigation */}
       <div className="mb-6">
-        <Link href="/guides" as any>
+        <Link href="/guides">
           <Button variant="ghost" className="mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Guides

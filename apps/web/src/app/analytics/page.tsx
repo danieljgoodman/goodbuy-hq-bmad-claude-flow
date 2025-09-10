@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { TrendAnalysisDashboard } from '@/components/premium/analytics/TrendAnalysisDashboard'
+import { AnalyticsDashboard } from '@/components/analytics/dashboard/AnalyticsDashboard'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { AlertTriangle, Loader2, Lock } from 'lucide-react'
 import Link from 'next/link'
@@ -84,7 +84,7 @@ export default function AnalyticsPage() {
                   </ul>
                 </AlertDescription>
               </Alert>
-              <Link href="/subscription" as any>
+              <Link href="/subscription">
                 <Button className="w-full">
                   Upgrade to Premium
                 </Button>
@@ -98,7 +98,12 @@ export default function AnalyticsPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <TrendAnalysisDashboard userId={user.id} />
+      <AnalyticsDashboard 
+        userId={user.id}
+        onConfigChange={(config) => {
+          console.log('Dashboard configuration updated:', config)
+        }}
+      />
     </div>
   )
 }

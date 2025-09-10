@@ -186,7 +186,7 @@ export default function ReportsPage() {
                 </Card>
               </div>
 
-              <Link href="/subscription" as any>
+              <Link href="/subscription">
                 <Button size="lg" className="w-full">
                   <Crown className="h-5 w-5 mr-2" />
                   Upgrade to Premium

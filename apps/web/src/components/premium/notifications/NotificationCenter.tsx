@@ -250,7 +250,7 @@ export function NotificationCenter({ isOpen = true, onClose }: NotificationCente
 
                         {notification.actionUrl && (
                           <div className="mt-3 flex items-center space-x-2">
-                            <Link href={notification.actionUrl as any}>
+                            <Link href={notification.actionUrl}>
                               <Button 
                                 size="sm" 
                                 onClick={() => markAsRead([notification.id])}

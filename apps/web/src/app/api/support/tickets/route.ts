@@ -1,126 +1,173 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
-import { SupportService } from '@/lib/services/SupportService'
+import { prisma } from '@/lib/prisma'
+import { z } from 'zod'
 
-const createTicketSchema = z.object({
-  category: z.enum(['technical', 'billing', 'feature', 'onboarding']),
+const TicketQuerySchema = z.object({
+  search: z.string().max(100).optional(),
+  status: z.enum(['open', 'in_progress', 'waiting_response', 'resolved', 'closed']).optional(),
+  priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
+  limit: z.coerce.number().min(1).max(50).default(20),
+  offset: z.coerce.number().min(0).default(0)
+})
+
+const CreateTicketSchema = z.object({
   subject: z.string().min(1).max(200),
-  description: z.string().min(10).max(2000),
-  priority: z.enum(['low', 'medium', 'high', 'urgent']).optional()
+  description: z.string().min(10).max(5000),
+  category: z.string().max(50).default('General'),
+  priority: z.enum(['low', 'medium', 'high', 'urgent']).default('medium'),
+  attachments: z.array(z.string()).max(5).default([])
 })
 
-const addResponseSchema = z.object({
-  ticketId: z.string(),
-  message: z.string().min(1).max(1000)
-})
-
-export async function POST(request: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
+    // Authentication check
     const session = await getServerSession(authOptions)
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const body = await request.json()
-    const { category, subject, description, priority } = createTicketSchema.parse(body)
-
-    const ticket = await SupportService.createSupportTicket(session.user.id, {
-      category,
-      subject,
-      description,
-      priority
-    })
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        ticket
-      }
-    })
-  } catch (error: any) {
-    console.error('Error creating support ticket:', error)
+    const { searchParams } = new URL(req.url)
     
-    if (error.name === 'ZodError') {
+    // Input validation
+    const validationResult = TicketQuerySchema.safeParse({
+      search: searchParams.get('search'),
+      status: searchParams.get('status'),
+      priority: searchParams.get('priority'),
+      limit: searchParams.get('limit'),
+      offset: searchParams.get('offset')
+    })
+
+    if (!validationResult.success) {
       return NextResponse.json(
-        { error: 'Invalid input data', details: error.errors },
+        { error: 'Invalid request data', details: validationResult.error.issues },
         { status: 400 }
       )
     }
 
-    return NextResponse.json(
-      { error: 'Failed to create support ticket' },
-      { status: 500 }
-    )
-  }
-}
+    const { search, status, priority, limit, offset } = validationResult.data
+    const userId = session.user.id
 
-export async function GET(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const { searchParams } = new URL(req.url)
+    const search = searchParams.get('search')
+    const status = searchParams.get('status')
+    const priority = searchParams.get('priority')
+    const limit = parseInt(searchParams.get('limit') || '20')
+    const offset = parseInt(searchParams.get('offset') || '0')
+
+    // Build where clause
+    const where: any = {
+      userId // Only show user's own tickets
     }
 
-    const { searchParams } = new URL(request.url)
-    const status = searchParams.get('status') as 'open' | 'in_progress' | 'resolved' | 'closed' | null
-    const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 10
-    const offset = searchParams.get('offset') ? parseInt(searchParams.get('offset')!) : 0
+    if (search) {
+      where.OR = [
+        { subject: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+        { category: { contains: search, mode: 'insensitive' } }
+      ]
+    }
 
-    const result = await SupportService.getUserTickets(session.user.id, {
-      status: status || undefined,
-      limit,
-      offset
+    if (status && status !== 'all') {
+      where.status = status
+    }
+
+    if (priority && priority !== 'all') {
+      where.priority = priority
+    }
+
+    const tickets = await prisma.supportTicket.findMany({
+      where,
+      orderBy: { updated_at: 'desc' },
+      take: limit,
+      skip: offset,
+      include: {
+        messages: {
+          orderBy: { timestamp: 'asc' },
+          take: 1 // Just get the first message for preview
+        }
+      }
     })
 
+    const total = await prisma.supportTicket.count({ where })
+
     return NextResponse.json({
-      success: true,
-      data: result
+      tickets,
+      pagination: {
+        total,
+        limit,
+        offset,
+        hasMore: offset + limit < total
+      }
     })
   } catch (error) {
-    console.error('Error fetching support tickets:', error)
+    console.error('Failed to fetch tickets:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch support tickets' },
+      { error: 'Failed to fetch tickets' },
       { status: 500 }
     )
   }
 }
 
-export async function PUT(request: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
+    // Authentication check
     const session = await getServerSession(authOptions)
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const body = await request.json()
-    const { ticketId, message } = addResponseSchema.parse(body)
-
-    const response = await SupportService.addTicketResponse(
-      session.user.id,
-      ticketId,
-      message
-    )
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        response
-      }
-    })
-  } catch (error: any) {
-    console.error('Error adding ticket response:', error)
+    const body = await req.json()
     
-    if (error.name === 'ZodError') {
+    // Input validation
+    const validationResult = CreateTicketSchema.safeParse(body)
+    if (!validationResult.success) {
       return NextResponse.json(
-        { error: 'Invalid input data', details: error.errors },
+        { error: 'Invalid request data', details: validationResult.error.issues },
         { status: 400 }
       )
     }
 
+    const { subject, description, category, priority, attachments } = validationResult.data
+    const userId = session.user.id
+
+    // Get user's subscription tier from database
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { subscriptionTier: true }
+    })
+    const subscriptionTier = user?.subscriptionTier || 'free'
+
+    const ticket = await prisma.supportTicket.create({
+      data: {
+        userId,
+        subject,
+        description,
+        category: category || 'General',
+        priority,
+        status: 'open',
+        subscription_tier: subscriptionTier,
+        messages: {
+          create: {
+            sender_id: userId,
+            sender_type: 'user',
+            message: description,
+            timestamp: new Date(),
+            attachments: attachments
+          }
+        }
+      },
+      include: {
+        messages: true
+      }
+    })
+
+    return NextResponse.json({ ticket }, { status: 201 })
+  } catch (error) {
+    console.error('Failed to create ticket:', error)
     return NextResponse.json(
-      { error: 'Failed to add ticket response' },
+      { error: 'Failed to create ticket' },
       { status: 500 }
     )
   }

@@ -200,7 +200,7 @@ export default function GuidesPage() {
                         <div>Updated: {formatDate(guide.lastUpdatedAt)}</div>
                       </div>
 
-                      <Link href={`/guides/${guide.id}` as any}>
+                      <Link href={`/guides/${guide.id}`}>
                         <Button className="w-full">
                           {guide.status === 'completed' ? 'Review Guide' : 'Continue Guide'}
                         </Button>

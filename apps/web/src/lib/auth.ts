@@ -44,3 +44,12 @@ export const authOptions: NextAuthOptions = {
     },
   },
 }
+
+// Helper function for Epic 4 API routes that need simple auth check
+export function getServerAuth() {
+  // For Epic 4 demo purposes, return a mock user
+  // In production, this would validate the session/token
+  return {
+    userId: 'demo-user-id'
+  }
+}

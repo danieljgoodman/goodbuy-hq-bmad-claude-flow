@@ -69,45 +69,6 @@ export interface ModelPerformance {
 }
 
 export class AnalyticsService {
-  /**
-   * Get mock analytics data for development/testing
-   */
-  private static getMockAnalyticsData(userId: string): any {
-    console.log('🧪 Development mode: Providing mock analytics data')
-    
-    const now = new Date()
-    return {
-      trends: {
-        businessValuation: {
-          current: 1250000,
-          previous: 1100000,
-          change: 150000,
-          changePercent: 13.6,
-          trend: 'increasing',
-          confidence: 0.85
-        }
-      },
-      predictions: Array.from({ length: 6 }, (_, i) => ({
-        month: new Date(now.getFullYear(), now.getMonth() + i + 1, 1),
-        predictedValue: 1250000 + i * 45000 + Math.random() * 20000,
-        confidence: 0.8 - (i * 0.05),
-        lowerBound: 1200000 + i * 40000,
-        upperBound: 1300000 + i * 50000
-      })),
-      seasonality: {
-        Q1: { strength: 0.6, pattern: 'growth' },
-        Q2: { strength: 0.8, pattern: 'peak' },
-        Q3: { strength: 0.4, pattern: 'decline' },
-        Q4: { strength: 0.9, pattern: 'recovery' }
-      },
-      modelPerformance: {
-        accuracy: 0.87,
-        meanAbsoluteError: 50000,
-        rootMeanSquareError: 75000,
-        lastUpdated: now
-      }
-    }
-  }
 
   /**
    * Get advanced trend analysis for a user
@@ -124,11 +85,6 @@ export class AnalyticsService {
       const evaluations = await this.getUserEvaluationsWithinRange(userId, timeRange)
       
       if (evaluations.length < 3) {
-        // Return mock data in development for demo purposes
-        if (process.env.NODE_ENV === 'development') {
-          const mockData = this.getMockAnalyticsData(userId)
-          return this.formatMockDataAsAdvancedAnalytics(mockData, userId)
-        }
         throw new Error('Minimum 3 evaluations required for trend analysis')
       }
 
