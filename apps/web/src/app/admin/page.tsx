@@ -2,6 +2,9 @@ import { Metadata } from 'next'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import SuccessMetricsDashboard from '@/components/admin/SuccessMetricsDashboard'
 import TestimonialManager from '@/components/admin/TestimonialManager'
+import UserManagement from '@/components/admin/UserManagement'
+import AdminAnalytics from '@/components/admin/AdminAnalytics'
+import AdminNotifications from '@/components/admin/AdminNotifications'
 
 export const metadata: Metadata = {
   title: 'Admin Dashboard - GoodBuy HQ',
@@ -23,12 +26,27 @@ export default function AdminPage() {
           </p>
         </div>
 
-        <Tabs defaultValue="success-metrics" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs defaultValue="users" className="space-y-4">
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="users">User Management</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="success-metrics">Success Metrics</TabsTrigger>
             <TabsTrigger value="testimonials">Testimonials</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="legacy-analytics">Legacy</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="users" className="space-y-4">
+            <UserManagement />
+          </TabsContent>
+
+          <TabsContent value="analytics" className="space-y-4">
+            <AdminAnalytics />
+          </TabsContent>
+
+          <TabsContent value="notifications" className="space-y-4">
+            <AdminNotifications />
+          </TabsContent>
 
           <TabsContent value="success-metrics" className="space-y-4">
             <SuccessMetricsDashboard />
@@ -38,10 +56,10 @@ export default function AdminPage() {
             <TestimonialManager />
           </TabsContent>
 
-          <TabsContent value="analytics" className="space-y-4">
+          <TabsContent value="legacy-analytics" className="space-y-4">
             <div className="text-center py-8">
               <p className="text-muted-foreground">
-                Advanced analytics dashboard coming soon...
+                Original analytics placeholder - replaced by new Analytics tab
               </p>
             </div>
           </TabsContent>
