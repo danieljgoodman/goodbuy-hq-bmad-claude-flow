@@ -1,66 +1,108 @@
-# Story 9.6: Navigation & User Experience Overhaul - Brownfield Addition
+# Epic 9.6: Navigation & User Experience Overhaul - Parent Epic
 
-## User Story
+## Status
+Epic - Decomposed into Sub-Stories
+
+## Epic Overview
+
+This epic encompasses a comprehensive navigation and user experience overhaul across the platform. Due to its scope and complexity, it has been decomposed into focused sub-stories for manageable development.
+
+## Sub-Stories
+
+| Story | Title | Status | Effort | Focus Area |
+|-------|-------|--------|--------|-------------|
+| **9.6a** | Core Navigation Architecture | Ready for Dev | 6-8 hours | Navigation structure & tier-based access |
+| **9.6b** | Mobile Navigation Optimization | Ready for Dev | 5-7 hours | Touch interactions & responsive design |
+| **9.6c** | User Onboarding Flow | Ready for Dev | 8-10 hours | 4-step guided user experience |
+| **9.6d** | Contextual Help System | Ready for Dev | 7-9 hours | Smart help & contextual assistance |
+| **9.6e** | Dashboard Customization | Ready for Dev | 8-10 hours | Widget system & quick actions |
+| **9.6f** | Accessibility Compliance | Ready for Dev | 10-12 hours | WCAG AA compliance & assistive tech |
+
+**Total Epic Effort:** 44-59 hours across 6 stories
+
+## Epic User Story
 
 As a **new user of the platform**,
 I want **intuitive navigation and clear user flow guidance throughout all platform features**,
 So that **I can easily discover capabilities, complete evaluations efficiently, and maximize the platform's value without confusion**.
 
-## Story Context
+## Epic Context
 
-**Existing System Integration:**
+**System-Wide Integration:**
 
-- Integrates with: Current Next.js routing, existing page layouts, user onboarding flow
-- Technology: Next.js App Router, ShadCN/ui navigation components, existing layout structure
-- Follows pattern: Current navigation patterns extended with enhanced UX principles
-- Touch points: Main navigation, page layouts, user flows, mobile responsiveness
+- Affects: All platform pages, navigation systems, user workflows, and interaction patterns
+- Technology: Next.js App Router, ShadCN/ui components, React accessibility libraries, mobile optimization
+- Approach: Systematic enhancement of navigation and UX across entire platform
+- Impact: Foundation-level improvements affecting all user interactions
 
-## Acceptance Criteria
+## Implementation Approach
 
-**Navigation Structure Enhancement:**
+**Recommended Development Order:**
 
-1. Redesign main navigation with clear information architecture and logical feature grouping
-2. Implement contextual navigation that adapts based on user subscription tier and completion status
-3. Add breadcrumb navigation for complex multi-step processes (evaluations, implementation guides)
-4. Create persistent navigation helper for new users with progressive disclosure
-5. Implement mobile-first navigation design with touch-friendly interactions
+1. **Story 9.6a** (Core Navigation) - Foundation architecture for all navigation features
+2. **Story 9.6b** (Mobile Navigation) - Extends core navigation with mobile optimizations
+3. **Story 9.6c** (User Onboarding) - Leverages new navigation for user guidance flows
+4. **Stories 9.6d & 9.6e** (Help System & Dashboard) - Can be developed in parallel
+5. **Story 9.6f** (Accessibility) - Ensures compliance across all implemented features
 
-**User Flow Optimization:**
+## Epic Success Criteria
 
-6. Add comprehensive onboarding flow with interactive tour of key features and value propositions
-7. Implement progress indicators throughout multi-step processes (registration, evaluation, improvement tracking)
-8. Create contextual help system with tooltips, guided tours, and just-in-time assistance
-9. Add empty states with clear next actions for new users and sections without data
-10. Implement smart shortcuts and quick actions for experienced users
+**Overall UX Transformation:**
 
-**User Experience Improvements:**
+- **Task Completion Rate**: 90%+ for primary user flows (evaluation creation, account management)
+- **Navigation Efficiency**: 30% reduction in clicks to complete common tasks
+- **User Satisfaction**: 85%+ satisfaction scores for platform navigation and usability
+- **Mobile Usability**: 95%+ mobile task completion rate with touch-optimized interactions
+- **Accessibility Compliance**: Full WCAG AA compliance across all platform features
+- **New User Success**: 70%+ completion rate for onboarding flow with first evaluation creation
 
-11. Design responsive dashboard with customizable widgets and priority information display
-12. Add search functionality across evaluations, improvement opportunities, and help content
-13. Implement notification system for important updates, reminders, and achievement milestones
-14. Create consistent loading states and error handling with helpful recovery actions
-15. Add accessibility improvements meeting WCAG AA standards throughout platform
+**Feature Delivery Across Sub-Stories:**
 
-**Integration Requirements:**
+- **Core Navigation** (9.6a): Tier-aware navigation with logical feature grouping
+- **Mobile Optimization** (9.6b): Touch-friendly navigation with gesture support
+- **User Onboarding** (9.6c): 4-step guided experience with contextual assistance
+- **Contextual Help** (9.6d): Smart help system with behavior-driven suggestions
+- **Dashboard Customization** (9.6e): Personalized widgets with quick action shortcuts
+- **Accessibility** (9.6f): Full WCAG AA compliance with assistive technology support
 
-16. Enhanced navigation integrates seamlessly with existing authentication and routing
-17. New UX patterns follow established ShadCN/ui design system and component library
-18. User flow improvements maintain current performance while adding enhanced functionality
+## Epic Dependencies
 
-## Technical Notes
+**Inter-Story Dependencies:**
 
-- **Integration Approach:** Systematic redesign of navigation components and user flows while preserving existing functionality
-- **Existing Pattern Reference:** Build upon current ShadCN layout patterns and Next.js routing structure
-- **Key Constraints:** Must maintain existing URLs and user data while significantly improving user experience
+- **9.6a → 9.6b**: Mobile navigation extends core navigation architecture
+- **9.6a → 9.6c**: Onboarding leverages new navigation structure
+- **9.6c ↔ 9.6d**: Onboarding and help system share contextual guidance patterns
+- **All Stories → 9.6f**: Accessibility compliance applies to all navigation features
 
-## Definition of Done
+**External Dependencies:**
 
-- [x] Complete navigation redesign implemented with improved information architecture
-- [x] User onboarding and flow optimization tested with real users and feedback incorporated
-- [x] Existing functionality remains accessible through new navigation structure
-- [x] Code follows existing design system and component patterns
-- [x] Tests pass for navigation functionality and user flow scenarios
-- [x] Accessibility compliance verified and performance impact minimized
+- Stories 9.4 (Enhanced Signup) and 9.5 (Business Questionnaire) provide user data for personalization
+- Existing ShadCN/ui component library and design system
+- User authentication and subscription tier management systems
+
+## Epic Definition of Done
+
+**Epic Completion Criteria:**
+
+- [ ] All 6 sub-stories (9.6a through 9.6f) completed and deployed
+- [ ] Epic success criteria met with measurable UX improvements
+- [ ] Cross-story integration tested and validated
+- [ ] Performance impact assessed across all navigation enhancements
+- [ ] User acceptance testing completed with target success metrics achieved
+- [ ] Documentation updated reflecting new navigation architecture and user flows
+
+**Sub-Story Completion Status:**
+
+| Story | Status | Notes |
+|-------|--------|-------|
+| 9.6a | Ready for Dev | Core navigation architecture foundation |
+| 9.6b | Ready for Dev | Mobile navigation enhancements |
+| 9.6c | Ready for Dev | User onboarding experience |
+| 9.6d | Ready for Dev | Contextual help system |
+| 9.6e | Ready for Dev | Dashboard customization |
+| 9.6f | Ready for Dev | Accessibility compliance |
+
+**Next Action:** Begin development with Story 9.6a (Core Navigation Architecture)
 
 ## Risk and Compatibility Check
 
@@ -250,4 +292,78 @@ interface NavigationHelper {
 - **User Satisfaction:** 85%+ satisfaction scores for navigation
 - **Mobile Usability:** 95%+ mobile task completion rate
 
-## Estimated Effort: 20-25 hours focused development (Epic-level scope)
+## Epic Management
+
+### Epic Decomposition Summary
+
+**Original Scope Issue:** Epic 9.6 was initially specified as a single story with 20-25 hour estimate, which represented epic-level scope requiring decomposition.
+
+**Resolution:** Successfully decomposed into 6 focused sub-stories with clear dependencies and implementation order.
+
+**Total Effort:** 44-59 hours across 6 stories vs original 20-25 hour underestimate.
+
+## QA Results - Epic Assessment
+
+### Review Date: 2025-09-10
+
+### Reviewed By: Quinn (Test Architect)
+
+### Epic Quality Assessment
+
+**Status: EPIC SUCCESSFULLY DECOMPOSED** - Originally identified as inappropriately scoped single story, now properly structured as epic with manageable sub-stories.
+
+### Epic Decomposition Analysis
+
+**Original Epic Challenges:**
+- 18 acceptance criteria spanning multiple complex domains
+- 20-25 hour estimate severely underestimated true scope (44-59 hours)
+- Epic-level complexity packaged as single story
+- Risk of overwhelming development team and users simultaneously
+
+**Decomposition Success:**
+- ✅ **6 Focused Sub-Stories**: Each story 5-12 hours with clear deliverables
+- ✅ **Logical Dependencies**: Clear implementation order (9.6a → 9.6b → 9.6c, etc.)
+- ✅ **Incremental Value**: Each story delivers standalone user value
+- ✅ **Risk Reduction**: Smaller scope reduces implementation and testing complexity
+
+### Sub-Story Quality Assessment
+
+**All Sub-Stories PASS Quality Gates:**
+
+| Sub-Story | Quality Score | Key Strengths |
+|-----------|---------------|---------------|
+| **9.6a** | 92/100 | Core navigation architecture with tier management |
+| **9.6b** | 89/100 | Mobile-first touch optimization |
+| **9.6c** | 91/100 | 4-step user onboarding with analytics |
+| **9.6d** | 88/100 | Smart contextual help system |
+| **9.6e** | 90/100 | Dashboard personalization with widgets |
+| **9.6f** | 93/100 | Comprehensive WCAG AA accessibility |
+
+### Epic Management Success
+
+**Decomposition Benefits:**
+- **Manageable Development**: Each story fits within single sprint capacity
+- **Reduced Risk**: Incremental delivery allows for user feedback and adjustment
+- **Clear Dependencies**: Implementation order prevents integration conflicts
+- **Quality Assurance**: Each story independently testable with focused QA
+
+**Implementation Readiness:**
+- All 6 sub-stories have comprehensive specifications
+- Clear technical requirements with TypeScript interfaces
+- Integration points well-defined between stories
+- Backward compatibility preserved throughout epic
+
+### Quality Gate Assessment
+
+**Epic Gate Status**: RESOLVED - Successfully Decomposed
+**Overall Confidence**: 91/100 (average of sub-story scores)
+
+**Justification**: Epic properly decomposed into manageable sub-stories with comprehensive specifications, clear dependencies, and quality gates passed for all components.
+
+### Recommended Status
+
+✅ **Epic Ready for Incremental Development**
+- Begin with Story 9.6a (Core Navigation Architecture)
+- Follow recommended implementation order for optimal integration
+- Each sub-story independently deployable with user value
+- Epic completion trackable through sub-story progress

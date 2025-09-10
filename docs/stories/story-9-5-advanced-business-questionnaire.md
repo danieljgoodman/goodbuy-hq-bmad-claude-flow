@@ -1,5 +1,8 @@
 # Story 9.5: Advanced Business Questionnaire - Brownfield Addition
 
+## Status
+Approved
+
 ## User Story
 
 As a **business owner seeking accurate business valuation**,
