@@ -14,7 +14,7 @@ model User {
   industry         String
   role             Role      @default(OWNER)
   userRole         UserRole  @default(user) @map("user_role")
-  subscriptionTier Tier      @default(FREE) @map("subscription_tier")
+  subscriptionTier String    @default("free") @map("subscription_tier")
   stripeCustomerId String?   @map("stripe_customer_id")
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
@@ -96,9 +96,9 @@ model BusinessEvaluation {
 }
 
 enum Role {
-  OWNER
-  MANAGER
-  ADVISOR
+  OWNER  @map("owner")
+  MANAGER @map("manager")
+  ADVISOR @map("advisor")
 
   @@map("role")
 }
@@ -111,13 +111,7 @@ enum UserRole {
   @@map("user_role")
 }
 
-enum Tier {
-  FREE
-  PREMIUM
-  ENTERPRISE
-
-  @@map("subscription_tier")
-}
+// Removed Tier enum - using String for subscription_tier to match database
 
 enum EvaluationStatus {
   PROCESSING
@@ -133,7 +127,7 @@ model Subscription {
   stripeSubscriptionId  String             @unique
   stripePriceId         String
   status                SubscriptionStatus @default(TRIALING)
-  tier                  Tier               @default(FREE)
+  tier                  String             @default("free")
   billingCycle          BillingCycle       @default(MONTHLY)
   trialEndsAt           DateTime?
   currentPeriodStart    DateTime
