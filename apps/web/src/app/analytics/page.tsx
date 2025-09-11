@@ -25,9 +25,24 @@ export default function AnalyticsPage() {
 
     try {
       setLoading(true)
-      // Check if user has premium access by trying to access analytics
-      const response = await fetch(`/api/analytics/dashboard?userId=${user.id}`)
-      setHasAccess(response.ok)
+      const response = await fetch('/api/premium/check-access', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          featureType: 'analytics',
+          requiredTier: 'PREMIUM'
+        })
+      })
+      
+      if (response.ok) {
+        const result = await response.json()
+        setHasAccess(result.hasAccess)
+      } else {
+        setHasAccess(false)
+      }
     } catch (error) {
       console.error('Error checking access:', error)
       setHasAccess(false)

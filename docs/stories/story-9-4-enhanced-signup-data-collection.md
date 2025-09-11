@@ -1,7 +1,7 @@
 # Story 9.4: Enhanced Sign-up Data Collection - Brownfield Addition
 
 ## Status
-Approved
+Done
 
 ## User Story
 

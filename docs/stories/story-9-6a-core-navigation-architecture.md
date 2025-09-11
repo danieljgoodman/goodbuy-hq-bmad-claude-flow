@@ -1,5 +1,8 @@
 # Story 9.6a: Core Navigation Architecture Redesign - Brownfield Addition
 
+## Status
+Done
+
 ## User Story
 
 As a **platform user**,

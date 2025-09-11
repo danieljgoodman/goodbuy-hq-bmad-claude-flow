@@ -1,5 +1,8 @@
 # Story 9.6d: Contextual Help System Implementation - Brownfield Addition
 
+## Status
+Done
+
 ## User Story
 
 As a **platform user encountering complex features or unfamiliar concepts**,

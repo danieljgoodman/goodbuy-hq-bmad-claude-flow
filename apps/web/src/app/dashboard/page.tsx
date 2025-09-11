@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/stores/auth-store';
 import { useRouter } from 'next/navigation';
-import { useEvaluationStore } from '@/stores/evaluation-store';
+import { useEvaluationStore } from '@/stores/evaluation-store'
+import { EvaluationService } from '@/lib/services/evaluation-service';
 import ProtectedRoute from '@/components/auth/protected-route';
 import DashboardLayout from '@/components/dashboard/dashboard-layout';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -197,6 +198,17 @@ export default function DashboardPage() {
     }
   };
 
+  const handleDeleteEvaluation = async (evaluationId: string) => {
+    try {
+      await EvaluationService.deleteEvaluation(evaluationId);
+      // Reload evaluations to reflect the deletion
+      await loadEvaluations(true);
+    } catch (error) {
+      console.error('Failed to delete evaluation:', error);
+      throw error; // Re-throw to let the component handle the error state
+    }
+  };
+
   useEffect(() => {
     if (user) {
       loadEvaluations(true).catch(error => {
@@ -251,6 +263,7 @@ export default function DashboardPage() {
             onRefresh={() => loadEvaluations(true)}
             onCreateEvaluation={() => router.push('/onboarding')}
             onViewEvaluation={(id) => router.push(`/evaluation/${id}`)}
+            onDeleteEvaluation={handleDeleteEvaluation}
             onFiltersChange={handleFiltersChange}
             onComparisonChange={handleComparisonChange}
             onExport={handleExport}

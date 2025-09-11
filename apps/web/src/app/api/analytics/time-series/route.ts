@@ -33,17 +33,17 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const metrics = searchParams.get('metrics')
-    const startDate = searchParams.get('startDate')
-    const endDate = searchParams.get('endDate')
-    const aggregation = searchParams.get('aggregation')
+    const metricsParam = searchParams.get('metrics')
+    const startDateParam = searchParams.get('startDate')
+    const endDateParam = searchParams.get('endDate')
+    const aggregationParam = searchParams.get('aggregation')
 
     // Input validation
     const validationResult = TimeSeriesQuerySchema.safeParse({
-      metrics,
-      startDate,
-      endDate,
-      aggregation
+      metrics: metricsParam,
+      startDate: startDateParam,
+      endDate: endDateParam,
+      aggregation: aggregationParam
     })
 
     if (!validationResult.success) {
@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
     const userId = session.user.id
     const validatedData = validationResult.data
 
-    if (metrics.length === 0) {
+    if (validatedData.metrics.length === 0) {
       return NextResponse.json(
         { error: 'At least one metric is required' },
         { status: 400 }

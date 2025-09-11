@@ -1,6 +1,7 @@
 import { MarketIntelligence, MarketOpportunity, IndustryBenchmark, BusinessEvaluation } from '../../types'
 import { MarketIntelligenceRepository } from '../repositories/MarketIntelligenceRepository'
 import { IndustryBenchmarkRepository } from '../repositories/IndustryBenchmarkRepository'
+import { PremiumAccessService } from './PremiumAccessService'
 
 export interface TrendAnalysisRequest {
   industry: string
@@ -573,6 +574,12 @@ Rank opportunities by overall potential (impact × feasibility).
   }
 
   async getMarketIntelligenceForUser(userId: string): Promise<MarketIntelligence[]> {
+    // Check premium access
+    const accessCheck = await PremiumAccessService.checkAdvancedAnalyticsAccess(userId)
+    if (!accessCheck.hasAccess) {
+      throw new Error('Premium subscription required for market intelligence')
+    }
+
     return this.marketIntelligenceRepo.findByUserId(userId)
   }
 }

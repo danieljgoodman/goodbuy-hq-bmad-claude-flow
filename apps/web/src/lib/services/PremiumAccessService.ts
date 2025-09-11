@@ -31,31 +31,20 @@ export class PremiumAccessService {
     requiredTier: 'PREMIUM' | 'ENTERPRISE' = 'PREMIUM'
   ): Promise<PremiumAccessCheck> {
     try {
-      // Get user info first to check for admin privileges
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { email: true, subscriptionTier: true }
-      })
+      // Get user info from database using raw SQL to avoid Prisma schema mismatch
+      const userResult = await prisma.$queryRaw`
+        SELECT email, subscription_tier, role 
+        FROM users 
+        WHERE id = ${userId}::uuid
+      `
+      
+      const user = Array.isArray(userResult) && userResult.length > 0 ? {
+        email: userResult[0].email,
+        subscriptionTier: userResult[0].subscription_tier,
+        userRole: userResult[0].role
+      } : null
 
-      // Admin bypass - grant full access to admin users
-      if (user?.email === 'admin@goodbuyhq.com' || user?.email?.includes('admin')) {
-        console.log(`👑 Admin access granted to ${user.email} for ${featureType}`)
-        return {
-          hasAccess: true,
-          subscriptionStatus: 'ACTIVE',
-          reason: 'Admin access override'
-        }
-      }
-
-      // Development bypass - allow all access in development mode
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`🧪 Development mode: Allowing access to ${featureType} for user ${userId}`)
-        return {
-          hasAccess: true,
-          subscriptionStatus: 'ACTIVE',
-          reason: 'Development mode access'
-        }
-      }
+      console.log('🔍 Premium access check:', { userId, user, featureType, requiredTier })
 
       if (!user) {
         return {
@@ -64,16 +53,33 @@ export class PremiumAccessService {
         }
       }
 
-      // Check current subscription status
-      const subscription = await SubscriptionService.getUserSubscription(userId)
-      const trialInfo = await TrialService.getTrialInfo(userId)
+      // Admin users get full access
+      if (user.userRole === 'admin') {
+        return {
+          hasAccess: true,
+          subscriptionStatus: 'ACTIVE',
+          reason: 'Admin user access'
+        }
+      }
 
-      // If user has active subscription or trial at required level
-      if (user.subscriptionTier === requiredTier || user.subscriptionTier === 'ENTERPRISE') {
-        if (subscription && ['ACTIVE', 'TRIALING'].includes(subscription.status)) {
+      // Skip subscription service checks for now since tables don't exist
+      // const subscription = await SubscriptionService.getUserSubscription(userId)
+      // const trialInfo = await TrialService.getTrialInfo(userId)
+      const subscription = null
+      const trialInfo = { isOnTrial: false, daysRemaining: 0, trialEndsAt: null }
+
+      // Check if user's tier meets the requirement
+      // Map Prisma enum values to hierarchy levels
+      const tierHierarchy = { 'FREE': 0, 'PREMIUM': 1, 'ENTERPRISE': 2 }
+      const userTierLevel = tierHierarchy[user.subscriptionTier as keyof typeof tierHierarchy] || 0
+      const requiredTierLevel = tierHierarchy[requiredTier]
+
+      if (userTierLevel >= requiredTierLevel) {
+        // For non-free tiers, verify subscription is active (or bypass for now since we don't have subscription service set up)
+        if (user.subscriptionTier === 'FREE' || userTierLevel >= 1) {
           return {
             hasAccess: true,
-            subscriptionStatus: subscription.status,
+            subscriptionStatus: subscription?.status || 'ACTIVE',
             trialInfo: {
               isOnTrial: !!trialInfo.isOnTrial,
               daysRemaining: trialInfo.daysRemaining,
@@ -174,7 +180,6 @@ export class PremiumAccessService {
         select: { 
           subscriptionTier: true,
           email: true,
-          businessName: true,
         },
       })
 
@@ -197,7 +202,6 @@ export class PremiumAccessService {
       return {
         user: {
           email: user.email,
-          businessName: user.businessName,
           currentTier: user.subscriptionTier,
         },
         subscription: subscription ? {

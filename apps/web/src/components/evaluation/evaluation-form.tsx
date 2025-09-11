@@ -8,6 +8,7 @@ import { useEvaluationStore } from '@/stores/evaluation-store'
 import { useAuthStore } from '@/stores/auth-store'
 import { getCurrentUserId } from '@/lib/user-utils'
 import BusinessBasicsStep from './steps/business-basics-step'
+import EnhancedBusinessBasicsStep from './steps/enhanced-business-basics-step'
 import FinancialMetricsStep from './steps/financial-metrics-step'
 import OperationalDataStep from './steps/operational-data-step'
 import DocumentUploadStep from './steps/document-upload-step'
@@ -38,11 +39,22 @@ export default function EvaluationForm({ initialData }: EvaluationFormProps) {
   const router = useRouter()
   const { user } = useAuthStore()
   
-  // Feature flag check - moved inside component to ensure fresh read
+  // Feature flag checks - moved inside component to ensure fresh read
   const USE_EPIC2 = process.env.NEXT_PUBLIC_EPIC2_ENABLED === 'true'
+  const USE_ENHANCED_QUESTIONNAIRE = process.env.NEXT_PUBLIC_EPIC9_5_ENABLED === 'true'
   
-  // Conditional steps based on feature flag
-  const steps = USE_EPIC2 ? epic2Steps : epic1Steps
+  // Enhanced steps for Epic 9.5 with improved questionnaire
+  const enhancedEpic2Steps = [
+    { id: 1, title: 'Business Questionnaire', component: EnhancedBusinessBasicsStep },
+    { id: 2, title: 'Document Upload', component: DocumentUploadStep },
+    { id: 3, title: 'Financial Metrics', component: FinancialMetricsStep },
+    { id: 4, title: 'Operational Data', component: OperationalDataStep },
+    { id: 5, title: 'Review & Submit', component: ReviewSubmitStep },
+  ]
+  
+  // Conditional steps based on feature flags
+  const steps = USE_ENHANCED_QUESTIONNAIRE ? enhancedEpic2Steps :
+                USE_EPIC2 ? epic2Steps : epic1Steps
   
   const {
     currentStep,
@@ -61,19 +73,7 @@ export default function EvaluationForm({ initialData }: EvaluationFormProps) {
   
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // In development mode, create a mock user if none exists
-  // IMPORTANT: Use consistent user ID from getCurrentUserId to ensure data persistence
-  const effectiveUser = user || (process.env.NODE_ENV === 'development' ? {
-    id: getCurrentUserId(), // Use the same ID system as everywhere else
-    email: 'dev@example.com',
-    businessName: 'Demo Business',
-    industry: 'Technology',
-    role: 'owner' as const,
-    subscriptionTier: 'free' as const,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    lastLoginAt: new Date(),
-  } : null)
+  const effectiveUser = user
 
   // Helper function to aggregate extracted financial data
   const aggregateExtractedData = (extractedDocs: any[]) => {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { evaluationStorage } from '@/lib/evaluation-storage'
+import { BusinessEvaluationRepository } from '@/lib/repositories/BusinessEvaluationRepository'
 import type { BusinessData } from '@/types/evaluation'
 
 export async function POST(request: NextRequest) {
@@ -63,11 +64,17 @@ export async function GET(request: NextRequest) {
       console.log('✅ Found evaluation:', evaluationId)
       return NextResponse.json(evaluation)
     } else if (userId) {
-      // Get user evaluations
-      const userEvaluations = evaluationStorage.getByUserId(userId)
-      
-      console.log('✅ Found', userEvaluations.length, 'evaluations for user:', userId)
-      return NextResponse.json(userEvaluations)
+      // Get user evaluations - try database first, fallback to file storage
+      try {
+        const userEvaluations = await BusinessEvaluationRepository.findByUserId(userId)
+        console.log('✅ Found', userEvaluations.length, 'evaluations for user:', userId, '(from database)')
+        return NextResponse.json(userEvaluations)
+      } catch (error) {
+        console.log('📁 Falling back to file storage for user evaluations')
+        const userEvaluations = evaluationStorage.getByUserId(userId)
+        console.log('✅ Found', userEvaluations.length, 'evaluations for user:', userId, '(from file storage)')
+        return NextResponse.json(userEvaluations)
+      }
     } else {
       return NextResponse.json(
         { error: 'userId or id parameter required' }, 

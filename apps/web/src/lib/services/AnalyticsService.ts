@@ -487,4 +487,5 @@ export class AnalyticsService {
       historicalPredictions
     }
   }
+
 }

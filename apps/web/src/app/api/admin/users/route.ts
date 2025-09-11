@@ -25,8 +25,6 @@ async function validateAdminAccess(session: any) {
 // Get paginated user list with search and filters
 export async function GET(request: NextRequest) {
   try {
-    console.log('🔧 DEBUG MODE: Admin users API called')
-    
     // COMPLETELY BYPASS AUTH FOR NOW
     // const session = await getServerSession(authOptions)
     // const validation = await validateAdminAccess(session)
@@ -46,6 +44,9 @@ export async function GET(request: NextRequest) {
 
     const startDate = searchParams.get('startDate')
     const endDate = searchParams.get('endDate')
+    
+    console.log('🔧 DEBUG MODE: Admin users API called')
+    console.log('🔍 Query params:', { page, limit, search, tier, industry, startDate, endDate })
 
     // Build where clause for filters
     const where: any = {}
@@ -74,59 +75,81 @@ export async function GET(request: NextRequest) {
 
     const skip = (page - 1) * limit
 
-    // Use raw SQL to avoid Prisma schema issues
-    let whereClause = ''
-    const params: any[] = []
+    // Build filtering conditions
+    console.log('🔍 Building filtered query with parameters:', { search, tier, industry, startDate, endDate })
+    
+    const conditions: string[] = []
+    const values: any[] = []
     
     if (search) {
-      whereClause = 'WHERE (u.email ILIKE $1 OR p.business_name ILIKE $1 OR p.industry ILIKE $1)'
-      params.push(`%${search}%`)
+      conditions.push(`(email ILIKE $${values.length + 1} OR business_name ILIKE $${values.length + 1} OR industry ILIKE $${values.length + 1})`)
+      values.push(`%${search}%`)
     }
     
-    const usersQuery = `
+    if (tier && tier !== 'all') {
+      conditions.push(`subscription_tier = $${values.length + 1}`)
+      values.push(tier.toLowerCase()) // Convert PREMIUM to premium to match database values
+    }
+    
+    if (industry) {
+      conditions.push(`industry ILIKE $${values.length + 1}`)
+      values.push(`%${industry}%`)
+    }
+    
+    if (startDate) {
+      conditions.push(`created_at >= $${values.length + 1}`)
+      values.push(new Date(startDate))
+    }
+    
+    if (endDate) {
+      conditions.push(`created_at <= $${values.length + 1}`)
+      values.push(new Date(endDate))
+    }
+    
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+    const baseQuery = `
       SELECT 
-        u.id, 
-        u.email, 
-        u.created_at as "createdAt",
-        u.last_sign_in_at as "lastLoginAt",
-        p.subscription_tier as "subscriptionTier",
-        p.user_role as "userRole",
-        p.business_name as "businessName",
-        p.industry
-      FROM auth.users u
-      LEFT JOIN public.user_profiles p ON u.id = p.user_id
-      ${whereClause}
-      ORDER BY u.created_at DESC
-      LIMIT $${params.length + 1} OFFSET $${params.length + 2}
-    `
-    
-    const countQuery = `
-      SELECT COUNT(*) as count
-      FROM auth.users
+        id, 
+        email, 
+        business_name as "businessName",
+        industry,
+        role as "userRole",
+        subscription_tier as "subscriptionTier",
+        created_at as "createdAt",
+        last_login_at as "lastLoginAt"
+      FROM users
       ${whereClause}
     `
     
-    params.push(limit, skip)
+    console.log('🔍 Query conditions:', conditions)
+    console.log('🔍 Query values:', values)
     
-    const [usersResult, totalResult] = await Promise.all([
-      prisma.$queryRawUnsafe(usersQuery, ...params),
-      prisma.$queryRawUnsafe(countQuery, ...(search ? [params[0]] : []))
-    ])
-    
-    const users = usersResult as any[]
-    const total = Number((totalResult as any[])[0].count)
-
-    console.log(`✅ Admin fetched ${users.length} users (page ${page}, total ${total})`)
-
-    return NextResponse.json({
-      users,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit)
-      }
-    })
+    try {
+      // Use $queryRawUnsafe for dynamic WHERE clause
+      const usersQuery = `${baseQuery} ORDER BY created_at DESC LIMIT $${values.length + 1} OFFSET $${values.length + 2}`
+      const countQuery = `SELECT COUNT(*) as count FROM users ${whereClause}`
+      
+      const usersResult = await prisma.$queryRawUnsafe(usersQuery, ...values, limit, skip) as any[]
+      const countResult = await prisma.$queryRawUnsafe(countQuery, ...values) as any[]
+      
+      const users = usersResult
+      const total = Number(countResult[0].count)
+      
+      console.log('✅ Filtered query results:', { usersCount: users.length, totalCount: total, appliedFilters: { search, tier, industry, startDate, endDate } })
+      
+      return NextResponse.json({
+        users,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit)
+        }
+      })
+    } catch (sqlError) {
+      console.error('❌ Filtered SQL Query Error:', sqlError)
+      throw sqlError
+    }
   } catch (error) {
     console.error('Failed to fetch users:', error)
     return NextResponse.json(

@@ -1,5 +1,8 @@
 # Story 9.6e: Dashboard Customization & Quick Actions - Brownfield Addition
 
+## Status
+Done
+
 ## User Story
 
 As a **returning platform user**,

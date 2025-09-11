@@ -10,14 +10,30 @@ datasource db {
 model User {
   id               String    @id @default(uuid()) @db.Uuid
   email            String    @unique
-  businessName     String
+  businessName     String @map("business_name")
   industry         String
   role             Role      @default(OWNER)
-  subscriptionTier Tier      @default(FREE)
-  stripeCustomerId String?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-  lastLoginAt      DateTime?
+  userRole         UserRole  @default(user) @map("user_role")
+  subscriptionTier Tier      @default(FREE) @map("subscription_tier")
+  stripeCustomerId String?   @map("stripe_customer_id")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  lastLoginAt      DateTime? @map("last_login_at")
+  
+  // Enhanced signup fields - Story 9.4
+  businessAddress           Json?
+  businessPhone            String?
+  yearsInOperation         Int?
+  employeeCountRange       String?
+  revenueRange            String?
+  businessModel           String?
+  websiteUrl              String?
+  linkedinUrl             String?
+  referralSource          String?
+  registrationCompleted   Boolean @default(false)
+  registrationStep        Int     @default(1)
+  
+  @@index([registrationCompleted])
 
   evaluations BusinessEvaluation[]
   subscriptions Subscription[]
@@ -48,7 +64,13 @@ model User {
   userEvents UserEvent[]
   aiPerformanceMetrics AIPerformanceMetric[]
   abTestParticipants ABTestParticipant[]
+  adminActionsPerformed UserAdminAction[] @relation("AdminUser")
+  adminActionsReceived UserAdminAction[] @relation("TargetUser")
 
+  @@index([subscriptionTier])
+  @@index([industry])
+  @@index([userRole])
+  @@index([createdAt])
   @@map("users")
 }
 
@@ -63,11 +85,13 @@ model BusinessEvaluation {
   status          EvaluationStatus  @default(PROCESSING)
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
+  deletedAt       DateTime?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   implementationGuides ImplementationGuide[]
   businessRevaluations BusinessRevaluation[]
 
+  @@index([deletedAt])
   @@map("business_evaluations")
 }
 
@@ -77,6 +101,14 @@ enum Role {
   ADVISOR
 
   @@map("role")
+}
+
+enum UserRole {
+  user
+  admin
+  super_admin
+
+  @@map("user_role")
 }
 
 enum Tier {
@@ -178,11 +210,13 @@ model ImplementationGuide {
   generatedAt           DateTime              @default(now())
   lastUpdated           DateTime              @updatedAt
   createdAt             DateTime              @default(now())
+  deletedAt             DateTime?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   evaluation BusinessEvaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
   progressEntries ProgressEntry[]
 
+  @@index([deletedAt])
   @@map("implementation_guides")
 }
 
@@ -266,6 +300,7 @@ model ProgressEntry {
   manualValidation      Boolean               @default(false)
   createdAt             DateTime              @default(now())
   updatedAt             DateTime              @updatedAt
+  deletedAt             DateTime?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   guide ImplementationGuide @relation(fields: [guideId], references: [id], onDelete: Cascade)
@@ -274,6 +309,7 @@ model ProgressEntry {
   milestones Milestone[]
 
   @@unique([userId, stepId])
+  @@index([deletedAt])
   @@map("progress_entries")
 }
 
@@ -1120,4 +1156,23 @@ enum AlertStatus {
   RESOLVED
 
   @@map("alert_status")
+}
+
+// Story 9.2: Admin User Dashboard - User Admin Actions Audit Log
+model UserAdminAction {
+  id           String    @id @default(uuid()) @db.Uuid
+  adminUserId  String    @db.Uuid @map("admin_user_id")
+  targetUserId String    @db.Uuid @map("target_user_id")
+  action       String
+  oldValues    Json?     @map("old_values")
+  newValues    Json?     @map("new_values")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  adminUser  User @relation("AdminUser", fields: [adminUserId], references: [id], onDelete: Cascade)
+  targetUser User @relation("TargetUser", fields: [targetUserId], references: [id], onDelete: Cascade)
+
+  @@index([adminUserId])
+  @@index([targetUserId])
+  @@index([createdAt])
+  @@map("user_admin_actions")
 }

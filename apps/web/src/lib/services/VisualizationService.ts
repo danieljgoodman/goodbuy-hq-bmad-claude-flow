@@ -87,7 +87,7 @@ export class VisualizationService {
       return result
     } catch (error) {
       console.error('Failed to generate time series data:', error)
-      return this.getMockTimeSeriesData(request.metrics, request.timeRange)
+      return {}
     }
   }
 
@@ -132,7 +132,7 @@ export class VisualizationService {
       })
     } catch (error) {
       console.error('Failed to get performance indicators:', error)
-      return this.getMockPerformanceIndicators(metricNames)
+      return []
     }
   }
 
@@ -188,7 +188,7 @@ export class VisualizationService {
       }
     } catch (error) {
       console.error('Failed to generate comparison:', error)
-      return this.getMockComparison(request)
+      throw error
     }
   }
 
@@ -350,81 +350,4 @@ export class VisualizationService {
     })
   }
 
-  // Mock data methods for fallback
-  private getMockTimeSeriesData(metrics: string[], timeRange: { start: Date; end: Date }): Record<string, AnalyticsData[]> {
-    const mockData: Record<string, AnalyticsData[]> = {}
-    
-    metrics.forEach(metric => {
-      mockData[metric] = this.generateMockTimeSeries(metric, timeRange.start, timeRange.end)
-    })
-
-    return mockData
-  }
-
-  private generateMockTimeSeries(metric: string, start: Date, end: Date): AnalyticsData[] {
-    const points: AnalyticsData[] = []
-    const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
-    
-    let baseValue = 100000 // Base value varies by metric
-    if (metric.includes('score')) baseValue = 75
-    if (metric.includes('margin')) baseValue = 25
-    if (metric.includes('rate')) baseValue = 15
-
-    for (let i = 0; i <= days; i++) {
-      const date = new Date(start.getTime() + i * 24 * 60 * 60 * 1000)
-      const variation = (Math.random() - 0.5) * 0.1 // 10% variation
-      const trendFactor = 1 + (i / days) * 0.2 // 20% growth trend
-      
-      points.push({
-        id: `mock_${metric}_${i}`,
-        userId: 'mock',
-        metric,
-        value: baseValue * (1 + variation) * trendFactor,
-        timestamp: date,
-        metadata: { source: 'mock', confidence: 0.8 },
-        category: 'performance',
-        tags: ['mock']
-      })
-    }
-
-    return points
-  }
-
-  private getMockPerformanceIndicators(metricNames: string[]): PerformanceIndicatorData[] {
-    return metricNames.map(metric => ({
-      name: metric,
-      current: Math.random() * 100000,
-      target: Math.random() * 120000,
-      benchmark: Math.random() * 90000,
-      trend: Math.random() > 0.5 ? 'up' : 'down',
-      change_percentage: (Math.random() - 0.5) * 20,
-      status: Math.random() > 0.3 ? 'good' : 'warning'
-    }))
-  }
-
-  private getMockComparison(request: ComparisonRequest): ComparisonAnalysis {
-    return {
-      id: `mock_comp_${Date.now()}`,
-      userId: request.userId,
-      comparison_type: request.type,
-      baseline: {
-        period: request.baseline.period,
-        metrics: { valuation: 100000, revenue: 50000 },
-        label: request.baseline.label
-      },
-      comparison: {
-        period: request.comparison.period,
-        metrics: { valuation: 120000, revenue: 60000 },
-        label: request.comparison.label
-      },
-      analysis: {
-        improvements: ['valuation: +20000', 'revenue: +10000'],
-        declines: [],
-        impact_attribution: { valuation: 20000, revenue: 10000 },
-        roi_calculation: 25.0,
-        confidence: 0.8
-      },
-      createdAt: new Date()
-    }
-  }
 }

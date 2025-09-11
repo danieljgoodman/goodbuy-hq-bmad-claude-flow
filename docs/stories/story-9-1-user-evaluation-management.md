@@ -1,7 +1,7 @@
 # Story 9.1: User Evaluation Management - Brownfield Addition
 
 ## Status
-Approved
+Done
 
 ## User Story
 
@@ -187,8 +187,36 @@ CREATE INDEX idx_business_evaluations_deleted_at ON business_evaluations(deleted
 
 ### Recommended Status
 
-✅ **Ready for Development** - Story meets all requirements for development sprint assignment
+✅ **Ready for Review** - Story implementation completed successfully
 - Technical specification complete and architecturally sound
 - Acceptance criteria comprehensive and testable
 - Risk mitigation strategies well-defined
 - Integration approach preserves existing functionality
+
+## Dev Agent Record
+
+### Tasks Completed
+- [x] Database migration: Added `deletedAt` column to BusinessEvaluation, ImplementationGuide, and ProgressEntry models
+- [x] API implementation: Updated DELETE endpoint with user ownership validation and soft delete functionality  
+- [x] Repository layer: Created BusinessEvaluationRepository with soft delete methods
+- [x] UI components: Added delete button and confirmation dialog to evaluation cards in dashboard
+- [x] Service integration: Updated EvaluationService to work with repository layer
+- [x] Testing: Created comprehensive unit tests for repository functionality
+
+### File List
+- `apps/web/prisma/schema.prisma` - Added deletedAt fields and indexes
+- `apps/web/src/lib/repositories/BusinessEvaluationRepository.ts` - New repository with soft delete
+- `apps/web/src/app/api/evaluations/[id]/route.ts` - Updated DELETE endpoint
+- `apps/web/src/app/api/evaluations/route.ts` - Updated GET endpoints with fallback
+- `apps/web/src/components/ui/confirm-dialog.tsx` - New confirmation dialog component
+- `apps/web/src/components/dashboard/dashboard-layout.tsx` - Added delete functionality and UI
+- `apps/web/src/app/dashboard/page.tsx` - Added delete handler integration
+- `apps/web/src/__tests__/repositories/BusinessEvaluationRepository.test.ts` - New test suite
+
+### Completion Notes
+- Soft delete implementation preserves data integrity while hiding evaluations from users
+- User ownership validation prevents unauthorized deletions
+- Related data (implementation guides and progress entries) cascades properly
+- Confirmation dialog prevents accidental deletions
+- Tests verify all core functionality
+- Backward compatibility maintained with file storage fallback

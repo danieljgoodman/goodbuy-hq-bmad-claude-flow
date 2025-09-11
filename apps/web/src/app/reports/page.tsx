@@ -48,9 +48,25 @@ export default function ReportsPage() {
 
     try {
       setLoading(true)
-      // Check premium access by trying to load templates
-      const response = await fetch('/api/reports/templates')
-      setHasAccess(response.ok)
+      // Check premium access using proper service
+      const response = await fetch('/api/premium/check-access', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          featureType: 'pdf_reports',
+          requiredTier: 'PREMIUM'
+        })
+      })
+      
+      if (response.ok) {
+        const result = await response.json()
+        setHasAccess(result.hasAccess)
+      } else {
+        setHasAccess(false)
+      }
     } catch (error) {
       console.error('Error checking access:', error)
       setHasAccess(false)
@@ -63,11 +79,17 @@ export default function ReportsPage() {
     if (!user?.id) return
 
     try {
-      // Mock report history - in production this would be a real API call
-      const mockHistory: ReportHistory[] = []
-      setReportHistory(mockHistory)
+      // Load report history from API
+      const response = await fetch('/api/reports/history')
+      if (response.ok) {
+        const history = await response.json()
+        setReportHistory(history)
+      } else {
+        setReportHistory([])
+      }
     } catch (error) {
       console.error('Error loading report history:', error)
+      setReportHistory([])
     }
   }
 

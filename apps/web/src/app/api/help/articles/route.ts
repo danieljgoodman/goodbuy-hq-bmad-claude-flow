@@ -55,15 +55,6 @@ export async function GET(req: NextRequest) {
 
     const { search, category, difficulty, type, limit, offset, sortBy } = validationResult.data
 
-    const { searchParams } = new URL(req.url)
-    const search = searchParams.get('search')
-    const category = searchParams.get('category')
-    const difficulty = searchParams.get('difficulty')
-    const type = searchParams.get('type')
-    const limit = parseInt(searchParams.get('limit') || '20')
-    const offset = parseInt(searchParams.get('offset') || '0')
-    const sortBy = searchParams.get('sortBy') || 'recent'
-
     // Build where clause
     const where: any = {
       status: 'published'

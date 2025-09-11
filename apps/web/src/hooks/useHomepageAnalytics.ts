@@ -76,9 +76,26 @@ export function useHomepageAnalytics({
 
   // Request user consent for analytics
   const requestConsent = async (): Promise<boolean> => {
+    // Check if consent banner already exists to prevent duplicates
+    if (document.getElementById('analytics-consent-banner')) {
+      return new Promise((resolve) => {
+        // Wait for existing banner to be resolved
+        const checkExistingConsent = () => {
+          const existingConsent = localStorage.getItem('analytics_consent')
+          if (existingConsent) {
+            resolve(existingConsent === 'true')
+          } else {
+            setTimeout(checkExistingConsent, 100)
+          }
+        }
+        checkExistingConsent()
+      })
+    }
+
     return new Promise((resolve) => {
-      // Create simple consent banner
+      // Create simple consent banner with unique ID
       const consentBanner = document.createElement('div')
+      consentBanner.id = 'analytics-consent-banner'
       consentBanner.style.cssText = `
         position: fixed;
         bottom: 0;
@@ -131,13 +148,19 @@ export function useHomepageAnalytics({
 
       acceptButton?.addEventListener('click', () => {
         localStorage.setItem('analytics_consent', 'true')
-        document.body.removeChild(consentBanner)
+        const banner = document.getElementById('analytics-consent-banner')
+        if (banner) {
+          document.body.removeChild(banner)
+        }
         resolve(true)
       })
 
       declineButton?.addEventListener('click', () => {
         localStorage.setItem('analytics_consent', 'false')
-        document.body.removeChild(consentBanner)
+        const banner = document.getElementById('analytics-consent-banner')
+        if (banner) {
+          document.body.removeChild(banner)
+        }
         resolve(false)
       })
     })
@@ -225,8 +248,13 @@ export function useHomepageAnalytics({
 }
 
 // Hook for section tracking with intersection observer
-export function useSectionTracking(sectionName: string, ref: React.RefObject<HTMLElement>) {
-  const { trackSectionView, hasConsent } = useHomepageAnalytics()
+// Note: This should be used in conjunction with useHomepageAnalytics, not separately
+export function useSectionTracking(
+  sectionName: string, 
+  ref: React.RefObject<HTMLElement>, 
+  trackSectionView: (section: string, duration: number) => void,
+  hasConsent: boolean
+) {
   const startTime = useRef<number | null>(null)
 
   useEffect(() => {

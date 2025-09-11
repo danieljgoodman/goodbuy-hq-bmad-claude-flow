@@ -1,5 +1,8 @@
 import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
+import { PrismaClient } from '@prisma/client'
+
+const prisma = new PrismaClient()
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -10,16 +13,42 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' }
       },
       async authorize(credentials) {
-        // This is a simplified auth for development
-        // In production, you would verify against your database
-        if (credentials?.email && credentials?.password) {
-          return {
-            id: '1',
-            email: credentials.email,
-            name: credentials.email,
-          }
+        if (!credentials?.email || !credentials?.password) {
+          return null
         }
-        return null
+
+        try {
+          // Check if user exists in database
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email },
+            select: {
+              id: true,
+              email: true,
+              businessName: true,
+              industry: true,
+              role: true,
+              subscriptionTier: true
+            }
+          })
+
+          if (user) {
+            return {
+              id: user.id,
+              email: user.email,
+              name: user.businessName,
+              role: user.role,
+              subscriptionTier: user.subscriptionTier,
+              businessName: user.businessName,
+              industry: user.industry
+            }
+          }
+
+          // If user doesn't exist, return null (failed authentication)
+          return null
+        } catch (error) {
+          console.error('Database error during authentication:', error)
+          return null
+        }
       }
     })
   ],
@@ -33,23 +62,59 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id
+        token.role = (user as any).role
+        token.subscriptionTier = (user as any).subscriptionTier
+        token.businessName = (user as any).businessName
+        token.industry = (user as any).industry
       }
       return token
     },
     async session({ session, token }) {
       if (token) {
         session.user.id = token.id as string
+        ;(session.user as any).role = token.role
+        ;(session.user as any).subscriptionTier = token.subscriptionTier
+        ;(session.user as any).businessName = token.businessName
+        ;(session.user as any).industry = token.industry
       }
       return session
     },
   },
 }
 
-// Helper function for Epic 4 API routes that need simple auth check
-export function getServerAuth() {
-  // For Epic 4 demo purposes, return a mock user
-  // In production, this would validate the session/token
-  return {
-    userId: 'demo-user-id'
+// Helper function for API routes that need auth check
+export async function getServerAuth(email?: string) {
+  if (!email) {
+    return null
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        subscriptionTier: true,
+        businessName: true,
+        industry: true
+      }
+    })
+
+    if (!user) {
+      return null
+    }
+
+    return {
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      subscriptionTier: user.subscriptionTier,
+      businessName: user.businessName,
+      industry: user.industry
+    }
+  } catch (error) {
+    console.error('Database error in getServerAuth:', error)
+    return null
   }
 }

@@ -49,13 +49,6 @@ export async function GET(req: NextRequest) {
     const { search, status, priority, limit, offset } = validationResult.data
     const userId = session.user.id
 
-    const { searchParams } = new URL(req.url)
-    const search = searchParams.get('search')
-    const status = searchParams.get('status')
-    const priority = searchParams.get('priority')
-    const limit = parseInt(searchParams.get('limit') || '20')
-    const offset = parseInt(searchParams.get('offset') || '0')
-
     // Build where clause
     const where: any = {
       userId // Only show user's own tickets

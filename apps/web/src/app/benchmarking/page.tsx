@@ -25,9 +25,24 @@ export default function BenchmarkingPage() {
     if (!user?.id) return
     
     try {
-      // Check premium access by trying to load benchmarks
-      const response = await fetch(`/api/benchmarks/compare?userId=${user.id}&industry=tech`)
-      setHasAccess(response.ok)
+      const response = await fetch('/api/premium/check-access', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          featureType: 'benchmarks',
+          requiredTier: 'ENTERPRISE'
+        })
+      })
+      
+      if (response.ok) {
+        const result = await response.json()
+        setHasAccess(result.hasAccess)
+      } else {
+        setHasAccess(false)
+      }
     } catch (error) {
       console.error('Error checking access:', error)
       setHasAccess(false)

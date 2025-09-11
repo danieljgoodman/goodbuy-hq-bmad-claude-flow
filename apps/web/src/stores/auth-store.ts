@@ -110,7 +110,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      signUp: async (email: string, password: string, userData: Partial<User>) => {
+      signUp: async (email: string, password: string, userData: any) => {
         set({ isLoading: true })
         try {
           console.log('Starting signup process...', { email, userData })
@@ -124,29 +124,55 @@ export const useAuthStore = create<AuthState>()(
           if (error) throw error
 
           if (data.user) {
-            const userProfile: User = {
+            // Create enhanced user profile with all the new fields
+            const userProfile = {
               id: data.user.id,
               email,
-              businessName: userData.businessName || '',
+              business_name: userData.businessName || '',
               industry: userData.industry || '',
               role: userData.role || 'owner',
-              subscriptionTier: 'free' as const,
-              createdAt: new Date(),
-              updatedAt: new Date(),
-              lastLoginAt: new Date(),
+              subscription_tier: 'FREE' as const,
+              // Enhanced signup fields
+              business_address: userData.businessAddress || null,
+              business_phone: userData.businessPhone || null,
+              years_in_operation: userData.yearsInOperation || null,
+              employee_count_range: userData.employeeCountRange || null,
+              revenue_range: userData.revenueRange || null,
+              business_model: userData.businessModel || null,
+              website_url: userData.websiteUrl || null,
+              linkedin_url: userData.linkedinUrl || null,
+              referral_source: userData.referralSource || null,
+              registration_completed: userData.registrationCompleted || false,
+              registration_step: userData.registrationStep || 4,
+              created_at: new Date(),
+              updated_at: new Date(),
+              last_login_at: new Date(),
             }
 
-            console.log('Creating user profile:', userProfile)
+            console.log('Creating enhanced user profile:', userProfile)
             
             const { error: profileError } = await supabase
               .from('users')
-              .insert(transformToDatabase(userProfile))
+              .insert(userProfile)
 
             console.log('User profile creation result:', { profileError })
             if (profileError) throw profileError
 
+            // Transform to User type for the store
+            const transformedUser: User = {
+              id: userProfile.id,
+              email: userProfile.email,
+              businessName: userProfile.business_name,
+              industry: userProfile.industry,
+              role: userProfile.role as any,
+              subscriptionTier: userProfile.subscription_tier.toLowerCase() as any,
+              createdAt: userProfile.created_at,
+              updatedAt: userProfile.updated_at,
+              lastLoginAt: userProfile.last_login_at,
+            }
+
             set({ 
-              user: userProfile, 
+              user: transformedUser, 
               isAuthenticated: true, 
               isLoading: false 
             })
@@ -163,6 +189,8 @@ export const useAuthStore = create<AuthState>()(
       signIn: async (email: string, password: string) => {
         set({ isLoading: true })
         try {
+          console.log('🔐 AUTH STORE SIGN IN CALLED:', { email, password })
+          
           // Check if we're in development mode with placeholder config
           const supabaseUrl = typeof window !== 'undefined' 
             ? process.env.NEXT_PUBLIC_SUPABASE_URL 
@@ -174,28 +202,45 @@ export const useAuthStore = create<AuthState>()(
                            !supabaseUrl ||
                            supabaseUrl.includes('placeholder')
           
-          console.log('🔓 Dev mode detected:', isDevMode)
+          console.log('🔓 Dev mode detected:', isDevMode, 'for email:', email)
           
           if (isDevMode) {
             console.log('🔓 Using development auth bypass')
             
-            // Generate a consistent user ID based on email for proper user separation
-            const emailHash = btoa(email).replace(/[^A-Za-z0-9]/g, '').slice(0, 8)
-            const devUserId = `dev-${emailHash}-user`
+            // Handle special test users with enterprise access
+            let devUserId: string
+            let subscriptionTier: 'free' | 'premium' | 'enterprise' = 'free'
+            let businessName = `Demo Business (${email})`
+            
+            if (email === 'testbroker@goodbuyhq.com' || email === 'test@goodbuy.com') {
+              devUserId = 'd882e870-879b-4b93-8763-ba60b492a2ed'
+              subscriptionTier = 'enterprise'
+              businessName = 'Test Business Corp'
+              console.log('🔓 Test user detected, setting enterprise access')
+            } else if (email === 'admin@goodbuyhq.com' || email.includes('admin')) {
+              devUserId = 'admin-user-full-access'
+              subscriptionTier = 'enterprise'
+              businessName = 'GoodBuy HQ'
+              console.log('🔓 Admin user detected, setting enterprise access')
+            } else {
+              // Generate a consistent user ID based on email for proper user separation
+              const emailHash = btoa(email).replace(/[^A-Za-z0-9]/g, '').slice(0, 8)
+              devUserId = `dev-${emailHash}-user`
+            }
             
             // Always set the user ID based on email to ensure proper user separation
             setUserId(devUserId)
             
-            console.log('🔓 Generated user-specific ID for:', email, '=> ID:', devUserId)
+            console.log('🔓 Generated user-specific ID for:', email, '=> ID:', devUserId, 'Tier:', subscriptionTier)
             
             // Create a mock user for development
             const mockUser: User = {
               id: devUserId,
               email,
-              businessName: `Demo Business (${email})`,
+              businessName,
               industry: 'Technology',
               role: 'owner',
-              subscriptionTier: 'free',
+              subscriptionTier,
               createdAt: new Date(),
               updatedAt: new Date(),
               lastLoginAt: new Date(),
@@ -265,17 +310,29 @@ export const useAuthStore = create<AuthState>()(
 
       signOut: async () => {
         try {
+          console.log('🔓 STARTING COMPLETE SIGN OUT PROCESS')
+          
           await supabase.auth.signOut()
           
           // Clear the user ID from localStorage so next login gets a fresh ID
           clearUserId()
           console.log('🔓 Cleared user ID on sign out')
           
+          // Clear all localStorage items related to auth
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('auth-store')
+            localStorage.removeItem('user-id')
+            sessionStorage.clear()
+            console.log('🔓 Cleared all local storage and session storage')
+          }
+          
           set({ 
             user: null, 
             isAuthenticated: false, 
             isLoading: false 
           })
+          
+          console.log('🔓 SIGN OUT COMPLETE - all session data cleared')
         } catch (error) {
           console.error('Sign out error:', error)
         }

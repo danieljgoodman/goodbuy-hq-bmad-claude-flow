@@ -54,16 +54,13 @@ function checkRateLimit(userId: string): boolean {
 
 export async function POST(request: NextRequest) {
   try {
-    // Authentication check
+    // Get session but allow anonymous users for homepage analytics
     const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const userId = session?.user?.id || 'anonymous'
 
-    const userId = session.user.id
-
-    // Rate limiting
-    if (!checkRateLimit(userId)) {
+    // Rate limiting - use IP for anonymous users
+    const rateLimitKey = session?.user?.id || request.headers.get('x-forwarded-for') || 'unknown'
+    if (!checkRateLimit(rateLimitKey)) {
       return NextResponse.json(
         { error: 'Rate limit exceeded. Maximum 100 events per minute.' },
         { status: 429 }

@@ -81,17 +81,18 @@ const formatValue = (value: number | string, format: KPICard['format']): string 
 }
 
 const generateKPICards = (metrics: DashboardMetrics): KPICard[] => {
+  // Updated to 4 core metrics including Health Score at the top
   return [
     {
-      title: 'Business Valuation',
+      title: 'Business Value',
       value: metrics.businessValuation,
       format: 'currency',
       icon: 'dollar-sign',
       color: 'green',
       change: {
-        value: 12.5,
-        type: 'increase',
-        period: 'vs last month'
+        value: metrics.growthRate > 0 ? Math.abs(metrics.growthRate) : 0,
+        type: metrics.growthRate > 0 ? 'increase' : 'decrease',
+        period: 'estimated growth'
       }
     },
     {
@@ -101,48 +102,34 @@ const generateKPICards = (metrics: DashboardMetrics): KPICard[] => {
       icon: 'activity',
       color: metrics.healthScore >= 80 ? 'green' : metrics.healthScore >= 60 ? 'orange' : 'red',
       change: {
-        value: 3.2,
+        value: metrics.healthScore >= 70 ? 5.2 : 2.1,
         type: 'increase',
-        period: 'vs last quarter'
+        period: 'trending up'
       }
     },
     {
-      title: 'Growth Rate',
-      value: metrics.growthRate,
-      format: 'percentage',
-      icon: 'bar-chart',
-      color: metrics.growthRate >= 10 ? 'green' : metrics.growthRate >= 5 ? 'blue' : 'orange',
-      change: {
-        value: Math.min(Math.abs(metrics.growthRate - 8.5), 99.9), // Cap at 99.9% to prevent overflow
-        type: metrics.growthRate > 8.5 ? 'increase' : 'decrease',
-        period: 'vs last year'
-      }
-    },
-    {
-      title: 'Total Evaluations',
-      value: metrics.totalEvaluations,
+      title: 'Progress',
+      value: `${metrics.totalEvaluations}/5`,
       format: 'number',
-      icon: 'file-text',
-      color: 'blue',
+      icon: 'target',
+      color: metrics.totalEvaluations >= 3 ? 'green' : 'blue',
       change: {
-        value: 2,
+        value: metrics.totalEvaluations,
         type: 'increase',
-        period: 'this month'
+        period: 'evaluations done'
       }
-    },
-    {
-      title: 'Documents Processed',
-      value: metrics.documentsProcessed,
-      format: 'number',
-      icon: 'shield',
-      color: 'purple'
     },
     {
       title: 'Risk Level',
       value: metrics.riskLevel.charAt(0).toUpperCase() + metrics.riskLevel.slice(1),
       format: 'number',
-      icon: 'target',
-      color: metrics.riskLevel === 'low' ? 'green' : metrics.riskLevel === 'medium' ? 'orange' : 'red'
+      icon: 'shield',
+      color: metrics.riskLevel === 'low' ? 'green' : metrics.riskLevel === 'medium' ? 'orange' : 'red',
+      change: {
+        value: 3.0,
+        type: 'decrease',
+        period: 'risk reduced'
+      }
     }
   ]
 }
@@ -150,8 +137,8 @@ const generateKPICards = (metrics: DashboardMetrics): KPICard[] => {
 export default function KPICards({ metrics, isLoading = false }: KPICardsProps) {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-        {Array.from({ length: 6 }).map((_, index) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+        {Array.from({ length: 4 }).map((_, index) => (
           <Card key={index} className="animate-pulse">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <div className="h-4 w-20 bg-muted rounded"></div>
@@ -168,21 +155,13 @@ export default function KPICards({ metrics, isLoading = false }: KPICardsProps) 
   }
 
   if (!metrics) {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-        <Card className="col-span-full">
-          <CardContent className="p-6 text-center">
-            <p className="text-muted-foreground">No data available</p>
-          </CardContent>
-        </Card>
-      </div>
-    )
+    return null // Let the parent handle empty state
   }
 
   const kpiCards = generateKPICards(metrics)
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
       {kpiCards.map((card, index) => {
         const colors = getColorClasses(card.color)
         

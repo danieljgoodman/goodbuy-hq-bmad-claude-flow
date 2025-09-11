@@ -97,11 +97,11 @@ export class CustomerSuccessService {
       // Send welcome email
       const user = await prisma.user.findUnique({
         where: { id: userId },
-        select: { email: true, businessName: true }
+        select: { email: true }
       })
 
       if (user?.email) {
-        await EmailService.sendWelcomeEmail(user.email, user.businessName || 'there')
+        await EmailService.sendWelcomeEmail(user.email, 'there')
       }
 
       return progress

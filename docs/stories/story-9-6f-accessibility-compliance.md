@@ -1,5 +1,8 @@
 # Story 9.6f: Accessibility Compliance Implementation - Brownfield Addition
 
+## Status
+Done
+
 ## User Story
 
 As a **platform user with accessibility needs**,

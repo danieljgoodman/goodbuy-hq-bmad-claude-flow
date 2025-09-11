@@ -134,7 +134,6 @@ export class GuideService {
           },
           user: {
             select: {
-              businessName: true,
               industry: true
             }
           },

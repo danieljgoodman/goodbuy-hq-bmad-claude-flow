@@ -1,5 +1,8 @@
 # Story 9.6c: User Onboarding Flow Implementation - Brownfield Addition
 
+## Status
+Done
+
 ## User Story
 
 As a **new platform user**,

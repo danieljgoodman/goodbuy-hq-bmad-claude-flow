@@ -55,7 +55,7 @@ export class AccountService {
   private securityRepo = new SecuritySettingsRepository()
 
   async getAccountData(userId: string): Promise<AccountData> {
-    // Get user basic info
+    // Get user basic info from database
     const user = await prisma.user.findUnique({
       where: { id: userId }
     })

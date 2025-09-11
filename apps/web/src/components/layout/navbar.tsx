@@ -2,38 +2,44 @@
 
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Bell } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Bell, ChevronDown, Crown, User, Settings, LogOut, CreditCard, Menu, X, Plus, FileText, BarChart3, HelpCircle, BookOpen, PlayCircle, Users, TrendingUp, Target, Activity } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth-store'
 
 export default function Navbar() {
   const { user, signOut } = useAuthStore()
   const router = useRouter()
   const pathname = usePathname()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const handleLogout = async () => {
     await signOut()
     router.push('/auth/login')
   }
 
-  const navItems = [
-    { href: '/dashboard', label: 'Dashboard' },
-    { href: '/onboarding', label: 'New Evaluation' },
-    { href: '/guides', label: 'Implementation Guides' },
-    { href: '/analytics', label: 'Advanced Analytics' },
-    { href: '/benchmarking', label: 'Benchmarking' },
-    { href: '/reports', label: 'Reports' },
-    { href: '/support', label: 'Support' },
-    { href: '/notifications', label: 'Notifications' },
-    { href: '/subscription', label: 'Subscription' },
+  // Different navigation for authenticated vs non-authenticated users
+  const publicNavItems = [
+    { href: '/#how-it-works', label: 'Features' },
+    { href: '/pricing', label: 'Pricing' },
   ]
+
+  const authenticatedNavItems = [
+    { href: '/dashboard', label: 'Dashboard' },
+  ]
+
+  const navItems = user ? authenticatedNavItems : publicNavItems
 
   // Add admin link for admin users (mock check - in production would check user role)
   const isAdmin = user?.email === 'admin@goodbuyhq.com' || user?.email?.includes('admin')
-  if (isAdmin) {
-    navItems.push({ href: '/admin', label: 'Admin' })
-  }
 
   return (
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -61,6 +67,165 @@ export default function Navbar() {
                   {item.label}
                 </Link>
               ))}
+
+              {/* Evaluate Dropdown - Only for authenticated users */}
+              {user && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="text-sm font-medium text-muted-foreground hover:text-primary">
+                      Evaluate
+                      <ChevronDown className="ml-1 h-3 w-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-64 bg-background border-border">
+                    <DropdownMenuItem asChild>
+                      <Link href="/onboarding" className="flex items-start space-x-3 p-3">
+                        <Plus className="h-4 w-4 text-muted-foreground mt-0.5" />
+                        <div>
+                          <div className="font-medium">New Evaluation</div>
+                          <div className="text-xs text-muted-foreground">Start a fresh business valuation assessment</div>
+                        </div>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/reports" className="flex items-start space-x-3 p-3">
+                        <FileText className="h-4 w-4 text-muted-foreground mt-0.5" />
+                        <div>
+                          <div className="font-medium">Past Reports</div>
+                          <div className="text-xs text-muted-foreground">View and download previous valuations</div>
+                        </div>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/analytics" className="flex items-start space-x-3 p-3">
+                        <BarChart3 className="h-4 w-4 text-muted-foreground mt-0.5" />
+                        <div>
+                          <div className="font-medium">Analytics Dashboard</div>
+                          <div className="text-xs text-muted-foreground">Track performance metrics and trends</div>
+                        </div>
+                      </Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+
+              {/* Insights Dropdown - Only for authenticated users */}
+              {user && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="text-sm font-medium text-muted-foreground hover:text-primary">
+                      Insights
+                      <Crown className="ml-1 h-3 w-3 text-amber-500" />
+                      <ChevronDown className="ml-1 h-3 w-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-72 bg-background border-border">
+                    <DropdownMenuItem asChild>
+                      <Link href="/market-intelligence" className="flex items-start space-x-3 p-3">
+                        <TrendingUp className="h-4 w-4 text-muted-foreground mt-0.5" />
+                        <div className="flex-1">
+                          <div className="font-medium flex items-center">
+                            Market Intelligence
+                            <Badge className="ml-2 text-xs bg-primary text-primary-foreground">PRO</Badge>
+                          </div>
+                          <div className="text-xs text-muted-foreground">Industry trends and competitive analysis</div>
+                        </div>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/benchmarking" className="flex items-start space-x-3 p-3">
+                        <Target className="h-4 w-4 text-muted-foreground mt-0.5" />
+                        <div className="flex-1">
+                          <div className="font-medium flex items-center">
+                            Industry Benchmarking
+                            <Badge className="ml-2 text-xs bg-primary text-primary-foreground">PRO</Badge>
+                          </div>
+                          <div className="text-xs text-muted-foreground">Compare against sector standards</div>
+                        </div>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/progress" className="flex items-start space-x-3 p-3">
+                        <Activity className="h-4 w-4 text-muted-foreground mt-0.5" />
+                        <div className="flex-1">
+                          <div className="font-medium flex items-center">
+                            Progress Tracking
+                            <Badge className="ml-2 text-xs bg-primary text-primary-foreground">PRO</Badge>
+                          </div>
+                          <div className="text-xs text-muted-foreground">Monitor business growth over time</div>
+                        </div>
+                      </Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+
+              {/* Resources Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="text-sm font-medium text-muted-foreground hover:text-primary">
+                    Resources
+                    <ChevronDown className="ml-1 h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-64 bg-background border-border">
+                  <DropdownMenuItem asChild>
+                    <Link href="/help" className="flex items-start space-x-3 p-3">
+                      <HelpCircle className="h-4 w-4 text-muted-foreground mt-0.5" />
+                      <div>
+                        <div className="font-medium">Help Center</div>
+                        <div className="text-xs text-muted-foreground">Get answers to common questions</div>
+                      </div>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/help/knowledge-base" className="flex items-start space-x-3 p-3">
+                      <BookOpen className="h-4 w-4 text-muted-foreground mt-0.5" />
+                      <div>
+                        <div className="font-medium">Knowledge Base</div>
+                        <div className="text-xs text-muted-foreground">Browse articles and guides</div>
+                      </div>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/help/tutorials" className="flex items-start space-x-3 p-3">
+                      <PlayCircle className="h-4 w-4 text-muted-foreground mt-0.5" />
+                      <div>
+                        <div className="font-medium">Video Tutorials</div>
+                        <div className="text-xs text-muted-foreground">Watch step-by-step walkthroughs</div>
+                      </div>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/help/community" className="flex items-start space-x-3 p-3">
+                      <Users className="h-4 w-4 text-muted-foreground mt-0.5" />
+                      <div>
+                        <div className="font-medium">Community</div>
+                        <div className="text-xs text-muted-foreground">Connect with other business owners</div>
+                      </div>
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Support - Direct link */}
+              <Link
+                href="/support"
+                className="text-sm font-medium transition-colors hover:text-primary text-muted-foreground"
+              >
+                Support
+              </Link>
+            </div>
+
+            {/* Mobile menu button */}
+            <div className="md:hidden">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              >
+                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </Button>
             </div>
           </div>
 
@@ -80,29 +245,257 @@ export default function Navbar() {
                   </Button>
                 </Link>
                 
-                <span className="text-sm text-muted-foreground">
-                  {user.businessName || user.email}
-                </span>
-                <Button variant="outline" size="sm" onClick={handleLogout}>
-                  Logout
-                </Button>
+                {/* User Menu Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="flex items-center space-x-2">
+                      <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                        <User className="h-4 w-4 text-primary" />
+                      </div>
+                      <span className="text-sm text-muted-foreground hidden sm:block">
+                        {user.businessName || user.email}
+                      </span>
+                      <ChevronDown className="h-3 w-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuItem asChild>
+                      <Link href="/account/profile" className="flex items-center">
+                        <User className="mr-2 h-4 w-4" />
+                        Profile Settings
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/subscription" className="flex items-center">
+                        <CreditCard className="mr-2 h-4 w-4" />
+                        Subscription & Billing
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/account/notifications" className="flex items-center">
+                        <Bell className="mr-2 h-4 w-4" />
+                        Notifications
+                      </Link>
+                    </DropdownMenuItem>
+                    {isAdmin && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                          <Link href="/admin" className="flex items-center">
+                            <Settings className="mr-2 h-4 w-4" />
+                            Admin Panel
+                          </Link>
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout} className="flex items-center text-red-600">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </>
             ) : (
               <div className="space-x-2">
                 <Link href="/auth/login">
-                  <Button variant="outline" size="sm">
+                  <Button variant="ghost" size="sm">
                     Login
                   </Button>
                 </Link>
                 <Link href="/auth/register">
-                  <Button size="sm">
-                    Sign Up
+                  <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
+                    Get Started
                   </Button>
                 </Link>
               </div>
             )}
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t bg-background">
+            <div className="px-4 py-6 space-y-6">
+              {/* Main Navigation */}
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="block text-base font-medium text-foreground hover:text-primary"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              ))}
+
+              {/* Authenticated User Menu Items */}
+              {user && (
+                <>
+                  {/* Evaluate Section */}
+                  <div className="space-y-3">
+                    <div className="font-semibold text-primary text-sm">Evaluate</div>
+                    <div className="pl-4 space-y-2">
+                      <Link
+                        href="/onboarding"
+                        className="block text-sm text-muted-foreground hover:text-foreground"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        New Evaluation
+                      </Link>
+                      <Link
+                        href="/reports"
+                        className="block text-sm text-muted-foreground hover:text-foreground"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Past Reports
+                      </Link>
+                      <Link
+                        href="/analytics"
+                        className="block text-sm text-muted-foreground hover:text-foreground"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Analytics Dashboard
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* Insights Section */}
+                  <div className="space-y-3">
+                    <div className="font-semibold text-primary text-sm flex items-center">
+                      Insights
+                      <Crown className="ml-1 h-3 w-3 text-amber-500" />
+                    </div>
+                    <div className="pl-4 space-y-2">
+                      <Link
+                        href="/market-intelligence"
+                        className="block text-sm text-muted-foreground hover:text-foreground flex items-center"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Market Intelligence
+                        <Badge variant="secondary" className="ml-2 text-xs bg-amber-100 text-amber-800">PRO</Badge>
+                      </Link>
+                      <Link
+                        href="/benchmarking"
+                        className="block text-sm text-muted-foreground hover:text-foreground flex items-center"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Industry Benchmarking
+                        <Badge variant="secondary" className="ml-2 text-xs bg-amber-100 text-amber-800">PRO</Badge>
+                      </Link>
+                      <Link
+                        href="/progress"
+                        className="block text-sm text-muted-foreground hover:text-foreground flex items-center"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Progress Tracking
+                        <Badge variant="secondary" className="ml-2 text-xs bg-amber-100 text-amber-800">PRO</Badge>
+                      </Link>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Resources Section */}
+              <div className="space-y-3">
+                <div className="font-semibold text-primary text-sm">Resources</div>
+                <div className="pl-4 space-y-2">
+                  <Link
+                    href="/help"
+                    className="block text-sm text-muted-foreground hover:text-foreground"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Help Center
+                  </Link>
+                  <Link
+                    href="/help/knowledge-base"
+                    className="block text-sm text-muted-foreground hover:text-foreground"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Knowledge Base
+                  </Link>
+                  <Link
+                    href="/help/tutorials"
+                    className="block text-sm text-muted-foreground hover:text-foreground"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Video Tutorials
+                  </Link>
+                  <Link
+                    href="/help/community"
+                    className="block text-sm text-muted-foreground hover:text-foreground"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Community
+                  </Link>
+                </div>
+              </div>
+
+              {/* Support */}
+              <Link
+                href="/support"
+                className="block text-base font-medium text-foreground hover:text-primary"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Support
+              </Link>
+
+              {/* User Account Actions */}
+              {user && (
+                <div className="pt-6 border-t space-y-3">
+                  <Link
+                    href="/account/profile"
+                    className="block text-sm text-muted-foreground hover:text-foreground"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Profile Settings
+                  </Link>
+                  <Link
+                    href="/subscription"
+                    className="block text-sm text-muted-foreground hover:text-foreground"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Subscription & Billing
+                  </Link>
+                  {isAdmin && (
+                    <Link
+                      href="/admin"
+                      className="block text-sm text-muted-foreground hover:text-foreground"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Admin Panel
+                    </Link>
+                  )}
+                  <button
+                    onClick={() => {
+                      handleLogout()
+                      setMobileMenuOpen(false)
+                    }}
+                    className="block w-full text-left text-sm text-red-600 hover:text-red-700"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+
+              {/* Auth buttons for non-authenticated users */}
+              {!user && (
+                <div className="pt-6 border-t space-y-3">
+                  <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="ghost" className="w-full justify-start">
+                      Login
+                    </Button>
+                  </Link>
+                  <Link href="/auth/register" onClick={() => setMobileMenuOpen(false)}>
+                    <Button className="w-full">
+                      Get Started
+                    </Button>
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   )

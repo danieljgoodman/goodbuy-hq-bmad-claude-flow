@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { PremiumAccessService } from '@/lib/services/PremiumAccessService'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
 // Simplified report templates without complex dependencies
 const reportTemplates = [
@@ -54,6 +57,30 @@ const reportTemplates = [
 
 export async function GET(request: NextRequest) {
   try {
+    // Check authentication
+    const session = await getServerSession(authOptions)
+    
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
+    // Check premium access for PDF reports
+    const accessCheck = await PremiumAccessService.checkPDFReportAccess(session.user.id)
+    
+    if (!accessCheck.hasAccess) {
+      return NextResponse.json(
+        { 
+          error: 'Premium access required',
+          reason: accessCheck.reason,
+          upgradeRequired: accessCheck.upgradeRequired
+        },
+        { status: 403 }
+      )
+    }
+
     return NextResponse.json({
       success: true,
       templates: reportTemplates

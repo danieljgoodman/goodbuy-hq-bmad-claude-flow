@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import { PremiumAccessService } from './PremiumAccessService'
 import { AnalyticsService } from './AnalyticsService'
+import { evaluationStorage } from '@/lib/evaluation-storage'
 
 const prisma = new PrismaClient()
 
@@ -87,7 +88,7 @@ export class BenchmarkingService {
   ): Promise<IndustryBenchmark[]> {
     try {
       // Check premium access
-      const accessCheck = await PremiumAccessService.checkAIFeatureAccess(userId)
+      const accessCheck = await PremiumAccessService.checkBenchmarkingAccess(userId)
       if (!accessCheck.hasAccess) {
         throw new Error('Premium subscription required for industry benchmarking')
       }
@@ -167,22 +168,28 @@ export class BenchmarkingService {
     industryCode: string
   ): Promise<BenchmarkComparison[]> {
     try {
-      // Get user's latest evaluation data
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
-        include: {
-          evaluations: {
-            orderBy: { createdAt: 'desc' },
-            take: 1
-          }
+      // Get user's latest evaluation data - try file storage first since that's what the app uses
+      let latestEvaluation: any = null
+      
+      try {
+        // Try to get from file storage first
+        const userEvaluations = evaluationStorage.getByUserId(userId)
+        if (userEvaluations.length > 0) {
+          // Sort by creation date and get latest
+          latestEvaluation = userEvaluations.sort((a, b) => 
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          )[0]
+          console.log('✅ Using evaluation from file storage for benchmarking')
         }
-      })
-
-      if (!user || user.evaluations.length === 0) {
-        throw new Error('No evaluation data available for comparison')
+      } catch (error) {
+        console.log('📁 File storage failed, trying database...')
       }
 
-      const latestEvaluation = user.evaluations[0]
+      // Note: This app uses file storage for evaluations, database fallback removed
+
+      if (!latestEvaluation) {
+        throw new Error('No evaluation data available for comparison. Please complete a business evaluation first.')
+      }
       const benchmarks = await this.getIndustryBenchmarks(industryCode, userId)
 
       const comparisons: BenchmarkComparison[] = []
@@ -199,7 +206,9 @@ export class BenchmarkingService {
             userMetric = this.extractValuationMultiple(latestEvaluation)
             break
           case 'growth':
-            userMetric = this.calculateGrowthRate(user.evaluations)
+            // For growth rate, we need multiple evaluations, but for now use a default or single evaluation
+            const allUserEvaluations = evaluationStorage.getByUserId(userId) || [latestEvaluation]
+            userMetric = this.calculateGrowthRate(allUserEvaluations)
             break
           case 'risk':
             userMetric = this.calculateRiskScore(latestEvaluation)
