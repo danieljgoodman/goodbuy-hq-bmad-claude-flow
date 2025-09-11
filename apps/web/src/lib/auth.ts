@@ -1,4 +1,4 @@
-import { NextAuthOptions } from 'next-auth'
+import { NextAuthOptions, getServerSession } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { PrismaClient } from '@prisma/client'
 
@@ -115,6 +115,34 @@ export async function getServerAuth(email?: string) {
     }
   } catch (error) {
     console.error('Database error in getServerAuth:', error)
+    return null
+  }
+}
+
+// Helper function to get current user from session
+export async function getCurrentUser() {
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session?.user?.email) {
+      return null
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        subscriptionTier: true,
+        businessName: true,
+        industry: true
+      }
+    })
+
+    return user
+  } catch (error) {
+    console.error('Error getting current user:', error)
     return null
   }
 }

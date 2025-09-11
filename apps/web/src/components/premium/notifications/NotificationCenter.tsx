@@ -16,7 +16,7 @@ import {
   Settings,
   MoreHorizontal,
   RefreshCw,
-  MarkAsRead,
+  Check,
   Trash2
 } from 'lucide-react'
 import Link from 'next/link'
@@ -158,7 +158,7 @@ export function NotificationCenter({ isOpen = true, onClose }: NotificationCente
                 size="sm"
                 onClick={markAllAsRead}
               >
-                <MarkAsRead className="h-4 w-4 mr-1" />
+                <Check className="h-4 w-4 mr-1" />
                 Mark all read
               </Button>
             )}
