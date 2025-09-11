@@ -1,5 +1,18 @@
 {
+  "scripts": {
+    "screenshot:capture": "node scripts/screenshot-capture.js",
+    "screenshot:dev": "HOMESCREEN_URL=http://localhost:3000 node scripts/screenshot-capture.js",
+    "screenshot:prod": "HOMESCREEN_URL=https://goodbuy-hq.vercel.app node scripts/screenshot-capture.js"
+  },
   "devDependencies": {
     "shadcn": "^3.2.1"
+  },
+  "dependencies": {
+    "@playwright/browser-chromium": "^1.55.0",
+    "@playwright/browser-firefox": "^1.55.0",
+    "@playwright/browser-webkit": "^1.55.0",
+    "@playwright/test": "^1.55.0",
+    "claude-flow": "^2.0.0-alpha.108",
+    "playwright": "^1.55.0"
   }
 }

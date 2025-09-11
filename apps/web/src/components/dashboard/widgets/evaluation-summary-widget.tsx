@@ -178,7 +178,7 @@ export default function EvaluationSummaryWidget({ widget }: EvaluationSummaryWid
                 {formatCurrency(data.latestValuation.amount)}
               </span>
               <div className={`flex items-center gap-1 ${
-                data.latestValuation.change > 0 ? 'text-green-600' : 'text-red-600'
+                data.latestValuation.change > 0 ? 'text-chart-1' : 'text-destructive'
               }`}>
                 {data.latestValuation.change > 0 ? (
                   <TrendingUp className="w-4 h-4" />

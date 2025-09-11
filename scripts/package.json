@@ -1,0 +1,14 @@
+{
+  "name": "screenshot-capture-scripts",
+  "version": "1.0.0",
+  "description": "Comprehensive UI screenshot capture utilities",
+  "main": "screenshot-capture.js",
+  "scripts": {
+    "capture": "node screenshot-capture.js",
+    "capture:dev": "HOMESCREEN_URL=http://localhost:3000 node screenshot-capture.js",
+    "capture:prod": "HOMESCREEN_URL=https://goodbuy-hq.vercel.app node screenshot-capture.js"
+  },
+  "dependencies": {
+    "playwright": "^1.55.0"
+  }
+}

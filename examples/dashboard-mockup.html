@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoodBuy HQ - Interactive Dashboard Mockup</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 30%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.15) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .dashboard-container {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+            box-shadow: 
+                0 32px 64px rgba(0, 0, 0, 0.2),
+                0 8px 32px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            padding: 40px;
+            max-width: 720px;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            transform-style: preserve-3d;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .dashboard-container:hover {
+            transform: translateY(-4px);
+            box-shadow: 
+                0 40px 80px rgba(0, 0, 0, 0.25),
+                0 16px 40px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            position: relative;
+        }
+
+        .dashboard-header::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 1px;
+        }
+
+        .dashboard-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a1a2e;
+            letter-spacing: -0.5px;
+            position: relative;
+        }
+
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #10b981;
+            padding: 8px 16px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 20px;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .live-indicator:hover {
+            background: rgba(16, 185, 129, 0.15);
+            transform: scale(1.05);
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        }
+
+        @keyframes pulse {
+            0% { 
+                opacity: 1;
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            }
+            70% {
+                opacity: 0.7;
+                box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+            }
+            100% {
+                opacity: 1;
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 36px;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 28px;
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .metric-card:hover::before {
+            opacity: 1;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .metric-card.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .metric-card.secondary {
+            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+        }
+
+        .metric-card.tertiary {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+            color: #2d3436;
+        }
+
+        .metric-label {
+            font-size: 13px;
+            font-weight: 500;
+            opacity: 0.85;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-value {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            line-height: 1;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .metric-change {
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            opacity: 0.9;
+        }
+
+        .trend-chart {
+            background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 28px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .trend-chart::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(102, 126, 234, 0.02) 0%, transparent 50%);
+        }
+
+        .trend-chart:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .chart-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a2e;
+            letter-spacing: -0.3px;
+        }
+
+        .chart-period {
+            font-size: 14px;
+            font-weight: 500;
+            color: #6b7280;
+            padding: 6px 12px;
+            background: rgba(107, 114, 128, 0.1);
+            border-radius: 12px;
+        }
+
+        .chart-container {
+            height: 140px;
+            position: relative;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 16px;
+            overflow: hidden;
+            padding: 20px;
+        }
+
+        .mini-chart {
+            position: relative;
+            height: 100%;
+            width: 100%;
+        }
+
+        .chart-bars {
+            display: flex;
+            align-items: end;
+            height: 100%;
+            gap: 4px;
+            padding: 0 10px;
+        }
+
+        .chart-bar {
+            flex: 1;
+            background: linear-gradient(to top, #667eea, #764ba2);
+            border-radius: 2px 2px 0 0;
+            animation: growBar 1.5s ease-out;
+            animation-fill-mode: both;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .chart-bar:hover {
+            background: linear-gradient(to top, #5a67d8, #6b46c1);
+            transform: scaleY(1.05);
+        }
+
+        .chart-bar:nth-child(1) { height: 30%; animation-delay: 0.1s; }
+        .chart-bar:nth-child(2) { height: 45%; animation-delay: 0.2s; }
+        .chart-bar:nth-child(3) { height: 55%; animation-delay: 0.3s; }
+        .chart-bar:nth-child(4) { height: 70%; animation-delay: 0.4s; }
+        .chart-bar:nth-child(5) { height: 85%; animation-delay: 0.5s; }
+        .chart-bar:nth-child(6) { height: 100%; animation-delay: 0.6s; }
+        .chart-bar:nth-child(7) { height: 90%; animation-delay: 0.7s; }
+        .chart-bar:nth-child(8) { height: 95%; animation-delay: 0.8s; }
+
+        @keyframes growBar {
+            from {
+                transform: scaleY(0);
+                opacity: 0;
+            }
+            to {
+                transform: scaleY(1);
+                opacity: 1;
+            }
+        }
+
+        .trend-line {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            height: calc(100% - 40px);
+            pointer-events: none;
+        }
+
+        .trend-path {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #10b981, #059669);
+            border-radius: 1px;
+            transform: translateY(-50%);
+            opacity: 0.7;
+        }
+
+        .trend-path::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: -4px;
+            width: 10px;
+            height: 10px;
+            background: #059669;
+            border: 2px solid white;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            animation: float 2s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        .confidence-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05));
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-size: 13px;
+            font-weight: 700;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .confidence-badge:hover {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1));
+            transform: scale(1.05);
+        }
+
+        .ai-indicator {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 20px;
+            padding: 20px 24px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(118, 75, 162, 0.05));
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            border-radius: 16px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #6366f1;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .ai-indicator::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .ai-indicator:hover {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(118, 75, 162, 0.1));
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.15);
+        }
+
+        .ai-icon {
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border-radius: 50%;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            flex-shrink: 0;
+        }
+
+        .ai-icon::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            animation: aiPulse 2s infinite;
+        }
+
+        @keyframes aiPulse {
+            0%, 100% { 
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            50% { 
+                opacity: 0.5;
+                transform: translate(-50%, -50%) scale(0.8);
+            }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 16px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 2px;
+            animation: progressFill 2s ease-out;
+            width: 94.7%;
+        }
+
+        @keyframes progressFill {
+            from { width: 0; }
+            to { width: 94.7%; }
+        }
+
+        .data-points {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding: 0 4px;
+        }
+
+        .data-point {
+            text-align: center;
+            flex: 1;
+        }
+
+        .data-point-label {
+            font-size: 11px;
+            color: #6b7280;
+            font-weight: 500;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-point-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+
+        /* Animation for counting up */
+        .counter {
+            display: inline-block;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .dashboard-container {
+            animation: fadeInUp 0.8s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="confidence-badge">
+            AI Confidence: 94.7%
+        </div>
+        
+        <div class="dashboard-header">
+            <h2 class="dashboard-title">Business Valuation Dashboard</h2>
+            <div class="live-indicator">
+                <div class="pulse-dot"></div>
+                Live Analysis
+            </div>
+        </div>
+
+        <div class="metrics-grid">
+            <div class="metric-card primary">
+                <div class="metric-label">Estimated Business Value</div>
+                <div class="metric-value">$<span class="counter" data-target="2847000">0</span></div>
+                <div class="metric-change">
+                    ↗ <span>+12.5% from last analysis</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+            </div>
+            
+            <div class="metric-card secondary">
+                <div class="metric-label">Revenue Multiple</div>
+                <div class="metric-value"><span class="counter" data-target="3.2">0.0</span>x</div>
+                <div class="metric-change">
+                    ↗ <span>Industry avg: 2.8x</span>
+                </div>
+            </div>
+            
+            <div class="metric-card tertiary">
+                <div class="metric-label">Risk Assessment</div>
+                <div class="metric-value"><span class="counter" data-target="23">0</span>/100</div>
+                <div class="metric-change">
+                    ↓ <span>Low Risk Profile</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="trend-chart">
+            <div class="chart-header">
+                <h3 class="chart-title">Valuation Growth Trajectory</h3>
+                <span class="chart-period">Last 8 months</span>
+            </div>
+            <div class="chart-container">
+                <div class="mini-chart">
+                    <div class="chart-bars">
+                        <div class="chart-bar"></div>
+                        <div class="chart-bar"></div>
+                        <div class="chart-bar"></div>
+                        <div class="chart-bar"></div>
+                        <div class="chart-bar"></div>
+                        <div class="chart-bar"></div>
+                        <div class="chart-bar"></div>
+                        <div class="chart-bar"></div>
+                    </div>
+                    <div class="trend-line">
+                        <div class="trend-path"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="data-points">
+                <div class="data-point">
+                    <div class="data-point-label">Revenue</div>
+                    <div class="data-point-value">$1.2M</div>
+                </div>
+                <div class="data-point">
+                    <div class="data-point-label">Growth</div>
+                    <div class="data-point-value">23%</div>
+                </div>
+                <div class="data-point">
+                    <div class="data-point-label">Margin</div>
+                    <div class="data-point-value">42%</div>
+                </div>
+                <div class="data-point">
+                    <div class="data-point-label">Stability</div>
+                    <div class="data-point-value">A+</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="ai-indicator">
+            <div class="ai-icon"></div>
+            <span>AI-powered analysis complete • Bank-grade accuracy • 8 min processing time</span>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced counter animation with easing
+        function animateCounter(element) {
+            const target = parseFloat(element.getAttribute('data-target'));
+            const duration = 2000; // 2 seconds
+            const startTime = performance.now();
+            
+            // Easing function for smoother animation
+            const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+            
+            const animate = (currentTime) => {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const easedProgress = easeOutCubic(progress);
+                const current = target * easedProgress;
+                
+                // Format numbers appropriately
+                if (target > 1000000) {
+                    element.textContent = (current / 1000000).toFixed(1) + 'M';
+                } else if (target > 1000) {
+                    element.textContent = (current / 1000).toFixed(0) + 'K';
+                } else if (target < 10) {
+                    element.textContent = current.toFixed(1);
+                } else {
+                    element.textContent = Math.floor(current);
+                }
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                }
+            };
+            
+            requestAnimationFrame(animate);
+        }
+
+        // Parallax effect for dashboard container
+        function handleParallax() {
+            const dashboard = document.querySelector('.dashboard-container');
+            const rect = dashboard.getBoundingClientRect();
+            const centerY = window.innerHeight / 2;
+            const elementCenter = rect.top + rect.height / 2;
+            const distance = (centerY - elementCenter) / window.innerHeight;
+            
+            const maxTilt = 2; // degrees
+            const tiltX = distance * maxTilt;
+            const tiltY = (window.innerWidth / 2 - (rect.left + rect.width / 2)) / window.innerWidth * maxTilt;
+            
+            dashboard.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+        }
+
+        // Add subtle movement to chart bars on hover
+        function initChartInteractions() {
+            const chartBars = document.querySelectorAll('.chart-bar');
+            
+            chartBars.forEach((bar, index) => {
+                bar.addEventListener('mouseenter', () => {
+                    bar.style.filter = 'brightness(1.1)';
+                    bar.style.transform = 'scaleY(1.05) scaleX(1.1)';
+                });
+                
+                bar.addEventListener('mouseleave', () => {
+                    bar.style.filter = 'brightness(1)';
+                    bar.style.transform = 'scaleY(1) scaleX(1)';
+                });
+                
+                // Add staggered hover effect to neighboring bars
+                bar.addEventListener('mouseenter', () => {
+                    chartBars.forEach((otherBar, otherIndex) => {
+                        const distance = Math.abs(index - otherIndex);
+                        if (distance > 0 && distance <= 2) {
+                            const scale = 1 + (0.02 / distance);
+                            otherBar.style.transform = `scaleY(${scale})`;
+                            setTimeout(() => {
+                                otherBar.style.transform = 'scaleY(1)';
+                            }, 200);
+                        }
+                    });
+                });
+            });
+        }
+
+        // Add typewriter effect to AI indicator text
+        function typewriterEffect() {
+            const aiText = document.querySelector('.ai-indicator span');
+            const fullText = aiText.textContent;
+            aiText.textContent = '';
+            
+            let i = 0;
+            const timer = setInterval(() => {
+                aiText.textContent += fullText.charAt(i);
+                i++;
+                if (i >= fullText.length) {
+                    clearInterval(timer);
+                    // Add cursor blink effect
+                    aiText.innerHTML += '<span style="animation: blink 1s infinite;">|</span>';
+                }
+            }, 50);
+        }
+
+        // Add CSS for blink animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes blink {
+                0%, 50% { opacity: 1; }
+                51%, 100% { opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Intersection Observer for scroll-triggered animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-in');
+                }
+            });
+        }, observerOptions);
+
+        // Initialize all interactions
+        window.addEventListener('load', () => {
+            // Stagger the counter animations
+            const counters = document.querySelectorAll('.counter');
+            counters.forEach((counter, index) => {
+                setTimeout(() => {
+                    animateCounter(counter);
+                }, 500 + (index * 200));
+            });
+            
+            // Initialize chart interactions
+            setTimeout(initChartInteractions, 1000);
+            
+            // Start typewriter effect
+            setTimeout(typewriterEffect, 2500);
+            
+            // Add parallax scrolling (subtle)
+            window.addEventListener('mousemove', (e) => {
+                const dashboard = document.querySelector('.dashboard-container');
+                const rect = dashboard.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                
+                const mouseX = e.clientX;
+                const mouseY = e.clientY;
+                
+                const deltaX = (mouseX - centerX) / window.innerWidth;
+                const deltaY = (mouseY - centerY) / window.innerHeight;
+                
+                const tiltX = deltaY * 2;
+                const tiltY = -deltaX * 2;
+                
+                dashboard.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) translateY(-4px)`;
+            });
+            
+            // Reset transform when mouse leaves
+            document.addEventListener('mouseleave', () => {
+                const dashboard = document.querySelector('.dashboard-container');
+                dashboard.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px)';
+            });
+        });
+
+        // Add click effects to metric cards
+        document.addEventListener('DOMContentLoaded', () => {
+            const metricCards = document.querySelectorAll('.metric-card');
+            
+            metricCards.forEach(card => {
+                card.addEventListener('click', (e) => {
+                    // Create ripple effect
+                    const ripple = document.createElement('div');
+                    const rect = card.getBoundingClientRect();
+                    const size = Math.max(rect.width, rect.height);
+                    const x = e.clientX - rect.left - size / 2;
+                    const y = e.clientY - rect.top - size / 2;
+                    
+                    ripple.style.cssText = `
+                        position: absolute;
+                        width: ${size}px;
+                        height: ${size}px;
+                        left: ${x}px;
+                        top: ${y}px;
+                        background: rgba(255, 255, 255, 0.3);
+                        border-radius: 50%;
+                        transform: scale(0);
+                        animation: ripple 0.6s linear;
+                        pointer-events: none;
+                    `;
+                    
+                    card.appendChild(ripple);
+                    
+                    setTimeout(() => {
+                        ripple.remove();
+                    }, 600);
+                });
+            });
+            
+            // Add ripple animation CSS
+            const rippleStyle = document.createElement('style');
+            rippleStyle.textContent = `
+                @keyframes ripple {
+                    to {
+                        transform: scale(4);
+                        opacity: 0;
+                    }
+                }
+            `;
+            document.head.appendChild(rippleStyle);
+        });
+    </script>
+</body>
+</html>

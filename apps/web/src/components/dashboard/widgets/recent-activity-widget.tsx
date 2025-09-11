@@ -175,13 +175,13 @@ export default function RecentActivityWidget({ widget }: RecentActivityWidgetPro
   const getStatusColor = (status?: ActivityItem['status']) => {
     switch (status) {
       case 'completed':
-        return 'text-green-600'
+        return 'text-chart-1'
       case 'in_progress':
-        return 'text-blue-600'
+        return 'text-chart-2'
       case 'pending':
-        return 'text-yellow-600'
+        return 'text-primary'
       case 'failed':
-        return 'text-red-600'
+        return 'text-destructive'
       default:
         return 'text-muted-foreground'
     }
@@ -237,10 +237,10 @@ export default function RecentActivityWidget({ widget }: RecentActivityWidgetPro
             const activityContent = (
               <div className="flex items-start gap-3 group cursor-pointer">
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                  activity.status === 'completed' ? 'bg-green-100 text-green-600' :
-                  activity.status === 'in_progress' ? 'bg-blue-100 text-blue-600' :
-                  activity.status === 'pending' ? 'bg-yellow-100 text-yellow-600' :
-                  activity.status === 'failed' ? 'bg-red-100 text-red-600' :
+                  activity.status === 'completed' ? 'bg-chart-1/10 text-chart-1' :
+                  activity.status === 'in_progress' ? 'bg-chart-2/10 text-chart-2' :
+                  activity.status === 'pending' ? 'bg-primary/10 text-primary' :
+                  activity.status === 'failed' ? 'bg-destructive/10 text-destructive' :
                   'bg-muted text-muted-foreground'
                 }`}>
                   <IconComponent className="w-4 h-4" />
@@ -276,7 +276,7 @@ export default function RecentActivityWidget({ widget }: RecentActivityWidgetPro
                       )}
                       
                       {activity.metadata?.amount && (
-                        <span className="text-xs font-medium text-green-600">
+                        <span className="text-xs font-medium text-chart-1">
                           {formatCurrency(activity.metadata.amount)}
                         </span>
                       )}

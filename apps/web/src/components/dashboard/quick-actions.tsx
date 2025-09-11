@@ -1,150 +1,84 @@
 'use client'
 
-import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { 
-  Plus, 
-  RefreshCw, 
-  Share2, 
-  FileEdit, 
-  BarChart3, 
-  Download,
-  Zap,
-  ArrowRight,
-  Clock,
-  TrendingUp
-} from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Eye, BarChart3, Download } from 'lucide-react'
 
 interface QuickActionsProps {
-  onNewEvaluation: () => void
-  onRefreshData: () => void
-  onShareDashboard: () => void
-  onExportData: () => void
-  onUpdateData: () => void
-  recentEvaluationId?: string
-  isLoading?: boolean
+  onViewAllEvaluations?: () => void
+  onViewAnalytics?: () => void
+  onExportData?: () => void
   className?: string
 }
 
-interface QuickAction {
+interface QuickActionItem {
   id: string
-  title: string
-  description: string
-  icon: React.ReactNode
-  onClick: () => void
-  variant: 'default' | 'outline' | 'secondary'
-  badge?: string
-  disabled?: boolean
-  shortcut?: string
+  label: string
+  icon: React.ComponentType<{ className?: string }>
+  onClick?: () => void
+  href?: string
 }
 
 export default function QuickActions({
-  onNewEvaluation,
-  onRefreshData,
-  onShareDashboard,
+  onViewAllEvaluations,
+  onViewAnalytics,
   onExportData,
-  onUpdateData,
-  recentEvaluationId,
-  isLoading = false,
   className = ""
 }: QuickActionsProps) {
-  const [isRefreshing, setIsRefreshing] = useState(false)
   
-  // Determine if this is empty state (no recent evaluations)
-  const isEmptyState = !recentEvaluationId
+  const quickActionItems: QuickActionItem[] = [
+    {
+      id: 'view-all-evaluations',
+      label: 'View All Evaluations',
+      icon: Eye,
+      onClick: onViewAllEvaluations
+    },
+    {
+      id: 'view-analytics',
+      label: 'View Analytics',
+      icon: BarChart3,
+      onClick: onViewAnalytics
+    },
+    {
+      id: 'export-data',
+      label: 'Export Data',
+      icon: Download,
+      onClick: onExportData
+    }
+  ]
 
-  const handleRefresh = async () => {
-    setIsRefreshing(true)
-    try {
-      await onRefreshData()
-    } finally {
-      setIsRefreshing(false)
+  const handleActionClick = (action: QuickActionItem) => {
+    if (action.onClick) {
+      action.onClick()
+    } else if (action.href) {
+      window.location.href = action.href
     }
   }
 
-  // Show simplified version when we have data
-  if (!isEmptyState) {
-    const dataActions: QuickAction[] = [
-      {
-        id: 'new-evaluation',
-        title: 'New Evaluation',
-        description: 'Start a fresh business evaluation',
-        icon: <Plus className="h-4 w-4" />,
-        onClick: onNewEvaluation,
-        variant: 'default',
-        disabled: isLoading
-      },
-      {
-        id: 'refresh-data',
-        title: 'Refresh',
-        description: 'Update dashboard data',
-        icon: <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />,
-        onClick: handleRefresh,
-        variant: 'outline',
-        disabled: isLoading || isRefreshing
-      }
-    ]
-
-    const utilityActions = [
-      { icon: <FileEdit className="h-4 w-4" />, title: 'Edit Latest', onClick: onUpdateData, disabled: isLoading },
-      { icon: <Share2 className="h-4 w-4" />, title: 'Share', onClick: onShareDashboard, disabled: isLoading },
-      { icon: <Download className="h-4 w-4" />, title: 'Export', onClick: onExportData, disabled: isLoading }
-    ]
-
-    return (
-      <Card className={`${className}`}>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Quick Actions</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Main Actions */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {dataActions.map((action) => (
-              <Button
-                key={action.id}
-                variant={action.variant}
-                onClick={action.onClick}
-                disabled={action.disabled}
-                className="justify-start"
-              >
-                {action.icon}
-                <span className="ml-2">{action.title}</span>
-              </Button>
-            ))}
-          </div>
-
-          {/* Utility Actions */}
-          <div className="grid grid-cols-3 gap-2">
-            {utilityActions.map((action, index) => (
-              <Button
-                key={index}
-                variant="ghost"
-                size="sm"
-                onClick={action.onClick}
-                disabled={action.disabled}
-                className="flex-col h-16 text-xs"
-              >
-                {action.icon}
-                <span className="mt-1">{action.title}</span>
-              </Button>
-            ))}
-          </div>
-
-          {/* Status */}
-          <div className="text-center p-3 bg-muted/30 rounded-lg">
-            <div className="text-sm font-medium text-primary">Dashboard Active</div>
-            <div className="text-xs text-muted-foreground">
-              Last updated: {new Date().toLocaleTimeString()}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  // This should not render in empty state as it's handled by WelcomeEmptyState
-  return null
+  return (
+    <Card className={`border-border bg-card ${className}`}>
+      <CardHeader className="pb-4">
+        <CardTitle className="text-lg font-semibold text-foreground">
+          Quick Actions
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {quickActionItems.map((action) => {
+          const IconComponent = action.icon
+          
+          return (
+            <Button
+              key={action.id}
+              variant="outline"
+              className="w-full justify-start h-10 bg-secondary/30 hover:bg-secondary/50 border-border transition-colors"
+              onClick={() => handleActionClick(action)}
+            >
+              <IconComponent className="h-4 w-4 mr-3 text-muted-foreground" />
+              <span className="font-medium text-foreground">{action.label}</span>
+            </Button>
+          )
+        })}
+      </CardContent>
+    </Card>
+  )
 }

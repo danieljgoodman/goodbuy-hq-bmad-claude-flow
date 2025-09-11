@@ -1,10 +1,12 @@
 {
   "mcpServers": {
-    "shadcn": {
+    "ruv-swarm": {
+      "type": "stdio",
       "command": "npx",
       "args": [
-        "shadcn@latest",
-        "mcp"
+        "ruv-swarm@latest",
+        "mcp",
+        "start"
       ]
     }
   }

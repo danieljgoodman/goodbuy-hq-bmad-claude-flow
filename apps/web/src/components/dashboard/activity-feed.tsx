@@ -40,27 +40,27 @@ const getActivityIcon = (type: ActivityItem['type'], status?: ActivityItem['stat
 }
 
 const getActivityColor = (type: ActivityItem['type'], status?: ActivityItem['status']) => {
-  if (status === 'error') return 'text-red-600 bg-red-50 border border-red-200'
-  if (status === 'warning') return 'text-yellow-600 bg-yellow-50 border border-yellow-200'
+  if (status === 'error') return 'text-destructive bg-destructive/10 border border-destructive/20'
+  if (status === 'warning') return 'text-chart-2 bg-chart-2/10 border border-chart-2/20'
   
   const colorMap = {
-    'evaluation_created': 'text-blue-600 bg-blue-50 border border-blue-200',
-    'data_updated': 'text-green-600 bg-green-50 border border-green-200', 
-    'document_processed': 'text-purple-600 bg-purple-50 border border-purple-200',
-    'settings_changed': 'text-gray-600 bg-gray-50 border border-gray-200'
+    'evaluation_created': 'text-chart-2 bg-chart-2/10 border border-chart-2/20',
+    'data_updated': 'text-chart-1 bg-chart-1/10 border border-chart-1/20', 
+    'document_processed': 'text-primary bg-primary/10 border border-primary/20',
+    'settings_changed': 'text-muted-foreground bg-muted border border-border'
   }
   
-  return colorMap[type] || 'text-gray-600 bg-gray-50 border border-gray-200'
+  return colorMap[type] || 'text-muted-foreground bg-muted border border-border'
 }
 
 const getStatusIcon = (status?: ActivityItem['status']) => {
   switch (status) {
     case 'success':
-      return <CheckCircle className="h-3 w-3 text-green-600" />
+      return <CheckCircle className="h-3 w-3 text-chart-1" />
     case 'warning':
-      return <AlertTriangle className="h-3 w-3 text-yellow-600" />
+      return <AlertTriangle className="h-3 w-3 text-chart-2" />
     case 'error':
-      return <AlertTriangle className="h-3 w-3 text-red-600" />
+      return <AlertTriangle className="h-3 w-3 text-destructive" />
     default:
       return null
   }

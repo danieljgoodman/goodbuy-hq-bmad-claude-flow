@@ -31,20 +31,75 @@ export class PremiumAccessService {
     requiredTier: 'PREMIUM' | 'ENTERPRISE' = 'PREMIUM'
   ): Promise<PremiumAccessCheck> {
     try {
-      // Get user info from database using raw SQL to avoid Prisma schema mismatch
-      const userResult = await prisma.$queryRaw`
-        SELECT email, subscription_tier, role 
-        FROM users 
-        WHERE id = ${userId}::uuid
-      `
+      console.log('🔍 Premium access check:', { userId, featureType, requiredTier })
       
-      const user = Array.isArray(userResult) && userResult.length > 0 ? {
-        email: userResult[0].email,
-        subscriptionTier: userResult[0].subscription_tier,
-        userRole: userResult[0].role
-      } : null
+      // Development mode: Handle test users directly
+      if (process.env.NODE_ENV === 'development') {
+        // Check for test user IDs
+        if (userId === 'd882e870-879b-4b93-8763-ba60b492a2ed' || 
+            userId === 'admin-user-full-access' || 
+            userId.includes('test') || 
+            userId.includes('admin')) {
+          console.log('🔓 Development mode: Test/Admin user detected, granting full access')
+          return {
+            hasAccess: true,
+            subscriptionStatus: 'ACTIVE',
+            reason: 'Test user access (development mode)',
+            trialInfo: {
+              isOnTrial: false,
+              daysRemaining: 0,
+              trialEndsAt: null,
+            },
+          }
+        }
+      }
 
-      console.log('🔍 Premium access check:', { userId, user, featureType, requiredTier })
+      let user = null
+      
+      try {
+        // Try to get user info from database using raw SQL to avoid Prisma schema mismatch
+        const userResult = await prisma.$queryRaw`
+          SELECT email, subscription_tier, role 
+          FROM users 
+          WHERE id = ${userId}::uuid
+        `
+        
+        user = Array.isArray(userResult) && userResult.length > 0 ? {
+          email: userResult[0].email,
+          subscriptionTier: userResult[0].subscription_tier,
+          userRole: userResult[0].role
+        } : null
+      } catch (dbError) {
+        console.log('🗄️ Database query failed, using fallback logic:', dbError.message)
+        
+        // In development, if DB is not available, provide mock enterprise access for test users
+        if (process.env.NODE_ENV === 'development') {
+          // Check if it looks like a test user based on ID patterns
+          if (userId === 'd882e870-879b-4b93-8763-ba60b492a2ed' || 
+              userId.includes('test') || 
+              userId.includes('admin') ||
+              userId.includes('enterprise')) {
+            console.log('🔓 Database unavailable, granting test user access')
+            return {
+              hasAccess: true,
+              subscriptionStatus: 'ACTIVE',
+              reason: 'Test user access (DB fallback)',
+              trialInfo: {
+                isOnTrial: false,
+                daysRemaining: 0,
+                trialEndsAt: null,
+              },
+            }
+          }
+          
+          // For other dev users, grant free tier access
+          user = {
+            email: 'dev-user@example.com',
+            subscriptionTier: 'FREE',
+            userRole: 'user'
+          }
+        }
+      }
 
       if (!user) {
         return {

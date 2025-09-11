@@ -14,7 +14,7 @@ const nextConfig = {
     config.resolve.alias.canvas = false;
     return config;
   },
-  // Enable static file serving for PDF workers
+  // Enable static file serving for PDF workers + Security headers
   async headers() {
     return [
       {
@@ -32,6 +32,27 @@ const nextConfig = {
           {
             key: 'Content-Type',
             value: 'application/javascript',
+          },
+        ],
+      },
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
           },
         ],
       },

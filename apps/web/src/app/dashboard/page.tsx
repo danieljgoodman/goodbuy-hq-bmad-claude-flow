@@ -198,6 +198,14 @@ export default function DashboardPage() {
     }
   };
 
+  const handleViewAllEvaluations = () => {
+    router.push('/evaluations');
+  };
+
+  const handleViewAnalytics = () => {
+    router.push('/analytics');
+  };
+
   const handleDeleteEvaluation = async (evaluationId: string) => {
     try {
       await EvaluationService.deleteEvaluation(evaluationId);
@@ -269,6 +277,8 @@ export default function DashboardPage() {
             onExport={handleExport}
             onShareDashboard={handleShareDashboard}
             onUpdateLatestEvaluation={handleUpdateLatestEvaluation}
+            onViewAllEvaluations={handleViewAllEvaluations}
+            onViewAnalytics={handleViewAnalytics}
           />
         </div>
       </div>
