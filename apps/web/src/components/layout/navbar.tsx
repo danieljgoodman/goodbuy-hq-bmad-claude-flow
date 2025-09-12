@@ -175,15 +175,15 @@ export default function Navbar() {
                         <div>
                           <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">ADDITIONAL TOOLS</div>
                           <div className="space-y-2">
-                            <div className="flex items-start space-x-3 p-2 rounded-md bg-muted/50">
-                              <div className="w-8 h-8 bg-muted rounded-md flex items-center justify-center flex-shrink-0">
-                                <Settings className="h-4 w-4 text-muted-foreground" />
+                            <Link href="/reports" className="flex items-start space-x-3 p-2 rounded-md hover:bg-accent group">
+                              <div className="w-8 h-8 bg-[hsl(var(--chart-3)/0.1)] rounded-md flex items-center justify-center flex-shrink-0">
+                                <FileText className="h-4 w-4 text-[hsl(var(--chart-3))]" />
                               </div>
                               <div>
-                                <div className="font-medium text-sm text-muted-foreground">Custom Reports</div>
-                                <div className="text-xs text-muted-foreground">Coming soon...</div>
+                                <div className="font-medium text-sm group-hover:text-primary">Custom Reports</div>
+                                <div className="text-xs text-muted-foreground">Professional PDF reports with AI analysis</div>
                               </div>
-                            </div>
+                            </Link>
                           </div>
                         </div>
                       </div>

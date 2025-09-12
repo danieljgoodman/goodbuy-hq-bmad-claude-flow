@@ -3,6 +3,7 @@ import { PremiumAccessService } from './PremiumAccessService'
 import { AnalyticsService } from './AnalyticsService'
 import { ValueImpactService } from './ValueImpactService'
 import { PDFGenerationService, PDFReportData, PDFSection, ChartData } from './PDFGenerationService'
+import { ClaudeService, type EnhancedHealthAnalysis } from './claude-service'
 
 const prisma = new PrismaClient()
 
@@ -160,7 +161,7 @@ export class ReportService {
   }
 
   /**
-   * Generate AI-powered executive summary
+   * Generate AI-powered executive summary using Claude
    */
   static async generateExecutiveSummary(
     user: any,
@@ -169,37 +170,175 @@ export class ReportService {
   ): Promise<ExecutiveSummary> {
     try {
       const latestEvaluation = user.evaluations[0]
-      const businessData = latestEvaluation?.businessData || {}
-      
-      // In production, this would call OpenAI API
-      // For now, using business logic to generate insights
-      const keyInsights = this.generateKeyInsights(user.evaluations, analyticsData)
-      const recommendations = this.generateRecommendations(latestEvaluation, analyticsData)
-      const businessHighlights = this.generateBusinessHighlights(user.evaluations)
-      const riskFactors = this.generateRiskFactors(latestEvaluation)
-      const nextSteps = this.generateNextSteps(recommendations)
+      if (!latestEvaluation) {
+        throw new Error('No evaluation data available for AI analysis')
+      }
 
+      const businessData = latestEvaluation.businessData || {}
+      
+      // Get enhanced AI health analysis from Claude
+      const healthAnalysis = await ClaudeService.getEnhancedHealthAnalysis(businessData)
+      
+      // Generate AI-powered executive summary using Claude
+      const summaryPrompt = this.createExecutiveSummaryPrompt(user, businessData, healthAnalysis, analyticsData)
+      
+      let aiSummary: Partial<ExecutiveSummary> = {}
+      
+      try {
+        const aiResponse = await fetch('/api/claude', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'executive-summary',
+            businessData: businessData,
+            summaryContext: summaryPrompt
+          })
+        })
+
+        if (!aiResponse.ok) {
+          console.error('AI API response not ok:', aiResponse.status, aiResponse.statusText)
+          throw new Error(`AI API error: ${aiResponse.status}`)
+        }
+
+        const responseText = await aiResponse.text()
+        console.log('Raw AI response:', responseText.substring(0, 200))
+        
+        let result
+        try {
+          result = JSON.parse(responseText)
+        } catch (parseError) {
+          console.error('JSON parsing error:', parseError)
+          console.error('Response text:', responseText)
+          throw new Error('Invalid JSON response from AI API')
+        }
+        
+        const analysisText = result.analysisText || result.content || result.text || ''
+        if (analysisText) {
+          aiSummary = this.parseAISummaryResponse(analysisText)
+        } else {
+          console.warn('No analysis text found in AI response:', result)
+        }
+      } catch (aiError) {
+        console.error('AI summary generation failed:', aiError)
+        throw aiError // No fallbacks - fix the root cause
+      }
+      
       return {
-        keyInsights,
-        recommendations,
-        businessHighlights,
-        riskFactors,
-        nextSteps,
+        keyInsights: aiSummary.keyInsights,
+        recommendations: aiSummary.recommendations,
+        businessHighlights: aiSummary.businessHighlights,
+        riskFactors: aiSummary.riskFactors,
+        nextSteps: aiSummary.nextSteps,
         generatedBy: 'ai'
       }
     } catch (error) {
-      console.error('Error generating executive summary:', error)
-      // Return fallback summary
-      return {
-        keyInsights: ['Business evaluation data is available for analysis'],
-        recommendations: ['Continue regular business evaluations'],
-        businessHighlights: ['Active business evaluation tracking'],
-        riskFactors: ['Limited historical data for trend analysis'],
-        nextSteps: ['Complete more evaluations for better insights'],
-        generatedBy: 'ai'
-      }
+      console.error('Error generating AI executive summary:', error)
+      throw error // No fallbacks - fix the root cause
     }
   }
+
+  /**
+   * Create executive summary prompt for AI generation
+   */
+  private static createExecutiveSummaryPrompt(
+    user: any,
+    businessData: any,
+    healthAnalysis: EnhancedHealthAnalysis,
+    analyticsData?: any
+  ): string {
+    return `Generate a comprehensive executive summary for this business report:
+
+Business Information:
+- Type: ${businessData.businessType || 'Not provided'}
+- Industry: ${businessData.industryFocus || 'Not provided'}
+- Annual Revenue: $${businessData.annualRevenue?.toLocaleString() || 'Not provided'}
+- Health Score: ${healthAnalysis.healthScore}/100
+
+Health Analysis Highlights:
+- Financial Health: ${healthAnalysis.scoringFactors?.financial?.score}/100
+- Operational Efficiency: ${healthAnalysis.scoringFactors?.operational?.score}/100
+- Market Position: ${healthAnalysis.scoringFactors?.market?.score}/100
+- Growth Potential: ${healthAnalysis.scoringFactors?.growth?.score}/100
+
+Top Improvement Opportunities:
+${healthAnalysis.improvementOpportunities?.slice(0, 3).map(opp => `- ${opp.description}: ${opp.impactDescription}`).join('\n') || 'None identified'}
+
+Please provide:
+1. Key Insights (3-5 bullet points about business performance)
+2. Strategic Recommendations (3-5 actionable recommendations)
+3. Business Highlights (3-4 positive aspects to emphasize)
+4. Risk Factors (3-4 potential concerns or challenges)
+5. Next Steps (3-4 immediate actions to take)
+
+Format as structured text that can be parsed.`
+  }
+
+  /**
+   * Parse AI response into executive summary structure
+   */
+  private static parseAISummaryResponse(analysisText: string): Partial<ExecutiveSummary> {
+    try {
+      if (!analysisText || typeof analysisText !== 'string') {
+        console.warn('Invalid analysis text provided for parsing')
+        return {}
+      }
+
+      // Extract sections from AI response using exact pattern matching
+      const sections = {
+        keyInsights: this.extractSection(analysisText, 'Key Insights', 'Strategic Recommendations'),
+        recommendations: this.extractSection(analysisText, 'Strategic Recommendations', 'Business Highlights'),
+        businessHighlights: this.extractSection(analysisText, 'Business Highlights', 'Risk Factors'),
+        riskFactors: this.extractSection(analysisText, 'Risk Factors', 'Next Steps'),
+        nextSteps: this.extractSection(analysisText, 'Next Steps', null)
+      }
+
+      // Log what we extracted for debugging
+      console.log('Parsed AI summary sections:', {
+        keyInsights: sections.keyInsights?.length || 0,
+        recommendations: sections.recommendations?.length || 0,
+        businessHighlights: sections.businessHighlights?.length || 0,
+        riskFactors: sections.riskFactors?.length || 0,
+        nextSteps: sections.nextSteps?.length || 0
+      })
+
+      return sections
+    } catch (error) {
+      console.error('Error parsing AI summary response:', error)
+      console.error('Analysis text preview:', analysisText?.substring(0, 200))
+      return {}
+    }
+  }
+
+  /**
+   * Extract section content from AI response
+   */
+  private static extractSection(text: string, startMarker: string, endMarker: string | null): string[] {
+    if (!text || !startMarker) return []
+    
+    const startIndex = text.toLowerCase().indexOf(startMarker.toLowerCase())
+    if (startIndex === -1) return []
+
+    const contentStart = startIndex + startMarker.length
+    const endIndex = endMarker ? text.toLowerCase().indexOf(endMarker.toLowerCase(), contentStart) : text.length
+    const sectionText = text.slice(contentStart, endIndex > -1 ? endIndex : text.length)
+
+    if (!sectionText.trim()) return []
+
+    // Extract bullet points, numbered items, or simple lines
+    const lines = sectionText
+      .split(/\n/)
+      .map(line => line.trim())
+      .filter(line => line.length > 0)
+
+    // Extract only structured content (bullets/numbers) - no fallbacks
+    const structuredContent = lines
+      .filter(line => line.match(/^[-•*]\s+|^\d+\.\s+/))
+      .map(line => line.replace(/^[-•*]\s+|^\d+\.\s+/, '').trim())
+      .filter(line => line.length > 0)
+
+    return structuredContent.slice(0, 5)
+  }
+
 
   /**
    * Get available report templates
@@ -380,7 +519,7 @@ export class ReportService {
           id: sectionId,
           type,
           title: 'Strategic Recommendations',
-          content: this.generateRecommendationsContent(user, data.analyticsData, isPreview),
+          content: await this.generateRecommendationsContent(user, data.analyticsData, isPreview),
           order,
           included: true
         }
@@ -469,7 +608,7 @@ export class ReportService {
     }
   }
 
-  private static generateRecommendationsContent(user: any, analyticsData: any, isPreview: boolean) {
+  private static async generateRecommendationsContent(user: any, analyticsData: any, isPreview: boolean) {
     if (isPreview) {
       return {
         description: 'Preview: AI-powered strategic recommendations',
@@ -477,12 +616,22 @@ export class ReportService {
       }
     }
 
-    const latestEvaluation = user.evaluations[0]
-    return {
-      description: 'AI-generated recommendations based on business analysis',
-      recommendations: this.generateRecommendations(latestEvaluation, analyticsData),
-      priorityLevel: 'high',
-      expectedImpact: 'medium'
+    try {
+      const latestEvaluation = user.evaluations[0]
+      const businessData = latestEvaluation?.businessData || {}
+      
+      // Use AI-generated recommendations from Claude
+      const healthAnalysis = await ClaudeService.getEnhancedHealthAnalysis(businessData)
+      
+      return {
+        description: 'AI-generated recommendations based on business analysis',
+        recommendations: healthAnalysis.improvementOpportunities?.slice(0, 5).map(opp => opp.description) || [],
+        priorityLevel: 'high',
+        expectedImpact: healthAnalysis.improvementOpportunities?.[0]?.impactDescription || 'medium'
+      }
+    } catch (error) {
+      console.error('Error generating AI recommendations:', error)
+      throw error // No fallbacks
     }
   }
 
@@ -502,83 +651,6 @@ export class ReportService {
     }
   }
 
-  private static generateKeyInsights(evaluations: any[], analyticsData?: any): string[] {
-    const insights: string[] = []
-    
-    if (evaluations.length > 1) {
-      const latest = evaluations[0]
-      const previous = evaluations[1]
-      const healthChange = (latest.healthScore || 0) - (previous.healthScore || 0)
-      
-      if (healthChange > 5) {
-        insights.push('Business health has shown significant improvement over recent evaluations')
-      } else if (healthChange < -5) {
-        insights.push('Business health indicators suggest areas requiring attention')
-      }
-    }
-
-    if (analyticsData?.summary?.predictionAccuracy > 0.8) {
-      insights.push('High-quality data enables reliable predictive modeling for strategic planning')
-    }
-
-    if (evaluations.length >= 6) {
-      insights.push('Sufficient evaluation history allows for comprehensive trend analysis and forecasting')
-    }
-
-    return insights.length > 0 ? insights : [
-      'Regular business evaluation tracking provides valuable insights for decision-making'
-    ]
-  }
-
-  private static generateRecommendations(latestEvaluation: any, analyticsData?: any): string[] {
-    const recommendations: string[] = []
-    
-    if (latestEvaluation?.healthScore < 70) {
-      recommendations.push('Focus on improving overall business health through targeted operational improvements')
-    }
-
-    if (analyticsData?.summary?.totalEvaluations < 6) {
-      recommendations.push('Continue regular evaluations to build comprehensive trend analysis capabilities')
-    }
-
-    recommendations.push('Implement systematic progress tracking to measure improvement initiatives')
-    recommendations.push('Consider strategic planning based on predictive modeling insights')
-
-    return recommendations
-  }
-
-  private static generateBusinessHighlights(evaluations: any[]): string[] {
-    const highlights: string[] = []
-    
-    if (evaluations.length > 0) {
-      highlights.push(`${evaluations.length} business evaluations completed`)
-    }
-
-    const latestHealth = evaluations[0]?.healthScore || 0
-    if (latestHealth > 80) {
-      highlights.push('Strong overall business health indicators')
-    }
-
-    return highlights
-  }
-
-  private static generateRiskFactors(latestEvaluation: any): string[] {
-    const risks: string[] = []
-    
-    const healthBreakdown = latestEvaluation?.healthBreakdown || {}
-    
-    Object.entries(healthBreakdown).forEach(([category, data]: [string, any]) => {
-      if (data?.score < 60) {
-        risks.push(`${category} performance requires attention`)
-      }
-    })
-
-    return risks.length > 0 ? risks : ['No significant risk factors identified in current evaluation']
-  }
-
-  private static generateNextSteps(recommendations: string[]): string[] {
-    return recommendations.map(rec => `Action: ${rec}`).slice(0, 3)
-  }
 
   private static formatExecutiveSummary(executiveSummary: ExecutiveSummary): string {
     let content = '<div style="line-height: 1.8;">'
