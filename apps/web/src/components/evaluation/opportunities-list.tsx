@@ -2,15 +2,51 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { useState } from 'react'
+import { useAuthStore } from '@/stores/auth-store'
 import type { ImprovementOpportunity } from '@/types'
 
 interface OpportunitiesListProps {
   opportunities: ImprovementOpportunity[]
   showImplementationGuides?: boolean
+  evaluationId?: string
+  businessContext?: {
+    businessName: string
+    industry: string
+    size: string
+    currentRevenue?: number
+  }
 }
 
-export default function OpportunitiesList({ opportunities, showImplementationGuides = false }: OpportunitiesListProps) {
+export default function OpportunitiesList({ 
+  opportunities, 
+  showImplementationGuides = false, 
+  evaluationId,
+  businessContext 
+}: OpportunitiesListProps) {
+  const { user } = useAuthStore()
+  const [loadingGuide, setLoadingGuide] = useState<string | null>(null)
+  const [guideErrors, setGuideErrors] = useState<Record<string, string>>({})
+  const [generatedGuides, setGeneratedGuides] = useState<Record<string, any>>({})
+  
+  // Debug logging in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('📝 OpportunitiesList render:', {
+      opportunities: opportunities?.length || 0,
+      showImplementationGuides,
+      evaluationId,
+      userId: user?.id,
+      businessContext,
+      firstOpportunity: opportunities?.[0]
+    })
+    
+    console.log('🔍 Full opportunities array:', opportunities)
+  }
   const formatCurrency = (value: number): string => {
+    if (typeof window === 'undefined') {
+      // Server-side rendering - use basic formatting
+      return `$${value.toLocaleString()}`
+    }
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
@@ -36,6 +72,99 @@ export default function OpportunitiesList({ opportunities, showImplementationGui
       case 'high': return 'bg-red-100 text-red-800'
       default: return 'bg-gray-100 text-gray-800'
     }
+  }
+
+  const generateImplementationGuide = async (opportunity: ImprovementOpportunity) => {
+    if (!user?.id || !evaluationId || !businessContext) {
+      setGuideErrors({ [opportunity.id]: 'Missing required data for guide generation' })
+      return
+    }
+
+    setLoadingGuide(opportunity.id)
+    setGuideErrors({ ...guideErrors, [opportunity.id]: '' })
+
+    try {
+      const response = await fetch('/api/guides/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          evaluationId: evaluationId,
+          improvementCategory: opportunity.category,
+          businessContext: {
+            businessName: businessContext.businessName,
+            industry: businessContext.industry,
+            size: businessContext.size,
+            currentRevenue: businessContext.currentRevenue,
+          },
+          improvementOpportunity: {
+            title: opportunity.title,
+            description: opportunity.description,
+            potentialImpact: opportunity.impactEstimate.dollarAmount,
+            difficulty: opportunity.difficulty,
+            timelineEstimate: opportunity.impactEstimate.timeline,
+          },
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.details || 'Failed to generate implementation guide')
+      }
+
+      const result = await response.json()
+      if (result.success && result.guide) {
+        setGeneratedGuides({ 
+          ...generatedGuides, 
+          [opportunity.id]: result.guide 
+        })
+        // Navigate to progress tracking or guides page
+        window.location.href = '/progress'
+      } else {
+        throw new Error('Invalid response from guide generation service')
+      }
+    } catch (error) {
+      console.error('Guide generation error:', error)
+      setGuideErrors({ 
+        ...guideErrors, 
+        [opportunity.id]: error instanceof Error ? error.message : 'Failed to generate guide'
+      })
+    } finally {
+      setLoadingGuide(null)
+    }
+  }
+
+  const startBasicImplementation = (opportunity: ImprovementOpportunity) => {
+    // For free users - start basic implementation tracking
+    console.log('🔥 START IMPLEMENTATION BUTTON CLICKED!')
+    console.log('Starting basic implementation for:', opportunity.title)
+    console.log('Opportunity data:', opportunity)
+    
+    // Store the opportunity in localStorage for progress tracking
+    const implementationData = {
+      id: opportunity.id,
+      title: opportunity.title,
+      description: opportunity.description,
+      difficulty: opportunity.difficulty,
+      timeline: opportunity.timeframe,
+      startedAt: new Date().toISOString(),
+      type: 'basic',
+      evaluationId: evaluationId
+    }
+    
+    console.log('Storing implementation data:', implementationData)
+    
+    const existingImplementations = JSON.parse(localStorage.getItem('implementations') || '[]')
+    existingImplementations.push(implementationData)
+    localStorage.setItem('implementations', JSON.stringify(existingImplementations))
+    
+    console.log('Stored implementations:', existingImplementations)
+    
+    // Navigate to progress page
+    console.log('Navigating to /progress')
+    window.location.href = '/progress'
   }
 
   if (!opportunities || opportunities.length === 0) {
@@ -151,15 +280,89 @@ export default function OpportunitiesList({ opportunities, showImplementationGui
                 </div>
               </div>
 
+              {/* Action Buttons */}
+              <div className="flex justify-center space-x-3 pt-4 border-t">
+                <Button
+                  onClick={() => startBasicImplementation(opportunity)}
+                >
+                  Start Implementation
+                </Button>
+                <Button
+                  onClick={() => {
+                    console.log('🔥 GET PREMIUM GUIDE BUTTON CLICKED!')
+                    console.log('showImplementationGuides:', showImplementationGuides)
+                    console.log('opportunity:', opportunity)
+                    
+                    if (showImplementationGuides) {
+                      generateImplementationGuide(opportunity)
+                    } else {
+                      alert('Premium feature - Upgrade to access AI-powered guides')
+                    }
+                  }}
+                  variant="outline"
+                  disabled={loadingGuide === opportunity.id}
+                >
+                  {loadingGuide === opportunity.id ? (
+                    <>
+                      <div className="animate-spin rounded-full h-3 w-3 border-b border-gray-600 mr-2"></div>
+                      Generating...
+                    </>
+                  ) : (
+                    'Get Premium Guide'
+                  )}
+                </Button>
+              </div>
+
               {/* Implementation Guide (Premium Feature) */}
-              {showImplementationGuides && opportunity.implementationGuide ? (
+              {showImplementationGuides ? (
                 <div className="space-y-2 pt-4 border-t">
-                  <h4 className="font-medium text-sm">Implementation Guide:</h4>
-                  <div className="bg-muted/50 p-4 rounded-lg">
-                    <p className="text-sm text-muted-foreground">
-                      {opportunity.implementationGuide}
-                    </p>
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium text-sm">Implementation Guide:</h4>
+                    {!generatedGuides[opportunity.id] && (
+                      <Button
+                        onClick={() => generateImplementationGuide(opportunity)}
+                        disabled={loadingGuide === opportunity.id}
+                        size="sm"
+                        className="ml-auto"
+                      >
+                        {loadingGuide === opportunity.id ? (
+                          <>
+                            <div className="animate-spin rounded-full h-3 w-3 border-b border-white mr-2"></div>
+                            Generating...
+                          </>
+                        ) : (
+                          'Generate Implementation Guide'
+                        )}
+                      </Button>
+                    )}
                   </div>
+                  
+                  {guideErrors[opportunity.id] && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded text-sm">
+                      {guideErrors[opportunity.id]}
+                    </div>
+                  )}
+                  
+                  {generatedGuides[opportunity.id] ? (
+                    <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+                      <p className="text-sm text-green-800 mb-2">
+                        ✅ Implementation guide generated successfully!
+                      </p>
+                      <Button
+                        onClick={() => window.location.href = '/progress'}
+                        size="sm"
+                        variant="outline"
+                      >
+                        View in Progress Tracker
+                      </Button>
+                    </div>
+                  ) : !loadingGuide && !guideErrors[opportunity.id] && (
+                    <div className="bg-muted/50 p-4 rounded-lg">
+                      <p className="text-sm text-muted-foreground">
+                        Click "Generate Implementation Guide" to create a detailed, step-by-step action plan for this opportunity.
+                      </p>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="pt-4 border-t">

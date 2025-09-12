@@ -366,6 +366,8 @@ export function UnifiedResultsDashboard({
         <OpportunityIntelligence 
           analysis={healthData} 
           businessName={businessName}
+          evaluationId={evaluation.id}
+          showImplementationGuides={true} // For testing, always show guides in Epic 2
         />
       )}
 

@@ -84,6 +84,48 @@ This project uses SPARC (Specification, Pseudocode, Architecture, Refinement, Co
 - **Clean Architecture**: Separate concerns
 - **Documentation**: Keep updated
 
+## 🚨 CRITICAL DEVELOPMENT RULE: NO FALLBACKS OR WORKAROUNDS
+
+**ABSOLUTE REQUIREMENT**: Never implement fallbacks, mock data, or workarounds when debugging, creating, or building anything.
+
+**MANDATORY APPROACH**:
+- ✅ Fix the root cause
+- ✅ Implement proper solutions
+- ✅ Use real data and proper integrations
+- ❌ NO placeholder data
+- ❌ NO temporary workarounds
+- ❌ NO fallback mechanisms
+- ❌ NO "TODO: fix later" comments
+
+## 🚨 CRITICAL REDESIGN RULE: NO FULL REDESIGNS WITHOUT APPROVAL
+
+**ABSOLUTE REQUIREMENT**: Never perform full redesigns or complete rewrites without explicit user approval.
+
+**MANDATORY APPROACH**:
+- ✅ Fix existing implementation incrementally
+- ✅ Refactor specific components only when necessary
+- ✅ Build upon existing architecture
+- ❌ NO complete redesigns or rewrites
+- ❌ NO "this needs to be rebuilt from scratch"
+- ❌ NO major architectural changes without approval
+
+**WHEN YOU BELIEVE A REDESIGN IS NECESSARY**:
+1. **STOP** all development work immediately
+2. **ASK** the user for explicit approval with detailed justification
+3. **EXPLAIN** why incremental fixes won't work
+4. **WAIT** for user approval before proceeding
+
+**This applies to ALL development activities:**
+- Debugging sessions
+- Feature implementation
+- Bug fixes
+- System integration
+- Database operations
+- API implementations
+- UI components
+- Architecture changes
+- Database schema modifications
+
 ## 🚀 Available Agents (54 Total)
 
 ### Core Development

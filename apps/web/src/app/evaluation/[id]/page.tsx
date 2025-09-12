@@ -9,6 +9,7 @@ import OpportunitiesList from '@/components/evaluation/opportunities-list'
 import { UnifiedResultsDashboard } from '@/components/evaluation/unified-results-dashboard'
 import { useEvaluationStore } from '@/stores/evaluation-store'
 import { useAuthStore } from '@/stores/auth-store'
+import { PremiumAccessService } from '@/lib/services/PremiumAccessService'
 import type { BusinessEvaluation } from '@/types'
 
 export default function EvaluationResultsPage() {
@@ -23,6 +24,9 @@ export default function EvaluationResultsPage() {
   const [evaluation, setEvaluation] = useState<BusinessEvaluation | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  const [hasPremiumAccess, setHasPremiumAccess] = useState(false)
+  const [premiumCheckLoading, setPremiumCheckLoading] = useState(true)
+  const [isClient, setIsClient] = useState(false)
   
   // Detect evaluation type (Epic 1 vs Epic 2)
   const isEpic2Evaluation = (evaluation: BusinessEvaluation) => {
@@ -64,6 +68,11 @@ export default function EvaluationResultsPage() {
     }
   }
 
+  // Fix hydration issues by ensuring we're on the client
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
   useEffect(() => {
     const findEvaluation = async () => {
       setIsLoading(true)
@@ -96,6 +105,32 @@ export default function EvaluationResultsPage() {
 
     findEvaluation()
   }, [evaluationId, evaluations, loadEvaluations])
+
+  // Check premium access for implementation guides (client-side only to avoid hydration issues)
+  useEffect(() => {
+    const checkPremiumAccess = async () => {
+      if (!userId || !isClient) {
+        setHasPremiumAccess(false)
+        setPremiumCheckLoading(false)
+        return
+      }
+
+      try {
+        setPremiumCheckLoading(true)
+        const accessCheck = await PremiumAccessService.checkAIFeatureAccess(userId)
+        console.log('🔍 Premium access check result:', accessCheck)
+        setHasPremiumAccess(accessCheck.hasAccess)
+      } catch (error) {
+        console.error('Failed to check premium access:', error)
+        // Fallback to false on error (current behavior)
+        setHasPremiumAccess(false)
+      } finally {
+        setPremiumCheckLoading(false)
+      }
+    }
+
+    checkPremiumAccess()
+  }, [userId, isClient])
 
   if (isLoading) {
     return (
@@ -178,8 +213,28 @@ export default function EvaluationResultsPage() {
                 <ValuationResults evaluation={evaluation} />
                 <OpportunitiesList 
                   opportunities={evaluation.opportunities}
-                  showImplementationGuides={false} // Free tier
+                  showImplementationGuides={isClient && hasPremiumAccess}
+                  evaluationId={evaluation.id}
+                  businessContext={{
+                    businessName: evaluation.businessData.businessName || 'Your Business',
+                    industry: evaluation.businessData.industry || 'General',
+                    size: evaluation.businessData.size || 'Medium',
+                    currentRevenue: evaluation.businessData.currentRevenue,
+                  }}
                 />
+                
+                {/* Debug info */}
+                {process.env.NODE_ENV === 'development' && isClient && (
+                  <div className="mt-4 p-4 bg-gray-100 rounded-lg text-xs text-gray-600">
+                    <strong>Debug Info:</strong><br/>
+                    - isClient: {String(isClient)}<br/>
+                    - hasPremiumAccess: {String(hasPremiumAccess)}<br/>
+                    - premiumCheckLoading: {String(premiumCheckLoading)}<br/>
+                    - opportunities count: {evaluation.opportunities?.length || 0}<br/>
+                    - userId: {userId}<br/>
+                    - evaluationId: {evaluation.id}
+                  </div>
+                )}
               </div>
             </div>
           )}

@@ -163,7 +163,7 @@ export default function DashboardLayout({
                 </Button>
               )}
               {onCreateEvaluation && (
-                <Button size="sm" className="bg-primary hover:bg-primary/90">
+                <Button size="sm" className="bg-primary hover:bg-primary/90" onClick={onCreateEvaluation}>
                   <Plus className="h-4 w-4 mr-2" />
                   New Evaluation
                 </Button>
