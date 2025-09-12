@@ -195,10 +195,10 @@ export default function EvaluationResultsPage() {
                 {isSaving ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground"></div>
-                    Saving V2...
+                    Saving...
                   </>
                 ) : (
-                  'Save and Return to Dashboard V2'
+                  'Return to Dashboard'
                 )}
               </button>
               <a 

@@ -1,6 +1,7 @@
 'use client'
 
-import { Eye, FileText, ArrowRight } from 'lucide-react'
+import { useState } from 'react'
+import { Eye, FileText, ArrowRight, Trash2 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -10,6 +11,7 @@ interface RecentEvaluationsProps {
   evaluations?: BusinessEvaluation[]
   onViewEvaluation?: (id: string) => void
   onViewAllEvaluations?: () => void
+  onDeleteEvaluation?: (id: string) => Promise<void>
   className?: string
 }
 
@@ -17,8 +19,11 @@ export default function RecentEvaluations({
   evaluations = [],
   onViewEvaluation,
   onViewAllEvaluations,
+  onDeleteEvaluation,
   className = ""
 }: RecentEvaluationsProps) {
+  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set())
+
   // Get the 4 most recent evaluations
   const recentEvaluations = evaluations
     .filter(evaluation => evaluation.status === 'completed')
@@ -43,6 +48,25 @@ export default function RecentEvaluations({
   // Helper function to get score color (using brand colors)
   const getScoreColor = (score: number) => {
     return 'bg-primary/10 text-primary border-primary/20'
+  }
+
+  const handleDeleteEvaluation = async (evaluationId: string, event: React.MouseEvent) => {
+    event.stopPropagation() // Prevent triggering the view click
+    
+    if (!onDeleteEvaluation) return
+    
+    setDeletingIds(prev => new Set(prev).add(evaluationId))
+    try {
+      await onDeleteEvaluation(evaluationId)
+    } catch (error) {
+      console.error('Failed to delete evaluation:', error)
+    } finally {
+      setDeletingIds(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(evaluationId)
+        return newSet
+      })
+    }
   }
 
   if (recentEvaluations.length === 0) {
@@ -137,6 +161,23 @@ export default function RecentEvaluations({
                 >
                   {evaluation.healthScore}
                 </Badge>
+                
+                {/* Delete Button */}
+                {onDeleteEvaluation && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => handleDeleteEvaluation(evaluation.id, e)}
+                    disabled={deletingIds.has(evaluation.id)}
+                    className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                  >
+                    {deletingIds.has(evaluation.id) ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
+                    ) : (
+                      <Trash2 className="h-4 w-4" />
+                    )}
+                  </Button>
+                )}
                 
                 {/* View Icon */}
                 <Eye className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />

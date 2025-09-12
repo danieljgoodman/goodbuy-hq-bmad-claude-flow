@@ -17,46 +17,65 @@ interface Insight {
 }
 
 export default function AIInsights({ metrics, className = "" }: AIInsightsProps) {
-  // Generate insights based on metrics data or use mockup fallback
+  // Generate insights based on metrics data
   const generateInsights = (): Insight[] => {
-    if (metrics) {
+    if (!metrics) {
       return [
         {
-          id: "health-score",
-          text: `Your health score is ${metrics.healthScore >= 75 ? '12% above' : '8% below'} industry average`,
-          colorClass: "bg-primary"
-        },
-        {
-          id: "revenue-growth",
-          text: `Revenue growth is ${metrics.riskLevel === 'Low' ? 'accelerating (+15% this quarter)' : 'stable (+5% this quarter)'}`,
-          colorClass: "bg-chart-1"
-        },
-        {
-          id: "market-expansion",
-          text: "Consider expanding market reach in Q4",
-          colorClass: "bg-chart-2"
+          id: "no-data",
+          text: "Complete your first evaluation to see AI insights",
+          colorClass: "bg-muted"
         }
       ]
     }
+
+    const insights: Insight[] = []
     
-    // Fallback to exact mockup specifications
-    return [
-      {
-        id: "health-score",
-        text: "Your health score is 12% above industry average",
-        colorClass: "bg-primary"
-      },
-      {
-        id: "revenue-growth", 
-        text: "Revenue growth is accelerating (+15% this quarter)",
-        colorClass: "bg-chart-1"
-      },
-      {
-        id: "market-expansion",
-        text: "Consider expanding market reach in Q4", 
+    // Health Score Insight
+    const healthGrade = metrics.healthScore >= 85 ? 'excellent' : 
+                       metrics.healthScore >= 75 ? 'strong' : 
+                       metrics.healthScore >= 65 ? 'good' : 'needs improvement'
+    
+    insights.push({
+      id: "health-score",
+      text: `Your health score of ${metrics.healthScore} is ${healthGrade} for your business stage`,
+      colorClass: metrics.healthScore >= 75 ? "bg-chart-1" : "bg-chart-2"
+    })
+
+    // Risk Level Insight
+    const riskInsight = metrics.riskLevel === 'low' ? 
+      'Low risk profile indicates stable operations' :
+      metrics.riskLevel === 'medium' ?
+      'Medium risk level suggests monitoring key metrics' :
+      'High risk areas need immediate attention'
+    
+    insights.push({
+      id: "risk-level",
+      text: riskInsight,
+      colorClass: metrics.riskLevel === 'low' ? "bg-primary" : 
+                  metrics.riskLevel === 'medium' ? "bg-chart-2" : "bg-destructive"
+    })
+
+    // Growth/Evaluation Insight  
+    if (metrics.totalEvaluations >= 3) {
+      const growthTrend = metrics.growthRate > 0 ? 'positive growth trajectory' : 
+                         metrics.growthRate === 0 ? 'stable performance' : 
+                         'declining trend needs attention'
+      
+      insights.push({
+        id: "growth-trend",
+        text: `${metrics.totalEvaluations} evaluations show ${growthTrend}`,
+        colorClass: metrics.growthRate > 0 ? "bg-chart-1" : "bg-chart-2"
+      })
+    } else {
+      insights.push({
+        id: "evaluation-progress",
+        text: `Complete ${3 - metrics.totalEvaluations} more evaluations for trend analysis`,
         colorClass: "bg-chart-2"
-      }
-    ]
+      })
+    }
+
+    return insights
   }
 
   const insights = generateInsights()

@@ -1,6 +1,6 @@
 'use client'
 
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 // Note: Select component removed for build compatibility
 import { Badge } from '@/components/ui/badge'
@@ -86,6 +86,7 @@ const getBarColor = (category: string) => {
     valuation: '#3B82F6', 
     growth: '#8B5CF6',
     score: '#F59E0B',
+    health: '#F59E0B',
     count: '#6B7280',
     risk: '#EF4444'
   }
@@ -126,49 +127,75 @@ export default function TrendBarChart({
     isPositive: (filteredData[filteredData.length - 1]?.value || 0) > (filteredData[0]?.value || 0)
   } : null
 
+  // Determine if this should be a line chart (for health scores)
+  const shouldShowAsLineChart = title.toLowerCase().includes('health score') || 
+                                title.toLowerCase().includes('progression') ||
+                                filteredData[0]?.category === 'score' ||
+                                filteredData[0]?.category === 'health'
+
   const chartComponent = responsive ? (
     <ResponsiveContainer width="100%" height={height}>
-      <BarChart 
-        data={filteredData} 
-        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-        layout={orientation === 'horizontal' ? 'horizontal' : 'vertical'}
-      >
-        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-        {orientation === 'horizontal' ? (
-          <>
-            <XAxis type="number" tickFormatter={(value) => formatValue(value, filteredData[0]?.category || 'number')} />
-            <YAxis type="category" dataKey="date" tickFormatter={formatDate} />
-          </>
-        ) : (
-          <>
-            <XAxis dataKey="date" tickFormatter={formatDate} />
-            <YAxis tickFormatter={(value) => formatValue(value, filteredData[0]?.category || 'number')} />
-          </>
-        )}
-        <Tooltip content={<CustomTooltip />} />
-        {categories.length > 1 && <Legend />}
-        
-        {categories.length === 1 ? (
-          <Bar 
+      {shouldShowAsLineChart ? (
+        <LineChart 
+          data={filteredData} 
+          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+          <XAxis dataKey="date" tickFormatter={formatDate} />
+          <YAxis tickFormatter={(value) => formatValue(value, filteredData[0]?.category || 'number')} />
+          <Tooltip content={<CustomTooltip />} />
+          <Line
+            type="monotone"
             dataKey={dataKey}
-            fill={barColors?.[0] || getBarColor(filteredData[0]?.category || 'number')}
-            radius={[4, 4, 0, 0]}
-            name={filteredData[0]?.category || 'Value'}
-            onClick={onBarClick}
+            stroke={barColors?.[0] || getBarColor(filteredData[0]?.category || 'number')}
+            strokeWidth={2}
+            dot={{ r: 4, fill: barColors?.[0] || getBarColor(filteredData[0]?.category || 'number') }}
+            activeDot={{ r: 6 }}
           />
-        ) : (
-          categories.map((category, index) => (
-            <Bar
-              key={category}
+        </LineChart>
+      ) : (
+        <BarChart 
+          data={filteredData} 
+          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+          layout={orientation === 'horizontal' ? 'horizontal' : 'vertical'}
+        >
+          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+          {orientation === 'horizontal' ? (
+            <>
+              <XAxis type="number" tickFormatter={(value) => formatValue(value, filteredData[0]?.category || 'number')} />
+              <YAxis type="category" dataKey="date" tickFormatter={formatDate} />
+            </>
+          ) : (
+            <>
+              <XAxis dataKey="date" tickFormatter={formatDate} />
+              <YAxis tickFormatter={(value) => formatValue(value, filteredData[0]?.category || 'number')} />
+            </>
+          )}
+          <Tooltip content={<CustomTooltip />} />
+          {categories.length > 1 && <Legend />}
+          
+          {categories.length === 1 ? (
+            <Bar 
               dataKey={dataKey}
-              fill={barColors?.[index] || getBarColor(category)}
+              fill={barColors?.[0] || getBarColor(filteredData[0]?.category || 'number')}
               radius={[4, 4, 0, 0]}
-              name={category}
+              name={filteredData[0]?.category || 'Value'}
               onClick={onBarClick}
             />
-          ))
-        )}
-      </BarChart>
+          ) : (
+            categories.map((category, index) => (
+              <Bar
+                key={category}
+                dataKey={dataKey}
+                fill={barColors?.[index] || getBarColor(category)}
+                radius={[4, 4, 0, 0]}
+                name={category}
+                onClick={onBarClick}
+              />
+            ))
+          )}
+        </BarChart>
+      )}
     </ResponsiveContainer>
   ) : (
     <BarChart 

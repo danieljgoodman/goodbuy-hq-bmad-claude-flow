@@ -191,6 +191,7 @@ export default function DashboardLayout({
               <PerformanceAnalytics 
                 valuationData={displayValuationData}
                 trendData={displayTrendData}
+                healthBreakdown={displayHealthBreakdown}
               />
 
               {/* RECENT EVALUATIONS */}
@@ -198,6 +199,7 @@ export default function DashboardLayout({
                 evaluations={evaluations}
                 onViewEvaluation={onViewEvaluation}
                 onViewAllEvaluations={onViewAllEvaluations}
+                onDeleteEvaluation={onDeleteEvaluation}
               />
             </div>
 
