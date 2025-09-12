@@ -82,6 +82,13 @@ export const authOptions: NextAuthOptions = {
   },
 }
 
+// Helper function to get current user from server session
+export async function getCurrentUser() {
+  // This would typically get the current session from NextAuth
+  // For now, returning null - needs to be implemented with getServerSession
+  return null
+}
+
 // Helper function for API routes that need auth check
 export async function getServerAuth(email?: string) {
   if (!email) {

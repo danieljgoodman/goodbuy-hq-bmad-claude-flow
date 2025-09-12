@@ -184,44 +184,45 @@ export function EnhancedHealthScore({ analysis, businessName }: EnhancedHealthSc
         <h3 className="text-lg font-semibold">Health Dimensions Analysis</h3>
         
         {/* Financial Health */}
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${getHealthBgColor(analysis.scoringFactors.financial.score)}`}>
-                  <BarChart3 className={`h-5 w-5 ${getHealthColor(analysis.scoringFactors.financial.score)}`} />
-                </div>
-                <div>
-                  <CardTitle className="text-lg">Financial Health</CardTitle>
-                  <div className="flex items-center gap-2">
-                    <span className={`text-2xl font-bold ${getHealthColor(analysis.scoringFactors.financial.score)}`}>
-                      {analysis.scoringFactors.financial.score}
-                    </span>
-                    {getTrendIcon(analysis.scoringFactors.financial.trend)}
-                    <Badge variant="outline" className="text-xs">
-                      {analysis.scoringFactors.financial.confidence}% confidence
-                    </Badge>
+        {analysis.scoringFactors?.financial && (
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg ${getHealthBgColor(analysis.scoringFactors.financial.score)}`}>
+                    <BarChart3 className={`h-5 w-5 ${getHealthColor(analysis.scoringFactors.financial.score)}`} />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">Financial Health</CardTitle>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-2xl font-bold ${getHealthColor(analysis.scoringFactors.financial.score)}`}>
+                        {analysis.scoringFactors.financial.score}
+                      </span>
+                      {getTrendIcon(analysis.scoringFactors.financial.trend)}
+                      <Badge variant="outline" className="text-xs">
+                        {analysis.scoringFactors.financial.confidence}% confidence
+                      </Badge>
+                    </div>
                   </div>
                 </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => toggleDimension('financial')}
+                >
+                  {expandedDimension === 'financial' ? <ChevronDown /> : <ChevronRight />}
+                </Button>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => toggleDimension('financial')}
-              >
-                {expandedDimension === 'financial' ? <ChevronDown /> : <ChevronRight />}
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Progress value={analysis.scoringFactors.financial.score} className="mb-4" />
-            
-            {expandedDimension === 'financial' && (
-              <div className="space-y-4 border-t pt-4">
-                <div>
-                  <h4 className="font-medium mb-3">Key Metrics Analysis:</h4>
-                  <div className="space-y-2">
-                    {analysis.scoringFactors.financial.factors.map((factor, index) => (
+            </CardHeader>
+            <CardContent>
+              <Progress value={analysis.scoringFactors.financial.score} className="mb-4" />
+              
+              {expandedDimension === 'financial' && (
+                <div className="space-y-4 border-t pt-4">
+                  <div>
+                    <h4 className="font-medium mb-3">Key Metrics Analysis:</h4>
+                    <div className="space-y-2">
+                      {analysis.scoringFactors.financial.factors.map((factor, index) => (
                       <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                         <div>
                           <p className="font-medium">{factor.metric}</p>
@@ -256,9 +257,10 @@ export function EnhancedHealthScore({ analysis, businessName }: EnhancedHealthSc
             )}
           </CardContent>
         </Card>
+        )}
 
-        {/* Operational Efficiency */}
-        <Card>
+        {analysis.scoringFactors?.operational && (
+          <Card>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -329,10 +331,8 @@ export function EnhancedHealthScore({ analysis, businessName }: EnhancedHealthSc
               </div>
             )}
           </CardContent>
-        </Card>
-
-        {/* Continue with other dimensions... (Market, Risk, Growth) */}
-        {/* Similar structure for market, risk, and growth dimensions */}
+          </Card>
+        )}
       </div>
 
       {/* Summary Alert */}

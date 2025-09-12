@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import type { HealthScoreBreakdown } from '@/types/dashboard'
 import type { GaugeChartProps } from '@/types/charts'
+import { getHealthScoreColor, getMetricColor, cssVars } from '@/lib/utils/colors'
 
 interface HealthScoreGaugeProps extends Omit<GaugeChartProps, 'value'> {
   healthScore: number
@@ -16,10 +17,7 @@ interface HealthScoreGaugeProps extends Omit<GaugeChartProps, 'value'> {
 }
 
 const getScoreColor = (score: number) => {
-  if (score >= 80) return '#10B981' // green
-  if (score >= 60) return '#F59E0B' // amber
-  if (score >= 40) return '#EF4444' // red
-  return '#6B7280' // gray
+  return getHealthScoreColor(score)
 }
 
 const getScoreLabel = (score: number) => {
@@ -48,16 +46,19 @@ export default function HealthScoreGauge({
   // Gauge chart data
   const gaugeData = [
     { name: 'Score', value: healthScore, color: getScoreColor(healthScore) },
-    { name: 'Remaining', value: 100 - healthScore, color: '#F3F4F6' }
+    { name: 'Remaining', value: 100 - healthScore, color: cssVars.muted }
   ]
+  
+  // Force timestamp for cache busting
+  const timestamp = Date.now()
 
   // Breakdown data for pie chart
   const breakdownData = breakdown ? [
-    { name: 'Financial', value: breakdown.financial.score, weight: breakdown.financial.weight, color: '#3B82F6' },
-    { name: 'Operational', value: breakdown.operational.score, weight: breakdown.operational.weight, color: '#10B981' },
-    { name: 'Market', value: breakdown.market.score, weight: breakdown.market.weight, color: '#F59E0B' },
-    { name: 'Risk', value: breakdown.risk.score, weight: breakdown.risk.weight, color: '#EF4444' },
-    { name: 'Growth', value: breakdown.growth.score, weight: breakdown.growth.weight, color: '#8B5CF6' }
+    { name: 'Financial', value: breakdown.financial.score, weight: breakdown.financial.weight, color: getMetricColor('financial') },
+    { name: 'Operational', value: breakdown.operational.score, weight: breakdown.operational.weight, color: getMetricColor('operational') },
+    { name: 'Market', value: breakdown.market.score, weight: breakdown.market.weight, color: getMetricColor('market') },
+    { name: 'Risk', value: breakdown.risk.score, weight: breakdown.risk.weight, color: getMetricColor('risk') },
+    { name: 'Growth', value: breakdown.growth.score, weight: breakdown.growth.weight, color: getMetricColor('growth') }
   ] : []
 
   const CustomLabel = ({ cx, cy }: any) => {
@@ -154,19 +155,19 @@ export default function HealthScoreGauge({
           {/* Key Metrics - Moved closer */}
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold" style={{ color: cssVars.success }}>
                 {breakdownData.filter(d => d.value >= 70).length}
               </div>
               <div className="text-xs text-muted-foreground">Strong Areas</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-amber-600">
+              <div className="text-2xl font-bold" style={{ color: cssVars.warning }}>
                 {breakdownData.filter(d => d.value >= 50 && d.value < 70).length}
               </div>
               <div className="text-xs text-muted-foreground">Improving</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-red-600">
+              <div className="text-2xl font-bold" style={{ color: cssVars.danger }}>
                 {breakdownData.filter(d => d.value < 50).length}
               </div>
               <div className="text-xs text-muted-foreground">Needs Attention</div>

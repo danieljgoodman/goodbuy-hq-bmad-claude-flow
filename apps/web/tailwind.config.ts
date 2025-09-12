@@ -49,6 +49,12 @@ const config: Config = {
           "4": "var(--chart-4)",
           "5": "var(--chart-5)",
         },
+        // Semantic chart colors for consistent business metrics
+        success: "var(--chart-1)", // Green for positive metrics
+        warning: "var(--chart-2)", // Orange/amber for caution
+        info: "var(--primary)",    // Primary blue for information
+        danger: "var(--destructive)", // Red for negative/risk
+        neutral: "var(--muted-foreground)", // Gray for neutral data
         sidebar: {
           DEFAULT: "var(--sidebar)",
           foreground: "var(--sidebar-foreground)",

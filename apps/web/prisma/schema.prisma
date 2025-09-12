@@ -956,7 +956,7 @@ model UserEvent {
   eventType        String    @map("event_type")
   eventName        String    @map("event_name")
   properties       Json      @default("{}")
-  pageUrl          String    @map("page_url")
+  pageUrl          String?   @map("page_url")
   referrer         String?
   userAgent        String    @map("user_agent")
   ipAddress        String    @map("ip_address")
