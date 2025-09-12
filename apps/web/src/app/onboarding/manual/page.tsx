@@ -1,13 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import ProtectedRoute from '@/components/auth/protected-route'
 import EvaluationForm from '@/components/evaluation/evaluation-form'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { CheckCircle, FileText, AlertCircle } from 'lucide-react'
 
-export default function OnboardingManualPage() {
+function OnboardingManualContent() {
   const searchParams = useSearchParams()
   const [extractedData, setExtractedData] = useState<any[]>([])
   const [hasDocumentData, setHasDocumentData] = useState(false)
@@ -158,5 +158,13 @@ export default function OnboardingManualPage() {
         </div>
       </div>
     </ProtectedRoute>
+  )
+}
+
+export default function OnboardingManualPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-background to-secondary pt-20 pb-8 flex items-center justify-center"><div>Loading...</div></div>}>
+      <OnboardingManualContent />
+    </Suspense>
   )
 }
