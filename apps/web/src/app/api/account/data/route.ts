@@ -1,30 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
-
-// Lazy load AccountService to avoid build-time imports
-let AccountService: any = null
-let accountService: any = null
-
-async function getAccountService() {
-  if (!AccountService) {
-    const { AccountService: AS } = await import('@/lib/services/AccountService')
-    AccountService = AS
-    accountService = new AccountService()
-  }
-  return accountService
-}
 
 export async function GET(request: NextRequest) {
   try {
-    // Skip during build/static generation
-    if (process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL) {
+    // Skip during build completely - this prevents any imports during static generation
+    if (process.env.VERCEL_ENV || (!process.env.DATABASE_URL && process.env.NODE_ENV !== 'development')) {
       return NextResponse.json(
-        { error: 'Service temporarily unavailable' },
+        { error: 'Service temporarily unavailable during build' },
         { status: 503 }
       )
     }
 
+    // Only import and use services when actually serving requests
+    const { getServerSession } = await import('next-auth/next')
+    const { authOptions } = await import('@/lib/auth')
+    
     // Authentication check
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
@@ -36,9 +25,10 @@ export async function GET(request: NextRequest) {
 
     const userId = session.user.id
 
-    // Lazy load service to prevent build-time initialization
-    const service = await getAccountService()
-    const accountData = await service.getAccountData(userId)
+    // Dynamic import to prevent build-time issues
+    const { AccountService } = await import('@/lib/services/AccountService')
+    const accountService = new AccountService()
+    const accountData = await accountService.getAccountData(userId)
     
     return NextResponse.json(accountData, {
       headers: {
