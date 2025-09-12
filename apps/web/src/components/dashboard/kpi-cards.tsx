@@ -34,19 +34,52 @@ const StarRating = ({ filled, total }: { filled: number, total: number }) => {
   )
 }
 
-// Generate the 4 exact KPI cards from mockup
-const generateMockupKPICards = (metrics: DashboardMetrics) => {
+// Generate real KPI cards from metrics data
+const generateRealKPICards = (metrics: DashboardMetrics) => {
+  // Format business valuation
+  const formatValue = (value: number) => {
+    if (value >= 1000000) {
+      return `$${(value / 1000000).toFixed(1)}M`
+    } else if (value >= 1000) {
+      return `$${(value / 1000).toFixed(0)}K`
+    } else {
+      return `$${value.toLocaleString()}`
+    }
+  }
+
+  // Calculate trend indicators
+  const healthTrend = metrics.healthScore >= 80 ? '+Good' : 
+                     metrics.healthScore >= 60 ? 'Fair' : 'Needs Work'
+  
+  const healthTrendColor = metrics.healthScore >= 80 ? 'text-chart-1' : 
+                          metrics.healthScore >= 60 ? 'text-chart-2' : 'text-destructive'
+
+  const valuationTrend = metrics.growthRate > 0 ? `+${metrics.growthRate}%` : 
+                        metrics.growthRate === 0 ? 'Stable' : `${metrics.growthRate}%`
+  
+  const valuationTrendColor = metrics.growthRate > 0 ? 'text-chart-1' : 
+                             metrics.growthRate === 0 ? 'text-muted-foreground' : 'text-destructive'
+
+  const growthStatus = metrics.growthRate > 10 ? 'Strong Growth' : 
+                      metrics.growthRate > 0 ? 'Growing' :
+                      metrics.growthRate === 0 ? 'Stable' : 'Declining'
+
+  // Risk level calculations
+  const riskDisplay = metrics.riskLevel.charAt(0).toUpperCase() + metrics.riskLevel.slice(1)
+  const riskStars = metrics.riskLevel === 'low' ? 4 : 
+                   metrics.riskLevel === 'medium' ? 2 : 1
+
   return [
     {
       id: 'health-score',
       title: 'Health Score',
       icon: Heart,
       iconColor: 'text-primary',
-      value: '82',
+      value: metrics.healthScore.toString(),
       suffix: '/100',
       valueColor: 'text-primary',
-      trend: '+5.2%',
-      trendColor: 'text-chart-1',
+      trend: healthTrend,
+      trendColor: healthTrendColor,
       hasTooltip: true
     },
     {
@@ -54,11 +87,11 @@ const generateMockupKPICards = (metrics: DashboardMetrics) => {
       title: 'Business Value',
       icon: DollarSign,
       iconColor: 'text-muted-foreground',
-      value: '$2.9M',
+      value: formatValue(metrics.businessValuation),
       suffix: '',
       valueColor: 'text-foreground',
-      trend: '+18.3%',
-      trendColor: 'text-chart-1',
+      trend: valuationTrend,
+      trendColor: valuationTrendColor,
       hasTooltip: false
     },
     {
@@ -66,10 +99,10 @@ const generateMockupKPICards = (metrics: DashboardMetrics) => {
       title: 'Growth Rate',
       icon: TrendingUpIcon,
       iconColor: 'text-muted-foreground',
-      value: '+15.3%',
+      value: metrics.growthRate > 0 ? `+${metrics.growthRate}%` : `${metrics.growthRate}%`,
       suffix: '30d',
-      valueColor: 'text-primary',
-      trend: 'Strong Growth',
+      valueColor: metrics.growthRate > 0 ? 'text-primary' : 'text-muted-foreground',
+      trend: growthStatus,
       trendColor: 'text-muted-foreground',
       hasTooltip: false
     },
@@ -78,13 +111,14 @@ const generateMockupKPICards = (metrics: DashboardMetrics) => {
       title: 'Risk Level',
       icon: Shield,
       iconColor: 'text-muted-foreground',
-      value: 'Low',
+      value: riskDisplay,
       suffix: '',
-      valueColor: 'text-primary',
-      trend: 'Minimal Risk',
+      valueColor: metrics.riskLevel === 'low' ? 'text-primary' : 
+                  metrics.riskLevel === 'medium' ? 'text-chart-2' : 'text-destructive',
+      trend: `${riskDisplay} Risk`,
       trendColor: 'text-muted-foreground',
       hasStars: true,
-      starRating: { filled: 4, total: 5 },
+      starRating: { filled: riskStars, total: 5 },
       hasTooltip: false
     }
   ]
@@ -114,7 +148,7 @@ export default function KPICards({ metrics, isLoading = false }: KPICardsProps) 
     return null
   }
 
-  const kpiCards = generateMockupKPICards(metrics)
+  const kpiCards = generateRealKPICards(metrics)
 
   return (
     <div className="grid grid-cols-2 gap-4 lg:gap-6">

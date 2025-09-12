@@ -21,6 +21,7 @@ interface PerformanceAnalyticsProps {
   onToggleCollapse?: (collapsed: boolean) => void
   valuationData?: ChartDataPoint[]
   trendData?: ChartDataPoint[]
+  healthBreakdown?: import('@/types/dashboard').HealthScoreBreakdown
 }
 
 type TimeRange = '7 Days' | '30 Days' | '90 Days' | '1 Year'
@@ -37,33 +38,102 @@ const PerformanceAnalytics = ({
   isCollapsed = false,
   onToggleCollapse,
   valuationData = [],
-  trendData = []
+  trendData = [],
+  healthBreakdown
 }: PerformanceAnalyticsProps) => {
   const [activeTab, setActiveTab] = useState<TimeRange>('30 Days')
   const [collapsed, setCollapsed] = useState(isCollapsed)
 
   const timeRanges: TimeRange[] = ['7 Days', '30 Days', '90 Days', '1 Year']
 
-  const metricsData: MetricData[] = [
-    {
-      value: '127%',
-      label: 'vs Industry Avg',
-      color: 'orange',
-      icon: <TrendingUp className="w-4 h-4" />
-    },
-    {
-      value: '$890K',
-      label: 'Revenue Growth',
-      color: 'orange',
-      icon: <DollarSign className="w-4 h-4" />
-    },
-    {
-      value: '94%',
-      label: 'Customer Sat.',
-      color: 'purple',
-      icon: <Users className="w-4 h-4" />
+  // Calculate real metrics from health breakdown and trend data
+  const calculateRealMetrics = (): MetricData[] => {
+    const currentHealthScore = trendData.length > 0 ? trendData[trendData.length - 1].value : 0
+    
+    // Default metrics if no health breakdown data
+    if (!healthBreakdown) {
+      const gradeMapping = (score: number) => {
+        if (score >= 90) return 'A+'
+        if (score >= 85) return 'A'
+        if (score >= 80) return 'B+'
+        if (score >= 75) return 'B'
+        if (score >= 70) return 'C+'
+        if (score >= 65) return 'C'
+        return 'D'
+      }
+
+      return [
+        {
+          value: `${Math.round(currentHealthScore)}/100`,
+          label: `Overall Health (${gradeMapping(currentHealthScore)})`,
+          color: 'orange',
+          icon: <TrendingUp className="w-4 h-4" />
+        },
+        {
+          value: `${trendData.length}`,
+          label: 'Completed Evals',
+          color: 'orange', 
+          icon: <DollarSign className="w-4 h-4" />
+        },
+        {
+          value: currentHealthScore >= 80 ? 'Strong' : currentHealthScore >= 60 ? 'Fair' : 'Needs Work',
+          label: 'Health Status',
+          color: 'purple',
+          icon: <Users className="w-4 h-4" />
+        }
+      ]
     }
-  ]
+
+    // Calculate metrics from health breakdown
+    const categories = [
+      { name: 'Financial', score: healthBreakdown.financial.score },
+      { name: 'Operational', score: healthBreakdown.operational.score },
+      { name: 'Market', score: healthBreakdown.market.score },
+      { name: 'Risk', score: healthBreakdown.risk.score },
+      { name: 'Growth', score: healthBreakdown.growth.score }
+    ]
+
+    const bestCategory = categories.reduce((prev, current) => 
+      current.score > prev.score ? current : prev
+    )
+
+    const worstCategory = categories.reduce((prev, current) => 
+      current.score < prev.score ? current : prev
+    )
+
+    const gradeMapping = (score: number) => {
+      if (score >= 90) return 'A+'
+      if (score >= 85) return 'A' 
+      if (score >= 80) return 'B+'
+      if (score >= 75) return 'B'
+      if (score >= 70) return 'C+'
+      if (score >= 65) return 'C'
+      return 'D'
+    }
+
+    return [
+      {
+        value: `${Math.round(currentHealthScore)}/100`,
+        label: `Overall Health (${gradeMapping(currentHealthScore)})`,
+        color: 'orange',
+        icon: <TrendingUp className="w-4 h-4" />
+      },
+      {
+        value: `${Math.round(bestCategory.score)}% ${bestCategory.name}`,
+        label: 'Top Category',
+        color: 'orange',
+        icon: <DollarSign className="w-4 h-4" />
+      },
+      {
+        value: `${Math.round(worstCategory.score)}% ${worstCategory.name}`,
+        label: 'Focus Area', 
+        color: 'purple',
+        icon: <Users className="w-4 h-4" />
+      }
+    ]
+  }
+
+  const metricsData = calculateRealMetrics()
 
   const handleToggleCollapse = () => {
     const newCollapsed = !collapsed
