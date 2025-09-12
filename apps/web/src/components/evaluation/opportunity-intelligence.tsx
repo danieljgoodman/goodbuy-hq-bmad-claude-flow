@@ -26,10 +26,13 @@ import type { EnhancedHealthAnalysis } from '@/lib/services/claude-service'
 interface OpportunityIntelligenceProps {
   analysis: EnhancedHealthAnalysis
   businessName?: string
+  evaluationId?: string
+  showImplementationGuides?: boolean
 }
 
-export function OpportunityIntelligence({ analysis, businessName }: OpportunityIntelligenceProps) {
+export function OpportunityIntelligence({ analysis, businessName, evaluationId, showImplementationGuides = false }: OpportunityIntelligenceProps) {
   const [expandedOpportunity, setExpandedOpportunity] = useState<string | null>(null)
+  const [loadingGuide, setLoadingGuide] = useState<string | null>(null)
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -97,6 +100,86 @@ export function OpportunityIntelligence({ analysis, businessName }: OpportunityI
 
   const toggleOpportunity = (opportunityId: string) => {
     setExpandedOpportunity(expandedOpportunity === opportunityId ? null : opportunityId)
+  }
+
+  const startBasicImplementation = (opportunity: any) => {
+    console.log('🔥 START IMPLEMENTATION BUTTON CLICKED!')
+    console.log('Starting basic implementation for:', opportunity.title)
+    
+    // Store the opportunity in localStorage for progress tracking
+    const implementationData = {
+      id: opportunity.id,
+      title: opportunity.title,
+      description: opportunity.description,
+      difficulty: opportunity.difficulty,
+      timeline: opportunity.timeframe,
+      startedAt: new Date().toISOString(),
+      type: 'basic',
+      evaluationId: evaluationId
+    }
+    
+    console.log('Storing implementation data:', implementationData)
+    
+    const existingImplementations = JSON.parse(localStorage.getItem('implementations') || '[]')
+    existingImplementations.push(implementationData)
+    localStorage.setItem('implementations', JSON.stringify(existingImplementations))
+    
+    console.log('Stored implementations:', existingImplementations)
+    
+    // Navigate to progress page
+    console.log('Navigating to /progress')
+    window.location.href = '/progress'
+  }
+
+  const generatePremiumGuide = (opportunity: any) => {
+    console.log('🔥 GET PREMIUM GUIDE BUTTON CLICKED!')
+    console.log('showImplementationGuides:', showImplementationGuides)
+    console.log('opportunity:', opportunity)
+    
+    if (showImplementationGuides) {
+      setLoadingGuide(opportunity.id)
+      
+      // For now, let's save premium guides to localStorage too so they show up
+      // In a real app, this would save to a database via API
+      setTimeout(() => {
+        const premiumGuideData = {
+          id: opportunity.id + '-premium',
+          title: opportunity.title + ' (Premium Guide)',
+          description: opportunity.description,
+          difficulty: opportunity.difficulty,
+          timeline: opportunity.timeframe,
+          startedAt: new Date().toISOString(),
+          type: 'premium',
+          evaluationId: evaluationId,
+          isPremiumGuide: true,
+          detailedSteps: [
+            'Step 1: Initial assessment and planning',
+            'Step 2: Resource allocation and team setup',
+            'Step 3: Implementation phase with monitoring',
+            'Step 4: Testing and validation',
+            'Step 5: Full deployment and optimization'
+          ]
+        }
+        
+        console.log('Storing premium guide data:', premiumGuideData)
+        
+        const existingImplementations = JSON.parse(localStorage.getItem('implementations') || '[]')
+        console.log('Existing implementations before adding:', existingImplementations)
+        existingImplementations.push(premiumGuideData)
+        localStorage.setItem('implementations', JSON.stringify(existingImplementations))
+        console.log('Saved to localStorage, total implementations:', existingImplementations.length)
+        
+        // Verify it was saved
+        const verification = localStorage.getItem('implementations')
+        console.log('Verification - localStorage now contains:', verification)
+        
+        setLoadingGuide(null)
+        alert('Premium implementation guide generated! (This would normally generate a detailed guide)')
+        window.location.href = '/progress'
+      }, 2000)
+    } else {
+      alert('Premium feature - Upgrade to access AI-powered guides')
+    }
   }
 
   // Calculate total potential impact
@@ -315,13 +398,31 @@ export function OpportunityIntelligence({ analysis, businessName }: OpportunityI
 
                   {/* Action Button */}
                   <div className="flex gap-2 pt-2">
-                    <Button variant="default" size="sm">
+                    <Button 
+                      variant="default" 
+                      size="sm"
+                      onClick={() => startBasicImplementation(opportunity)}
+                    >
                       <CheckCircle2 className="h-4 w-4 mr-2" />
                       Start Implementation
                     </Button>
-                    <Button variant="outline" size="sm">
-                      <Shield className="h-4 w-4 mr-2" />
-                      Get Premium Guide
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => generatePremiumGuide(opportunity)}
+                      disabled={loadingGuide === opportunity.id}
+                    >
+                      {loadingGuide === opportunity.id ? (
+                        <>
+                          <div className="animate-spin rounded-full h-3 w-3 border-b border-gray-600 mr-2"></div>
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Shield className="h-4 w-4 mr-2" />
+                          Get Premium Guide
+                        </>
+                      )}
                     </Button>
                   </div>
                 </div>

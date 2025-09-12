@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import type { ChartDataPoint, DateRange } from '@/types/dashboard'
 import type { LineChartProps } from '@/types/charts'
 import { useState } from 'react'
+import { cssVars } from '@/lib/utils/colors'
 
 interface ValuationChartProps extends Omit<LineChartProps, 'data' | 'xAxisKey' | 'yAxisKey'> {
   data: ChartDataPoint[]
@@ -67,7 +68,7 @@ export default function ValuationChart({
   subtitle = "Track your business value over time",
   height = 300,
   responsive = true,
-  lineColor = "#3B82F6",
+  lineColor = cssVars.info,
   strokeWidth = 2,
   showDots = true,
   showGrid = true,

@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import type { ChartDataPoint, DateRange } from '@/types/dashboard'
 import type { BarChartProps } from '@/types/charts'
 import { useState } from 'react'
+import { cssVars } from '@/lib/utils/colors'
 
 interface TrendBarChartProps extends Omit<BarChartProps, 'data' | 'xAxisKey' | 'yAxisKey'> {
   data: ChartDataPoint[]
@@ -82,15 +83,15 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 const getBarColor = (category: string) => {
   const colorMap: Record<string, string> = {
-    revenue: '#10B981',
-    valuation: '#3B82F6', 
-    growth: '#8B5CF6',
-    score: '#F59E0B',
-    health: '#F59E0B',
-    count: '#6B7280',
-    risk: '#EF4444'
+    revenue: cssVars.success,
+    valuation: cssVars.info, 
+    growth: cssVars.chart5,
+    score: cssVars.warning,
+    health: cssVars.warning,
+    count: cssVars.neutral,
+    risk: cssVars.danger
   }
-  return colorMap[category] || '#6B7280'
+  return colorMap[category] || cssVars.neutral
 }
 
 export default function TrendBarChart({

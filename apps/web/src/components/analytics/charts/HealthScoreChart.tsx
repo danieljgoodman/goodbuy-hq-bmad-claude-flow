@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { AnalyticsData } from '@/types'
 import { Heart, TrendingUp, TrendingDown, Target, AlertTriangle, CheckCircle } from 'lucide-react'
+import { getHealthScoreColor, getMetricColor } from '@/lib/utils/colors'
 
 interface HealthScoreChartProps {
   data: AnalyticsData[]
@@ -38,11 +39,11 @@ export function HealthScoreChart({
 
   // Mock health dimensions for breakdown
   const healthDimensions: HealthDimension[] = [
-    { name: 'Financial', score: 85, weight: 30, color: '#10b981', status: 'good' },
-    { name: 'Operational', score: 72, weight: 25, color: '#f59e0b', status: 'warning' },
-    { name: 'Market', score: 78, weight: 20, color: '#3b82f6', status: 'good' },
-    { name: 'Risk', score: 65, weight: 15, color: '#ef4444', status: 'critical' },
-    { name: 'Growth', score: 88, weight: 10, color: '#8b5cf6', status: 'good' }
+    { name: 'Financial', score: 85, weight: 30, color: getMetricColor('financial'), status: 'good' },
+    { name: 'Operational', score: 72, weight: 25, color: getMetricColor('operational'), status: 'warning' },
+    { name: 'Market', score: 78, weight: 20, color: getMetricColor('market'), status: 'good' },
+    { name: 'Risk', score: 65, weight: 15, color: getMetricColor('risk'), status: 'critical' },
+    { name: 'Growth', score: 88, weight: 10, color: getMetricColor('growth'), status: 'good' }
   ]
 
   // Process data for different views
@@ -61,9 +62,7 @@ export function HealthScoreChart({
   const changePercentage = previousScore > 0 ? (change / previousScore) * 100 : 0
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return '#10b981' // Green
-    if (score >= 60) return '#f59e0b' // Yellow
-    return '#ef4444' // Red
+    return getHealthScoreColor(score)
   }
 
   const getScoreStatus = (score: number) => {

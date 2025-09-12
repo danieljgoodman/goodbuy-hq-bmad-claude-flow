@@ -102,7 +102,11 @@ export class EventTracker {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
     } catch (error) {
-      console.error('Failed to flush events:', error)
+      // Silent fail for analytics - don't pollute console in production
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Analytics tracking failed (non-critical):', error instanceof Error ? error.message : 'Unknown error')
+      }
+      
       // Re-queue events for retry (with limit to prevent infinite growth)
       if (this.queue.length < 50) {
         this.queue.unshift(...events)
