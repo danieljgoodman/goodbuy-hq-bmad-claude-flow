@@ -46,11 +46,18 @@ export interface PDFReportData {
 }
 
 export class PDFGenerationService {
-  private static chartRenderer = new ChartJSNodeCanvas({
-    width: 800,
-    height: 400,
-    backgroundColour: 'white'
-  })
+  private static chartRenderer: ChartJSNodeCanvas | null = null
+
+  private static getChartRenderer(): ChartJSNodeCanvas {
+    if (!this.chartRenderer) {
+      this.chartRenderer = new ChartJSNodeCanvas({
+        width: 800,
+        height: 400,
+        backgroundColour: 'white'
+      })
+    }
+    return this.chartRenderer
+  }
 
   static async generateChart(chartData: ChartData): Promise<Buffer> {
     const configuration: ChartConfiguration = {
@@ -89,7 +96,7 @@ export class PDFGenerationService {
       }
     }
 
-    return await this.chartRenderer.renderToBuffer(configuration)
+    return await this.getChartRenderer().renderToBuffer(configuration)
   }
 
   static async generateHTML(reportData: PDFReportData): Promise<string> {
@@ -406,6 +413,7 @@ export class PDFGenerationService {
     const filepath = path.join(uploadsDir, filename)
     await fs.writeFile(filepath, pdfBuffer)
     
-    return `/uploads/reports/${filename}`
+    // Return the API route URL for serving the file
+    return `/api/reports/files/${filename}`
   }
 }

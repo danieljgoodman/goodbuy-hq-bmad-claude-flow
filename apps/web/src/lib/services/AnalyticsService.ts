@@ -1,8 +1,7 @@
-import { PrismaClient } from '@prisma/client'
 import { PremiumAccessService } from './PremiumAccessService'
 import { StatisticalHelpers, DataPoint, TrendResult, ConfidenceInterval, SeasonalPattern } from '@/lib/utils/statistical-helpers'
-
-const prisma = new PrismaClient()
+import { evaluationStorage } from '../evaluation-storage'
+import { valueImpactStorage } from '../value-impact-storage'
 
 // Simple in-memory cache for analytics calculations
 const analyticsCache = new Map<string, { data: any; timestamp: number }>()
@@ -88,16 +87,11 @@ export class AnalyticsService {
         throw new Error('Minimum 3 evaluations required for trend analysis')
       }
 
-      // Get progress/value impact data
-      const valueImpacts = await prisma.valueImpact.findMany({
-        where: { 
-          userId,
-          calculatedAt: timeRange ? {
-            gte: timeRange.start,
-            lte: timeRange.end
-          } : undefined
-        },
-        orderBy: { calculatedAt: 'asc' }
+      // Get real value impact data from storage
+      const valueImpacts = valueImpactStorage.getByUserId(userId).filter(impact => {
+        if (!timeRange) return true
+        const calculatedAt = new Date(impact.calculatedAt)
+        return calculatedAt >= timeRange.start && calculatedAt <= timeRange.end
       })
 
       // Process different metrics
@@ -176,7 +170,8 @@ export class AnalyticsService {
       const evaluations = await this.getUserEvaluationsWithinRange(userId)
       
       if (evaluations.length < 12) { // Need at least 12 evaluations for seasonal analysis
-        throw new Error('Minimum 12 evaluations required for seasonality analysis')
+        // Return empty array instead of throwing error
+        return []
       }
 
       const valuationData = this.extractValuationTimeSeries(evaluations)
@@ -257,16 +252,22 @@ export class AnalyticsService {
     userId: string, 
     timeRange?: DateRange
   ) {
-    return await prisma.businessEvaluation.findMany({
-      where: {
-        userId,
-        createdAt: timeRange ? {
-          gte: timeRange.start,
-          lte: timeRange.end
-        } : undefined
-      },
-      orderBy: { createdAt: 'asc' }
-    })
+    // Get evaluations from file storage
+    const evaluations = evaluationStorage.getByUserId(userId)
+    
+    // Filter by time range if provided
+    let filteredEvaluations = evaluations
+    if (timeRange) {
+      filteredEvaluations = evaluations.filter(e => {
+        const createdAt = new Date(e.createdAt)
+        return createdAt >= timeRange.start && createdAt <= timeRange.end
+      })
+    }
+    
+    // Sort by creation date
+    return filteredEvaluations.sort((a, b) => 
+      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    )
   }
 
   private static async calculateAdvancedMetrics(

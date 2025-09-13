@@ -9,6 +9,7 @@ import { Progress } from '@/components/ui/progress'
 import { Crown, Target, AlertCircle, CheckCircle2, Clock, Star } from 'lucide-react'
 import ProgressTracker from '@/components/premium/progress/ProgressTracker'
 import { TimelineVisualization } from '@/components/premium/progress/TimelineVisualization'
+import { GuideViewer } from '@/components/premium/guides/GuideViewer'
 import { useAuth } from '@/lib/hooks/useAuth'
 import Link from 'next/link'
 
@@ -25,6 +26,8 @@ export default function ProgressTracking() {
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [showProgressTracker, setShowProgressTracker] = useState(false)
   const [selectedStep, setSelectedStep] = useState<any>(null)
+  const [showFullGuide, setShowFullGuide] = useState(false)
+  const [selectedGuide, setSelectedGuide] = useState<any>(null)
 
   const checkAccess = async () => {
     if (!user?.id) return
@@ -147,12 +150,52 @@ export default function ProgressTracking() {
     }
   }
 
+  const transformImplementationToGuide = (implementation: any) => {
+    const steps = implementation.detailedSteps?.map((step: string, idx: number) => ({
+      id: `${implementation.id}-step-${idx + 1}`,
+      stepNumber: idx + 1,
+      title: step,
+      description: `Complete ${step.toLowerCase()} for ${implementation.title}`,
+      estimatedTime: 60, // 1 hour per step as default
+      difficulty: implementation.difficulty || 'Medium',
+      resources: [`${step} template`, `${step} checklist`],
+      tips: [`Focus on ${step.toLowerCase()} best practices`, `Document your progress regularly`],
+      commonPitfalls: [`Rushing through ${step.toLowerCase()}`, `Not getting stakeholder buy-in`],
+      successMetrics: [`${step} completed successfully`, `Quality standards met`],
+      completed: false,
+      completedAt: null
+    })) || []
+
+    return {
+      id: implementation.id,
+      title: `${implementation.title} - Full Implementation Guide`,
+      description: implementation.description,
+      industry: 'General',
+      steps,
+      estimatedDuration: Math.ceil(steps.length * 1), // 1 hour per step
+      difficultyLevel: implementation.difficulty?.toUpperCase() || 'INTERMEDIATE',
+      resourceRequirements: {
+        budget: 10000,
+        team: implementation.difficulty === 'high' ? '4-6' : '2-4',
+        timeline: implementation.timeline
+      },
+      templates: [
+        { 
+          name: `${implementation.title} Implementation Template`, 
+          type: 'Document'
+        }
+      ],
+      businessContext: {},
+      version: 1,
+      generatedAt: new Date().toISOString()
+    }
+  }
+
   const viewFullGuide = (implementation: any) => {
     console.log('📖 Viewing full guide for:', implementation.title)
-    if (implementation.detailedSteps) {
-      const stepsText = implementation.detailedSteps.map((step: string, idx: number) => `${idx + 1}. ${step}`).join('\n')
-      alert(`Full Implementation Guide: ${implementation.title}\n\n${stepsText}\n\n✨ Premium features coming soon:\n• Interactive step tracking\n• Progress photos\n• ROI calculations\n• Timeline management`)
-    }
+    const transformedGuide = transformImplementationToGuide(implementation)
+    setSelectedGuide(transformedGuide)
+    setShowFullGuide(true)
   }
 
   useEffect(() => {
@@ -653,6 +696,40 @@ export default function ProgressTracking() {
                 if (isClient) {
                   loadBasicImplementations()
                 }
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Full Guide Modal */}
+      <Dialog open={showFullGuide} onOpenChange={setShowFullGuide}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Crown className="h-5 w-5 text-amber-500" />
+              Full Implementation Guide
+            </DialogTitle>
+            <DialogDescription>
+              Comprehensive step-by-step implementation guide with interactive tracking
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedGuide && user?.id && (
+            <GuideViewer
+              guide={selectedGuide}
+              userId={user.id}
+              onStepToggle={(stepId, completed) => {
+                console.log('Step toggled:', stepId, completed)
+                // Update the step completion in the guide
+                setSelectedGuide((prev: any) => ({
+                  ...prev,
+                  steps: prev.steps.map((step: any) => 
+                    step.id === stepId 
+                      ? { ...step, completed, completedAt: completed ? new Date().toISOString() : null }
+                      : step
+                  )
+                }))
               }}
             />
           )}

@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { config } from '@/lib/config'
 
 interface ClaudeRequest {
-  type: 'multi-methodology-valuation' | 'enhanced-health-analysis' | 'basic-health-analysis' | 'document-extraction'
+  type: 'multi-methodology-valuation' | 'enhanced-health-analysis' | 'basic-health-analysis' | 'document-extraction' | 'executive-summary'
   businessData?: any
   documentContent?: string
   fileType?: 'pdf' | 'excel' | 'image'
+  summaryContext?: string
 }
 
 const CLAUDE_BASE_URL = 'https://api.anthropic.com/v1'
@@ -18,7 +19,7 @@ const CLAUDE_HEADERS = {
 export async function POST(req: NextRequest) {
   try {
     const body: ClaudeRequest = await req.json()
-    const { type, businessData, documentContent, fileType } = body
+    const { type, businessData, documentContent, fileType, summaryContext } = body
 
     let prompt = ''
     let maxTokens = 3000
@@ -41,6 +42,10 @@ export async function POST(req: NextRequest) {
         prompt = createDocumentExtractionPrompt(documentContent || '', fileType || 'pdf')
         maxTokens = 3000
         break
+      case 'executive-summary':
+        prompt = summaryContext || createExecutiveSummaryPrompt(businessData)
+        maxTokens = 3500
+        break
       default:
         return NextResponse.json({ error: 'Invalid request type' }, { status: 400 })
     }
@@ -50,7 +55,7 @@ export async function POST(req: NextRequest) {
       method: 'POST',
       headers: CLAUDE_HEADERS,
       body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
+        model: 'claude-3-5-sonnet-20241022', // Latest available model
         max_tokens: maxTokens,
         messages: [
           {
@@ -296,5 +301,55 @@ Please extract the following financial data with confidence scores:
    - Red flags or concerns
 
 Format your response with clear numerical values and confidence scores for each extracted metric.
+`
+}
+
+function createExecutiveSummaryPrompt(data: any): string {
+  return `
+You are an executive business analyst. Generate a comprehensive executive summary for this business report:
+
+Business Information:
+- Type: ${data.businessType || 'Not provided'}
+- Industry: ${data.industryFocus || 'Not provided'}
+- Annual Revenue: $${data.annualRevenue?.toLocaleString() || 'Not provided'}
+- Net Profit: $${((data.annualRevenue || 0) - (data.expenses || 0)).toLocaleString() || 'Not provided'}
+- Assets: $${data.assets?.toLocaleString() || 'Not provided'}
+- Liabilities: $${data.liabilities?.toLocaleString() || 'Not provided'}
+- Customers: ${(data.customerCount || 0).toLocaleString()}
+- Employees: ${(data.employeeCount || 0).toLocaleString()}
+
+Please provide a structured executive summary with:
+
+1. Key Insights (3-5 bullet points about business performance):
+   - Financial performance highlights
+   - Operational strengths
+   - Market position insights
+   - Notable achievements or concerns
+
+2. Strategic Recommendations (3-5 actionable recommendations):
+   - Priority improvement areas
+   - Growth opportunities
+   - Risk mitigation strategies
+   - Operational optimizations
+
+3. Business Highlights (3-4 positive aspects to emphasize):
+   - Competitive advantages
+   - Strong performance areas
+   - Growth metrics
+   - Success stories
+
+4. Risk Factors (3-4 potential concerns or challenges):
+   - Financial risks
+   - Operational challenges
+   - Market threats
+   - Regulatory concerns
+
+5. Next Steps (3-4 immediate actions to take):
+   - Short-term priorities
+   - Resource allocation needs
+   - Implementation timelines
+   - Success metrics to track
+
+Format your response as structured text with clear section headers and bullet points.
 `
 }
