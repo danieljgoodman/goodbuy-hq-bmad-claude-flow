@@ -5,7 +5,7 @@ import { ValueImpactService } from './ValueImpactService'
 import { PDFGenerationService, PDFReportData, PDFSection, ChartData } from './PDFGenerationService'
 import { ClaudeService, type EnhancedHealthAnalysis } from './claude-service'
 import { evaluationStorage } from '../evaluation-storage'
-import { handleClaudeRequest } from './claude-api-direct'
+import { handleClaudeRequest } from './claude-api-real'
 
 // Initialize Prisma client
 const prisma = new PrismaClient()
@@ -189,8 +189,9 @@ export class ReportService {
       let aiSummary: Partial<ExecutiveSummary> = {}
       
       try {
-        // Use direct handler for server-side calls
+        // Use real Claude API for server-side calls
         const result = await handleClaudeRequest({
+          type: 'executive-summary',
           prompt: summaryPrompt,
           businessData: businessData
         })

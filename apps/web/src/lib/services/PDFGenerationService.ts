@@ -413,6 +413,7 @@ export class PDFGenerationService {
     const filepath = path.join(uploadsDir, filename)
     await fs.writeFile(filepath, pdfBuffer)
     
-    return `/uploads/reports/${filename}`
+    // Return the API route URL for serving the file
+    return `/api/reports/files/${filename}`
   }
 }

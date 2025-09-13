@@ -1,6 +1,6 @@
 import { config } from '@/lib/config'
 import type { BusinessData } from '@/types/evaluation'
-import { handleClaudeRequest } from './claude-api-direct'
+import { handleClaudeRequest } from './claude-api-real'
 import type { 
   BusinessEvaluation, 
   ExtractedFinancialData, 
