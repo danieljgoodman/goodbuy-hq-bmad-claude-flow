@@ -1,7 +1,7 @@
-import { PrismaClient } from '@prisma/client'
 import { PremiumAccessService } from './PremiumAccessService'
-
-const prisma = new PrismaClient()
+import { evaluationStorage } from '../evaluation-storage'
+import { progressStorage } from '../progress-storage'
+import { valueImpactStorage } from '../value-impact-storage'
 
 export interface ValueImpactCalculation {
   progressEntryId: string
@@ -59,14 +59,9 @@ export class ValueImpactService {
     }
 
     try {
-      const progressEntry = await prisma.progressEntry.findUnique({
-        where: { id: progressEntryId },
-        include: {
-          step: true,
-          guide: true
-        }
-      })
-
+      // Get real progress entry from storage
+      const progressEntry = progressStorage.get(progressEntryId)
+      
       if (!progressEntry || progressEntry.userId !== userId) {
         throw new Error('Progress entry not found or access denied')
       }
@@ -103,20 +98,22 @@ export class ValueImpactService {
         timeToValue
       }
 
-      // Save to database
-      await prisma.valueImpact.create({
-        data: {
-          userId,
-          progressEntryId,
-          baselineValuation,
-          updatedValuation,
-          valuationIncrease,
-          impactPercentage,
-          confidenceScore,
-          improvementCategory: progressEntry.improvementCategory,
-          roi,
-          timeToValue
-        }
+      // Save to file storage
+      const impactId = `impact_${Date.now()}_${userId}`
+      valueImpactStorage.store({
+        id: impactId,
+        userId,
+        progressEntryId,
+        baselineValuation,
+        updatedValuation,
+        valuationIncrease,
+        impactPercentage,
+        confidenceScore,
+        improvementCategory: progressEntry.improvementCategory,
+        roi,
+        timeToValue,
+        calculatedAt: new Date(),
+        createdAt: new Date()
       })
 
       return calculation
@@ -131,31 +128,50 @@ export class ValueImpactService {
    */
   static async getROIAnalysis(userId: string): Promise<ROIAnalysis> {
     try {
-      const valueImpacts = await prisma.valueImpact.findMany({
-        where: { userId },
-        include: {
-          progressEntry: {
-            include: {
-              step: true
-            }
+      // Get real value impacts from storage
+      const valueImpacts = valueImpactStorage.getByUserId(userId)
+      
+      // If no value impacts exist, return empty analysis
+      if (valueImpacts.length === 0) {
+        return {
+          totalInvestment: 0,
+          totalValueGenerated: 0,
+          overallROI: 0,
+          averageTimeToValue: 0,
+          impactByCategory: [],
+          topPerformingImprovements: [],
+          projectedFutureValue: 0
+        }
+      }
+      
+      // Get corresponding progress entries
+      const valueImpactsWithProgress = valueImpacts.map(impact => {
+        const progressEntry = progressStorage.get(impact.progressEntryId)
+        return {
+          ...impact,
+          progressEntry: progressEntry || {
+            timeInvested: 0,
+            moneyInvested: 0,
+            completedAt: impact.calculatedAt,
+            createdAt: impact.createdAt,
+            step: { title: 'Unknown Step' }
           }
-        },
-        orderBy: { createdAt: 'desc' }
+        }
       })
 
-      const totalInvestment = valueImpacts.reduce((sum, impact) => {
+      const totalInvestment = valueImpactsWithProgress.reduce((sum, impact) => {
         const timeInvestment = impact.progressEntry.timeInvested * 50 // $50/hour
         return sum + timeInvestment + impact.progressEntry.moneyInvested
       }, 0)
 
-      const totalValueGenerated = valueImpacts.reduce((sum, impact) => 
+      const totalValueGenerated = valueImpactsWithProgress.reduce((sum, impact) => 
         sum + impact.valuationIncrease, 0
       )
 
       const overallROI = totalInvestment > 0 ? (totalValueGenerated / totalInvestment) * 100 : 0
 
-      const averageTimeToValue = valueImpacts.length > 0
-        ? valueImpacts.reduce((sum, impact) => sum + impact.timeToValue, 0) / valueImpacts.length
+      const averageTimeToValue = valueImpactsWithProgress.length > 0
+        ? valueImpactsWithProgress.reduce((sum, impact) => sum + impact.timeToValue, 0) / valueImpactsWithProgress.length
         : 0
 
       // Calculate impact by category
@@ -165,7 +181,7 @@ export class ValueImpactService {
         count: number
       }>()
 
-      valueImpacts.forEach(impact => {
+      valueImpactsWithProgress.forEach(impact => {
         const category = impact.improvementCategory
         const existing = categoryMap.get(category) || { totalInvestment: 0, totalValueGenerated: 0, count: 0 }
         
@@ -189,7 +205,7 @@ export class ValueImpactService {
       }))
 
       // Top performing improvements
-      const topPerformingImprovements: ImprovementROI[] = valueImpacts
+      const topPerformingImprovements: ImprovementROI[] = valueImpactsWithProgress
         .map(impact => {
           const timeInvestment = impact.progressEntry.timeInvested * 50
           const investment = timeInvestment + impact.progressEntry.moneyInvested
@@ -208,7 +224,7 @@ export class ValueImpactService {
         .slice(0, 10)
 
       // Project future value based on current trajectory
-      const projectedFutureValue = this.calculateProjectedValue(valueImpacts)
+      const projectedFutureValue = this.calculateProjectedValue(valueImpactsWithProgress)
 
       return {
         totalInvestment,
@@ -230,20 +246,22 @@ export class ValueImpactService {
    */
   static async getValueImpactTimeline(userId: string) {
     try {
-      const valueImpacts = await prisma.valueImpact.findMany({
-        where: { userId },
-        include: {
-          progressEntry: {
-            include: {
-              step: true,
-              guide: true
-            }
+      // Get real value impacts from storage
+      const valueImpacts = valueImpactStorage.getByUserId(userId)
+      
+      // Get corresponding progress entries for each impact
+      const valueImpactsWithDetails = valueImpacts.map(impact => {
+        const progressEntry = progressStorage.get(impact.progressEntryId)
+        return {
+          ...impact,
+          progressEntry: progressEntry || {
+            step: { title: 'Unknown Step' },
+            guide: { title: 'Unknown Guide' }
           }
-        },
-        orderBy: { calculatedAt: 'asc' }
+        }
       })
 
-      return valueImpacts.map(impact => ({
+      return valueImpactsWithDetails.map(impact => ({
         id: impact.id,
         date: impact.calculatedAt,
         title: impact.progressEntry.step.title,
@@ -267,23 +285,16 @@ export class ValueImpactService {
    */
   static async getBeforeAfterComparison(userId: string, guideId?: string) {
     try {
-      let whereClause: any = { userId }
+      // Get real value impacts from storage
+      let valueImpacts = valueImpactStorage.getByUserId(userId)
+      
+      // Filter by guide if specified
       if (guideId) {
-        whereClause.progressEntry = { guideId }
+        valueImpacts = valueImpacts.filter(impact => {
+          const progressEntry = progressStorage.get(impact.progressEntryId)
+          return progressEntry && progressEntry.guideId === guideId
+        })
       }
-
-      const valueImpacts = await prisma.valueImpact.findMany({
-        where: whereClause,
-        include: {
-          progressEntry: {
-            include: {
-              step: true,
-              guide: true
-            }
-          }
-        },
-        orderBy: { calculatedAt: 'desc' }
-      })
 
       if (valueImpacts.length === 0) {
         return null

@@ -1,5 +1,6 @@
 import { config } from '@/lib/config'
 import type { BusinessData } from '@/types/evaluation'
+import { handleClaudeRequest } from './claude-api-direct'
 import type { 
   BusinessEvaluation, 
   ExtractedFinancialData, 
@@ -119,7 +120,14 @@ export interface HealthAnalysis {
 }
 
 export class ClaudeService {
-  private static baseUrl = '/api/claude'
+  private static getBaseUrl() {
+    // Use full URL for server-side fetch
+    if (typeof window === 'undefined') {
+      return `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/claude`
+    }
+    return '/api/claude'
+  }
+  
   private static headers = {
     'Content-Type': 'application/json',
   }
@@ -129,7 +137,7 @@ export class ClaudeService {
     const prompt = this.createDocumentExtractionPrompt(documentContent, fileType)
     
     try {
-      const response = await fetch(this.baseUrl, {
+      const response = await fetch(this.getBaseUrl(), {
         method: 'POST',
         headers: this.headers,
         body: JSON.stringify({
@@ -228,7 +236,7 @@ export class ClaudeService {
     const prompt = this.createValuationPrompt(businessData)
     
     try {
-      const response = await fetch(this.baseUrl, {
+      const response = await fetch(this.getBaseUrl(), {
         method: 'POST',
         headers: this.headers,
         body: JSON.stringify({
@@ -259,26 +267,42 @@ export class ClaudeService {
     const prompt = this.createEnhancedAnalysisPrompt(businessData)
     
     try {
-      const response = await fetch(this.baseUrl, {
-        method: 'POST',
-        headers: this.headers,
-        body: JSON.stringify({
+      // Use direct handler when running server-side
+      if (typeof window === 'undefined') {
+        const result = await handleClaudeRequest({
           type: 'enhanced-health-analysis',
           businessData
-        }),
-      })
+        })
+        
+        if (result.fallback) {
+          throw new Error('Claude API unavailable')
+        }
+        const analysisText = result.analysisText
+        
+        return this.parseEnhancedAnalysisResponse(analysisText, businessData)
+      } else {
+        // Client-side uses fetch
+        const response = await fetch(this.getBaseUrl(), {
+          method: 'POST',
+          headers: this.headers,
+          body: JSON.stringify({
+            type: 'enhanced-health-analysis',
+            businessData
+          }),
+        })
 
-      if (!response.ok) {
-        throw new Error(`Claude API error: ${response.statusText}`)
-      }
+        if (!response.ok) {
+          throw new Error(`Claude API error: ${response.statusText}`)
+        }
 
-      const result = await response.json()
-      if (result.fallback) {
-        throw new Error('Claude API unavailable')
+        const result = await response.json()
+        if (result.fallback) {
+          throw new Error('Claude API unavailable')
+        }
+        const analysisText = result.analysisText
+        
+        return this.parseEnhancedAnalysisResponse(analysisText, businessData)
       }
-      const analysisText = result.analysisText
-      
-      return this.parseEnhancedAnalysisResponse(analysisText, businessData)
     } catch (error) {
       console.error('Enhanced health analysis error:', error)
       return this.generateFallbackEnhancedAnalysis(businessData)
@@ -289,7 +313,7 @@ export class ClaudeService {
     const prompt = this.createAnalysisPrompt(businessData)
     
     try {
-      const response = await fetch(this.baseUrl, {
+      const response = await fetch(this.getBaseUrl(), {
         method: 'POST',
         headers: this.headers,
         body: JSON.stringify({

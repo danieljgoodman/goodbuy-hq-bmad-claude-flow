@@ -4,3 +4,5 @@ Expenses: $75,000
 Profit: $25,000
 Assets: $200,000
 Liabilities: $50,000
+
+ claude --model claude-opus-4.1

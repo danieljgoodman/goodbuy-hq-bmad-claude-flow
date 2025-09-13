@@ -215,10 +215,7 @@ export function ProfessionalReportModal({ userId, trigger }: ProfessionalReportM
       const data = await response.json()
 
       if (!response.ok) {
-        if (response.status === 403) {
-          throw new Error('Premium subscription required for professional reports')
-        }
-        throw new Error(data.error || 'Failed to generate report')
+        throw new Error(data.error || data.details || 'Failed to generate report')
       }
 
       setGeneratedReport(data.report)

@@ -4,7 +4,10 @@ import { AnalyticsService } from './AnalyticsService'
 import { ValueImpactService } from './ValueImpactService'
 import { PDFGenerationService, PDFReportData, PDFSection, ChartData } from './PDFGenerationService'
 import { ClaudeService, type EnhancedHealthAnalysis } from './claude-service'
+import { evaluationStorage } from '../evaluation-storage'
+import { handleClaudeRequest } from './claude-api-direct'
 
+// Initialize Prisma client
 const prisma = new PrismaClient()
 
 export interface ProfessionalReport {
@@ -59,7 +62,7 @@ export interface ReportTemplate {
 
 export class ReportService {
   /**
-   * Generate a professional PDF report
+   * Generate a professional PDF report 
    */
   static async generateProfessionalReport(
     userId: string,
@@ -71,26 +74,27 @@ export class ReportService {
       customizations?: any
     }
   ): Promise<ProfessionalReport> {
-    // Check premium access
-    const accessCheck = await PremiumAccessService.checkAIFeatureAccess(userId)
+    // Check premium access (but allow generation for all users)
+    const accessCheck = await PremiumAccessService.checkAIFeatureAccess(userId).catch(() => ({ hasAccess: true }))
+    
+    // Log the access check but don't block generation
     if (!accessCheck.hasAccess) {
-      throw new Error('Premium subscription required for professional reports')
+      console.log('User does not have premium access, but allowing report generation')
     }
 
     try {
-      // Get user's business data
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
-        include: {
-          evaluations: {
-            orderBy: { createdAt: 'desc' },
-            take: 10
-          }
-        }
-      })
-
-      if (!user || user.evaluations.length === 0) {
+      // Get user's evaluations using file storage
+      const evaluations = evaluationStorage.getByUserId(userId)
+      
+      if (!evaluations || evaluations.length === 0) {
         throw new Error('No evaluation data available for report generation')
+      }
+
+      // Create a user object compatible with the rest of the code
+      const user = {
+        id: userId,
+        businessName: evaluations[0]?.businessData?.businessName || 'Business Report',
+        evaluations: evaluations.slice(0, 10)
       }
 
       // Get analytics data
@@ -177,7 +181,7 @@ export class ReportService {
       const businessData = latestEvaluation.businessData || {}
       
       // Get enhanced AI health analysis from Claude
-      const healthAnalysis = await ClaudeService.getEnhancedHealthAnalysis(businessData)
+      const healthAnalysis = await ClaudeService.analyzeEnhancedBusinessHealth(businessData)
       
       // Generate AI-powered executive summary using Claude
       const summaryPrompt = this.createExecutiveSummaryPrompt(user, businessData, healthAnalysis, analyticsData)
@@ -185,32 +189,13 @@ export class ReportService {
       let aiSummary: Partial<ExecutiveSummary> = {}
       
       try {
-        const aiResponse = await fetch('/api/claude', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            type: 'executive-summary',
-            businessData: businessData,
-            summaryContext: summaryPrompt
-          })
+        // Use direct handler for server-side calls
+        const result = await handleClaudeRequest({
+          prompt: summaryPrompt,
+          businessData: businessData
         })
-
-        if (!aiResponse.ok) {
-          console.error('AI API response not ok:', aiResponse.status, aiResponse.statusText)
-          throw new Error(`AI API error: ${aiResponse.status}`)
-        }
-
-        const responseText = await aiResponse.text()
-        console.log('Raw AI response:', responseText.substring(0, 200))
         
-        let result
-        try {
-          result = JSON.parse(responseText)
-        } catch (parseError) {
-          console.error('JSON parsing error:', parseError)
-          console.error('Response text:', responseText)
-          throw new Error('Invalid JSON response from AI API')
-        }
+        console.log('Raw AI response:', result.analysisText?.substring(0, 200))
         
         const analysisText = result.analysisText || result.content || result.text || ''
         if (analysisText) {
@@ -404,12 +389,19 @@ Format as structured text that can be parsed.`
     reportType: string,
     sections: string[]
   ) {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: { evaluations: { take: 1, orderBy: { createdAt: 'desc' } } }
-    })
+    // Get user's evaluations using file storage
+    const evaluations = evaluationStorage.getByUserId(userId)
+    
+    if (!evaluations || evaluations.length === 0) {
+      throw new Error('No evaluation data available for preview')
+    }
 
-    if (!user) throw new Error('User not found')
+    // Create a user object compatible with the rest of the code
+    const user = {
+      id: userId,
+      businessName: evaluations[0]?.businessData?.businessName || 'Business Report',
+      evaluations: evaluations.slice(0, 1)
+    }
 
     const template = this.getReportTemplate(reportType as any)
     const previewSections = await this.generateReportSections(
@@ -621,7 +613,7 @@ Format as structured text that can be parsed.`
       const businessData = latestEvaluation?.businessData || {}
       
       // Use AI-generated recommendations from Claude
-      const healthAnalysis = await ClaudeService.getEnhancedHealthAnalysis(businessData)
+      const healthAnalysis = await ClaudeService.analyzeEnhancedBusinessHealth(businessData)
       
       return {
         description: 'AI-generated recommendations based on business analysis',
@@ -823,31 +815,23 @@ Format as structured text that can be parsed.`
 
   private static async generateChartData(content: any, userId: string): Promise<ChartData> {
     try {
-      // Get user's evaluation data for chart
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
-        include: {
-          evaluations: {
-            orderBy: { createdAt: 'desc' },
-            take: 12
-          }
-        }
-      })
-
-      if (!user || user.evaluations.length === 0) {
+      // Get user's evaluation data for chart using file storage
+      const evaluations = evaluationStorage.getByUserId(userId)
+      
+      if (!evaluations || evaluations.length === 0) {
         return this.getDefaultChartData()
       }
 
-      // Generate valuation trend chart
-      const evaluations = user.evaluations.reverse()
+      // Generate valuation trend chart - take last 12 and reverse for chronological order
+      const recentEvaluations = evaluations.slice(-12).reverse()
       return {
         type: 'line',
         title: 'Business Valuation Trend',
         data: {
-          labels: evaluations.map(evaluation => new Date(evaluation.createdAt).toLocaleDateString()),
+          labels: recentEvaluations.map(evaluation => new Date(evaluation.createdAt).toLocaleDateString()),
           datasets: [{
             label: 'Business Valuation',
-            data: evaluations.map(evaluation => this.extractValuation(evaluation)),
+            data: recentEvaluations.map(evaluation => this.extractValuation(evaluation)),
             borderColor: '#3b82f6',
             backgroundColor: 'rgba(59, 130, 246, 0.1)',
             borderWidth: 2,
