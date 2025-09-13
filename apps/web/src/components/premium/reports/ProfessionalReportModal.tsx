@@ -66,14 +66,74 @@ export function ProfessionalReportModal({ userId, trigger }: ProfessionalReportM
   const loadTemplates = async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/reports/templates')
-      const data = await response.json()
+      
+      // Fallback templates - in production these would come from API
+      const fallbackTemplates: ReportTemplate[] = [
+        {
+          id: 'executive',
+          name: 'Executive Summary',
+          description: 'Concise overview for leadership and decision makers',
+          audience: 'C-Suite Executives',
+          sections: ['executiveSummary', 'valuation', 'keyInsights', 'recommendations'],
+          defaultSettings: {
+            includeCharts: true,
+            includeMetrics: true,
+            pageCount: '3-5 pages'
+          }
+        },
+        {
+          id: 'investor',
+          name: 'Investor Presentation',
+          description: 'Professional investor-ready comprehensive report',
+          audience: 'Investors & Stakeholders',
+          sections: ['executiveSummary', 'valuation', 'marketAnalysis', 'financials', 'opportunities', 'risks'],
+          defaultSettings: {
+            includeCharts: true,
+            includeMetrics: true,
+            pageCount: '8-12 pages'
+          }
+        },
+        {
+          id: 'comprehensive',
+          name: 'Comprehensive Analysis',
+          description: 'Full detailed business analysis with all available insights',
+          audience: 'Business Analysts',
+          sections: ['executiveSummary', 'valuation', 'healthAnalysis', 'marketAnalysis', 'opportunities', 'implementation', 'appendices'],
+          defaultSettings: {
+            includeCharts: true,
+            includeMetrics: true,
+            pageCount: '15-20 pages'
+          }
+        },
+        {
+          id: 'custom',
+          name: 'Custom Report',
+          description: 'Fully customizable template with your selected sections',
+          audience: 'Custom Audience',
+          sections: ['custom'],
+          defaultSettings: {
+            includeCharts: true,
+            includeMetrics: true,
+            pageCount: 'Variable'
+          }
+        }
+      ]
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to load templates')
+      // Try to fetch from API first, fall back to static templates
+      try {
+        const response = await fetch('/api/reports/templates')
+        if (response.ok) {
+          const data = await response.json()
+          setTemplates(data.templates || fallbackTemplates)
+        } else {
+          throw new Error('API not available')
+        }
+      } catch (apiError) {
+        console.log('Using fallback templates - API not available')
+        setTemplates(fallbackTemplates)
       }
-
-      setTemplates(data.templates)
+      
+      setError(null)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load templates'
       setError(errorMessage)
@@ -155,10 +215,7 @@ export function ProfessionalReportModal({ userId, trigger }: ProfessionalReportM
       const data = await response.json()
 
       if (!response.ok) {
-        if (response.status === 403) {
-          throw new Error('Premium subscription required for professional reports')
-        }
-        throw new Error(data.error || 'Failed to generate report')
+        throw new Error(data.error || data.details || 'Failed to generate report')
       }
 
       setGeneratedReport(data.report)

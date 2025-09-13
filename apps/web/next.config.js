@@ -8,9 +8,12 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Support for PDF.js worker
+  // Support for PDF.js worker and Canvas
   webpack: (config) => {
-    config.resolve.alias.canvas = false;
+    // Only disable canvas on the client side, allow it on server side
+    if (!config.isServer) {
+      config.resolve.alias.canvas = false;
+    }
     return config;
   },
   // Enable static file serving for PDF workers + Security headers
