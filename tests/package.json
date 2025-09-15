@@ -1,0 +1,20 @@
+{
+  "name": "report-pipeline-tests",
+  "version": "1.0.0",
+  "description": "Comprehensive test suite for report generation pipeline",
+  "main": "report-generation-pipeline.test.js",
+  "scripts": {
+    "test": "node report-generation-pipeline.test.js",
+    "test:verbose": "DEBUG=* node report-generation-pipeline.test.js",
+    "test:quick": "node quick-validation.test.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.0.0",
+    "dotenv": "^17.2.2",
+    "node-fetch": "^2.6.7",
+    "pdf-parse": "^1.1.1"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0"
+  }
+}
