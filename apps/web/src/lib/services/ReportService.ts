@@ -1329,8 +1329,8 @@ Format as structured text that can be parsed.`
           datasets: [{
             label: 'Business Valuation',
             data: recentEvaluations.map(evaluation => (evaluation.valuations as any)?.weighted?.value || (evaluation.valuations as any)?.businessValue || 0),
-            borderColor: '#3b82f6',
-            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            borderColor: '#c96442',
+            backgroundColor: 'rgba(201, 100, 66, 0.1)',
             borderWidth: 2,
             fill: true
           }]
@@ -1401,8 +1401,8 @@ Format as structured text that can be parsed.`
         date: new Date(),
         sections: pdfSections,
         branding: {
-          primaryColor: '#3b82f6',
-          secondaryColor: '#64748b'
+          primaryColor: '#c96442',
+          secondaryColor: '#e9e6dc'
         }
       }
 
