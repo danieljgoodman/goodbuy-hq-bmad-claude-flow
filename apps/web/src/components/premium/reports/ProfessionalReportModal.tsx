@@ -59,6 +59,8 @@ export function ProfessionalReportModal({ userId, trigger }: ProfessionalReportM
 
   useEffect(() => {
     if (isOpen) {
+      // Always reset the modal state when opening
+      resetModal()
       loadTemplates()
     }
   }, [isOpen])
@@ -540,7 +542,10 @@ export function ProfessionalReportModal({ userId, trigger }: ProfessionalReportM
                         <Download className="h-4 w-4 mr-2" />
                         Download Again
                       </Button>
-                      <Button variant="outline" onClick={() => setIsOpen(false)}>
+                      <Button variant="outline" onClick={() => {
+                        resetModal()
+                        setIsOpen(false)
+                      }}>
                         Close
                       </Button>
                     </div>

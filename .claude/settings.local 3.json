@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__ruv-swarm",
+      "mcp__claude-flow",
+      "Bash(find:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npm install)",
+      "Bash(npm install:*)",
+      "Bash(cd:*)",
+      "Read(//Users/danielgoodman/Downloads/**)",
+      "Read(//var/folders/lg/jcr3rn7d4gjfjjympstp3lc40000gn/T/TemporaryItems/NSIRD_screencaptureui_91eHLw/**)",
+      "Bash(npx:*)",
+      "Bash(claude mcp:*)",
+      "Bash(./claude-flow:*)"
+    ],
+    "deny": []
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "claude-flow",
+    "ruv-swarm"
+  ]
+}
