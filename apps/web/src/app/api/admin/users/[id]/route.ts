@@ -24,10 +24,11 @@ async function validateAdminAccess(session: any) {
 // Update user profile
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    console.log('🔧 DEBUG MODE: Admin user update API called for user:', params.id)
+    const { id } = await params
+    console.log('🔧 DEBUG MODE: Admin user update API called for user:', id)
     
     // COMPLETELY BYPASS AUTH FOR NOW
     // const session = await getServerSession(authOptions)
@@ -42,11 +43,11 @@ export async function PATCH(
     const body = await request.json()
     const { subscriptionTier, userRole } = body
 
-    console.log('📝 Updating user profile:', { userId: params.id, subscriptionTier, userRole })
+    console.log('📝 Updating user profile:', { userId: id, subscriptionTier, userRole })
 
     // Update user directly using Prisma (not user_profiles table)
     const updatedUser = await prisma.user.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         subscriptionTier: subscriptionTier,
         userRole: userRole,
