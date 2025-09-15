@@ -1,6 +1,18 @@
 {
-  "buildCommand": "npm install --force && npm run build",
-  "installCommand": "npm install --force",
-  "framework": "nextjs",
-  "rootDirectory": "apps/web"
+  "builds": [
+    {
+      "src": "apps/web/package.json",
+      "use": "@vercel/next",
+      "config": {
+        "buildCommand": "npm install --force && npm run build",
+        "installCommand": "npm install --force"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "apps/web/$1"
+    }
+  ]
 }
