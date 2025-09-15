@@ -44,60 +44,28 @@ export async function PATCH(
 
     console.log('📝 Updating user profile:', { userId: params.id, subscriptionTier, userRole })
 
-    // Update user profile using raw SQL with proper UUID casting
-    const updateQuery = `
-      UPDATE public.user_profiles 
-      SET 
-        subscription_tier = $1,
-        user_role = $2,
-        updated_at = NOW()
-      WHERE user_id = $3::uuid
-      RETURNING *
-    `
+    // Update user directly using Prisma (not user_profiles table)
+    const updatedUser = await prisma.user.update({
+      where: { id: params.id },
+      data: {
+        subscriptionTier: subscriptionTier,
+        userRole: userRole,
+        updatedAt: new Date()
+      },
+      select: {
+        id: true,
+        subscriptionTier: true,
+        userRole: true
+      }
+    })
 
-    const result = await prisma.$queryRawUnsafe(
-      updateQuery, 
-      subscriptionTier, 
-      userRole, 
-      params.id
-    )
-
-    const updatedProfile = (result as any[])[0]
-
-    if (!updatedProfile) {
-      // If no profile exists, create one
-      const createQuery = `
-        INSERT INTO public.user_profiles (user_id, subscription_tier, user_role)
-        VALUES ($1::uuid, $2, $3)
-        RETURNING *
-      `
-      
-      const createResult = await prisma.$queryRawUnsafe(
-        createQuery,
-        params.id,
-        subscriptionTier,
-        userRole
-      )
-      
-      const createdProfile = (createResult as any[])[0]
-      console.log('✅ Created new user profile:', createdProfile)
-      
-      return NextResponse.json({
-        user: {
-          id: params.id,
-          subscriptionTier: createdProfile.subscription_tier,
-          userRole: createdProfile.user_role
-        }
-      })
-    }
-
-    console.log('✅ Updated user profile successfully')
+    console.log('✅ Updated user directly via Prisma:', updatedUser)
 
     return NextResponse.json({
       user: {
-        id: params.id,
-        subscriptionTier: updatedProfile.subscription_tier,
-        userRole: updatedProfile.user_role
+        id: updatedUser.id,
+        subscriptionTier: updatedUser.subscriptionTier,
+        userRole: updatedUser.userRole
       }
     })
 
