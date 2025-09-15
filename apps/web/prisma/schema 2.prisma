@@ -1,0 +1,1178 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String    @id @default(uuid()) @db.Uuid
+  email            String    @unique
+  businessName     String @map("business_name")
+  industry         String
+  role             Role      @default(owner)
+  userRole         UserRole  @default(user) @map("user_role")
+  subscriptionTier Tier      @default(FREE) @map("subscription_tier")
+  stripeCustomerId String?   @map("stripe_customer_id")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  lastLoginAt      DateTime? @map("last_login_at")
+  
+  // Enhanced signup fields - Story 9.4
+  businessAddress           Json?
+  businessPhone            String?
+  yearsInOperation         Int?
+  employeeCountRange       String?
+  revenueRange            String?
+  businessModel           String?
+  websiteUrl              String?
+  linkedinUrl             String?
+  referralSource          String?
+  registrationCompleted   Boolean @default(false)
+  registrationStep        Int     @default(1)
+  
+  @@index([registrationCompleted])
+
+  evaluations BusinessEvaluation[]
+  subscriptions Subscription[]
+  payments Payment[]
+  implementationGuides ImplementationGuide[]
+  progressEntries ProgressEntry[]
+  valueImpacts ValueImpact[]
+  milestones Milestone[]
+  businessRevaluations BusinessRevaluation[]
+  marketIntelligence MarketIntelligence[]
+  marketAlerts MarketAlert[]
+  profile UserProfile?
+  preferences UserPreferences?
+  securitySettings SecuritySettings?
+  dataExportRequests DataExportRequest[]
+  loginHistory LoginHistory[]
+  analyticsData AnalyticsData[]
+  businessMetrics BusinessMetrics[]
+  comparisonAnalysis ComparisonAnalysis[]
+  widgetConfigurations WidgetConfiguration[]
+  exportableReports ExportableReport[]
+  supportTickets SupportTicket[]
+  supportMessages SupportMessage[]
+  communityPosts CommunityPost[]
+  communityReplies CommunityReply[]
+  tutorialProgress TutorialProgress[]
+  userFeedback UserFeedback[]
+  userEvents UserEvent[]
+  aiPerformanceMetrics AIPerformanceMetric[]
+  abTestParticipants ABTestParticipant[]
+  adminActionsPerformed UserAdminAction[] @relation("AdminUser")
+  adminActionsReceived UserAdminAction[] @relation("TargetUser")
+
+  @@index([subscriptionTier])
+  @@index([industry])
+  @@index([userRole])
+  @@index([createdAt])
+  @@map("users")
+}
+
+model BusinessEvaluation {
+  id              String            @id @default(uuid()) @db.Uuid
+  userId          String            @db.Uuid
+  businessData    Json
+  valuations      Json
+  healthScore     Float?
+  confidenceScore Float?
+  opportunities   Json[]
+  status          EvaluationStatus  @default(PROCESSING)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  deletedAt       DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  implementationGuides ImplementationGuide[]
+  businessRevaluations BusinessRevaluation[]
+
+  @@index([deletedAt])
+  @@map("business_evaluations")
+}
+
+enum Role {
+  owner
+  manager
+  advisor
+
+  @@map("role")
+}
+
+enum UserRole {
+  user
+  admin
+  super_admin
+
+  @@map("user_role")
+}
+
+enum Tier {
+  FREE
+  PREMIUM
+  ENTERPRISE
+
+  @@map("subscription_tier")
+}
+
+enum EvaluationStatus {
+  PROCESSING
+  COMPLETED
+  FAILED
+
+  @@map("evaluation_status")
+}
+
+model Subscription {
+  id                    String             @id @default(uuid()) @db.Uuid
+  userId                String             @db.Uuid
+  stripeSubscriptionId  String             @unique
+  stripePriceId         String
+  status                SubscriptionStatus @default(TRIALING)
+  tier                  Tier               @default(FREE)
+  billingCycle          BillingCycle       @default(MONTHLY)
+  trialEndsAt           DateTime?
+  currentPeriodStart    DateTime
+  currentPeriodEnd      DateTime
+  cancelAtPeriodEnd     Boolean            @default(false)
+  cancelledAt           DateTime?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
+
+model Payment {
+  id                    String        @id @default(uuid()) @db.Uuid
+  userId                String        @db.Uuid
+  subscriptionId        String?       @db.Uuid
+  stripePaymentIntentId String        @unique
+  amount                Int           // in cents
+  currency              String        @default("usd")
+  status                PaymentStatus @default(PENDING)
+  receiptUrl            String?
+  createdAt             DateTime      @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  UNPAID
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+
+  @@map("subscription_status")
+}
+
+enum BillingCycle {
+  MONTHLY
+  ANNUAL
+
+  @@map("billing_cycle")
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+
+  @@map("payment_status")
+}
+
+model ImplementationGuide {
+  id                    String                @id @default(uuid()) @db.Uuid
+  userId                String                @db.Uuid
+  evaluationId          String                @db.Uuid
+  improvementCategory   String
+  title                 String
+  description           String
+  industry              String
+  businessContext       Json
+  steps                 GuideStep[]
+  estimatedDuration     Int                   // in hours
+  difficultyLevel       DifficultyLevel       @default(INTERMEDIATE)
+  resourceRequirements  Json
+  templates             Json[]
+  version               Int                   @default(1)
+  generatedAt           DateTime              @default(now())
+  lastUpdated           DateTime              @updatedAt
+  createdAt             DateTime              @default(now())
+  deletedAt             DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  evaluation BusinessEvaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  progressEntries ProgressEntry[]
+
+  @@index([deletedAt])
+  @@map("implementation_guides")
+}
+
+model GuideStep {
+  id                    String                @id @default(uuid()) @db.Uuid
+  guideId               String                @db.Uuid
+  stepNumber            Int
+  title                 String
+  description           String
+  estimatedTime         Int                   // in minutes
+  difficulty            String
+  resources             Json[]
+  tips                  Json[]
+  commonPitfalls        Json[]
+  successMetrics        Json[]
+  completed             Boolean               @default(false)
+  completedAt           DateTime?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  guide ImplementationGuide @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  progressEntries ProgressEntry[]
+
+  @@map("guide_steps")
+}
+
+model Template {
+  id                    String                @id @default(uuid()) @db.Uuid
+  name                  String
+  category              String
+  description           String
+  templateType          TemplateType          @default(DOCUMENT)
+  content               String                // Template content or file path
+  variables             Json[]                // Template variables for customization
+  instructions          String
+  examples              Json[]
+  tags                  String[]
+  downloadCount         Int                   @default(0)
+  rating                Float?
+  industry              String[]
+  difficulty            DifficultyLevel       @default(INTERMEDIATE)
+  estimatedTime         String
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  @@map("templates")
+}
+
+enum DifficultyLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+
+  @@map("difficulty_level")
+}
+
+enum TemplateType {
+  DOCUMENT
+  SPREADSHEET
+  CHECKLIST
+  PROCESS
+  PRESENTATION
+
+  @@map("template_type")
+}
+
+model ProgressEntry {
+  id                    String                @id @default(uuid()) @db.Uuid
+  userId                String                @db.Uuid
+  guideId               String                @db.Uuid
+  stepId                String                @db.Uuid
+  improvementCategory   String
+  status                ProgressStatus        @default(NOT_STARTED)
+  evidence              Json[]                // Array of evidence objects
+  timeInvested          Float                 @default(0) // in hours
+  moneyInvested         Float                 @default(0) // in dollars
+  completedAt           DateTime?
+  verifiedAt            DateTime?
+  notes                 String?
+  aiValidationScore     Float?                // 0.0 to 1.0
+  manualValidation      Boolean               @default(false)
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  deletedAt             DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  guide ImplementationGuide @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  step GuideStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  valueImpacts ValueImpact[]
+  milestones Milestone[]
+
+  @@unique([userId, stepId])
+  @@index([deletedAt])
+  @@map("progress_entries")
+}
+
+model ValueImpact {
+  id                    String                @id @default(uuid()) @db.Uuid
+  userId                String                @db.Uuid
+  progressEntryId       String                @db.Uuid
+  baselineValuation     Float                 // Original valuation
+  updatedValuation      Float                 // New valuation after improvement
+  valuationIncrease     Float                 // Absolute increase
+  impactPercentage      Float                 // Percentage increase
+  confidenceScore       Float                 // AI confidence in calculation
+  improvementCategory   String
+  roi                   Float                 // Return on Investment
+  timeToValue           Int                   // Days to realize value
+  calculatedAt          DateTime              @default(now())
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  progressEntry ProgressEntry @relation(fields: [progressEntryId], references: [id], onDelete: Cascade)
+
+  @@map("value_impacts")
+}
+
+model Milestone {
+  id                    String                @id @default(uuid()) @db.Uuid
+  userId                String                @db.Uuid
+  progressEntryId       String?               @db.Uuid
+  title                 String
+  description           String
+  category              String                // e.g., "revenue", "efficiency", "growth"
+  targetDate            DateTime?
+  completedAt           DateTime?
+  status                MilestoneStatus       @default(PENDING)
+  rewardType            String?               // e.g., "badge", "certificate", "discount"
+  rewardData            Json?                 // Additional reward information
+  achievementData       Json?                 // Achievement metadata
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  progressEntry ProgressEntry? @relation(fields: [progressEntryId], references: [id], onDelete: SetNull)
+
+  @@map("milestones")
+}
+
+model BusinessRevaluation {
+  id                    String                @id @default(uuid()) @db.Uuid
+  userId                String                @db.Uuid
+  originalEvaluationId  String                @db.Uuid
+  triggeredByProgress   Boolean               @default(true)
+  baselineValuation     Float
+  updatedValuation      Float
+  valuationChange       Float
+  changePercentage      Float
+  confidenceScore       Float
+  improvementsIncluded  Json[]                // Array of improvement IDs
+  calculationMethod     String                // AI model/method used
+  calculationData       Json                  // Detailed calculation breakdown
+  revaluationReason     String                // Why revaluation was triggered
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  originalEvaluation BusinessEvaluation @relation(fields: [originalEvaluationId], references: [id], onDelete: Cascade)
+
+  @@map("business_revaluations")
+}
+
+enum ProgressStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  VERIFIED
+
+  @@map("progress_status")
+}
+
+enum MilestoneStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  OVERDUE
+
+  @@map("milestone_status")
+}
+
+model MarketIntelligence {
+  id                    String    @id @default(uuid()) @db.Uuid
+  userId                String    @db.Uuid
+  industry              String
+  sector                String
+  trendAnalysis         Json
+  competitivePositioning Json
+  opportunities         Json[]
+  lastUpdated           DateTime  @default(now())
+  nextUpdate            DateTime
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, industry, sector])
+  @@map("market_intelligence")
+}
+
+model IndustryBenchmark {
+  id           String    @id @default(uuid()) @db.Uuid
+  industry     String
+  sector       String
+  metrics      Json
+  sampleSize   Int       @map("sample_size")
+  lastUpdated  DateTime  @default(now()) @map("last_updated")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([industry, sector])
+  @@map("industry_benchmarks")
+}
+
+model MarketAlert {
+  id           String      @id @default(uuid()) @db.Uuid
+  userId       String      @db.Uuid
+  title        String
+  description  String
+  severity     AlertSeverity @default(MEDIUM)
+  category     AlertCategory
+  triggerData  Json        @map("trigger_data")
+  actionable   Boolean     @default(true)
+  dismissed    Boolean     @default(false)
+  expiresAt    DateTime?   @map("expires_at")
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("market_alerts")
+}
+
+enum AlertSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+
+  @@map("alert_severity")
+}
+
+enum AlertCategory {
+  TREND
+  COMPETITIVE
+  OPPORTUNITY
+  RISK
+
+  @@map("alert_category")
+}
+
+model UserProfile {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @unique @db.Uuid
+  firstName    String?  @map("first_name")
+  lastName     String?  @map("last_name")
+  phone        String?
+  avatar       String?
+  businessSize String?  @map("business_size")
+  timezone     String   @default("UTC")
+  language     String   @default("en")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+model UserPreferences {
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String   @unique @db.Uuid
+  notifications Json     @default("{\"email_updates\": true, \"platform_alerts\": true, \"market_intelligence\": true, \"improvement_reminders\": true, \"billing_updates\": true}")
+  privacy       Json     @default("{\"data_sharing_analytics\": false, \"data_sharing_marketing\": false, \"public_profile\": false}")
+  dashboard     Json     @default("{\"default_view\": \"dashboard\", \"chart_preferences\": {}}")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
+
+model SecuritySettings {
+  id                   String   @id @default(uuid()) @db.Uuid
+  userId               String   @unique @db.Uuid
+  twoFactorEnabled     Boolean  @default(false) @map("two_factor_enabled")
+  twoFactorSecret      String?  @map("two_factor_secret")
+  backupCodes          Json?    @map("backup_codes")
+  loginNotifications   Boolean  @default(true) @map("login_notifications")
+  trustedDevices       Json     @default("[]") @map("trusted_devices")
+  sessionTimeout       Int      @default(1440) @map("session_timeout") // 24 hours in minutes
+  lastPasswordChange   DateTime @default(now()) @map("last_password_change")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("security_settings")
+}
+
+model DataExportRequest {
+  id          String              @id @default(uuid()) @db.Uuid
+  userId      String              @db.Uuid
+  requestType DataExportType      @map("request_type")
+  status      DataExportStatus    @default(PENDING)
+  downloadUrl String?             @map("download_url")
+  expiresAt   DateTime?           @map("expires_at")
+  createdAt   DateTime            @default(now()) @map("created_at")
+  completedAt DateTime?           @map("completed_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("data_export_requests")
+}
+
+model LoginHistory {
+  id            String    @id @default(uuid()) @db.Uuid
+  userId        String    @db.Uuid
+  ipAddress     String    @map("ip_address")
+  userAgent     String    @map("user_agent")
+  location      String?
+  successful    Boolean   @default(true)
+  failureReason String?   @map("failure_reason")
+  sessionId     String?   @map("session_id")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("login_history")
+}
+
+enum DataExportType {
+  FULL
+  PROFILE
+  EVALUATIONS
+  PREFERENCES
+
+  @@map("data_export_type")
+}
+
+enum DataExportStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+
+  @@map("data_export_status")
+}
+
+// Epic 4.3: Advanced Data Visualization & Interactive Analytics models
+model AnalyticsData {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  metric    String
+  value     Float
+  timestamp DateTime
+  metadata  Json     @default("{}")
+  category  AnalyticsCategory
+  tags      String[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, category, timestamp])
+  @@index([metric, timestamp])
+  @@map("analytics_data")
+}
+
+model BusinessMetrics {
+  id                       String   @id @default(uuid()) @db.Uuid
+  userId                   String   @db.Uuid
+  period                   DateTime
+  metrics                  Json     @default("{}")
+  industryBenchmarks       Json     @default("{}") @map("industry_benchmarks")
+  goals                    Json     @default("{}")
+  improvementsImplemented  Json     @default("[]") @map("improvements_implemented")
+  calculatedAt             DateTime @default(now()) @map("calculated_at")
+  createdAt                DateTime @default(now()) @map("created_at")
+  updatedAt                DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, period])
+  @@map("business_metrics")
+}
+
+model ComparisonAnalysis {
+  id             String          @id @default(uuid()) @db.Uuid
+  userId         String          @db.Uuid
+  comparisonType ComparisonType  @map("comparison_type")
+  baseline       Json            @default("{}")
+  comparison     Json            @default("{}")
+  analysis       Json            @default("{}")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, comparisonType])
+  @@map("comparison_analysis")
+}
+
+model WidgetConfiguration {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  dashboardId String   @map("dashboard_id")
+  widgets     Json     @default("[]")
+  layout      String   @default("default")
+  isDefault   Boolean  @default(false) @map("is_default")
+  sharedWith  String[] @map("shared_with")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, dashboardId])
+  @@map("widget_configurations")
+}
+
+model ExportableReport {
+  id          String     @id @default(uuid()) @db.Uuid
+  userId      String     @db.Uuid
+  title       String
+  reportType  ReportType @map("report_type")
+  content     Json       @default("{}")
+  format      String     @default("pdf")
+  sharing     Json       @default("{}")
+  branding    Json?
+  generatedAt DateTime?  @map("generated_at")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, reportType])
+  @@map("exportable_reports")
+}
+
+enum AnalyticsCategory {
+  VALUATION
+  HEALTH_SCORE
+  PERFORMANCE
+  IMPROVEMENT
+
+  @@map("analytics_category")
+}
+
+enum ComparisonType {
+  BEFORE_AFTER
+  PERIOD_OVER_PERIOD
+  BENCHMARK
+  SCENARIO
+
+  @@map("comparison_type")
+}
+
+enum ReportType {
+  EXECUTIVE_SUMMARY
+  DETAILED_ANALYSIS
+  COMPARISON
+  PERFORMANCE_REVIEW
+
+  @@map("report_type")
+}
+
+// Epic 4.4: Comprehensive Help System & User Support models
+model HelpContent {
+  id              String      @id @default(uuid()) @db.Uuid
+  title           String
+  content         String      @db.Text
+  category        String
+  subcategory     String?
+  type            ContentType @default(ARTICLE)
+  difficulty      DifficultyLevel @default(INTERMEDIATE)
+  tags            String[]
+  relatedArticles String[]    @map("related_articles")
+  viewCount       Int         @default(0) @map("view_count")
+  helpfulVotes    Int         @default(0) @map("helpful_votes")
+  premiumOnly     Boolean     @default(false) @map("premium_only")
+  lastUpdated     DateTime    @default(now()) @map("last_updated")
+  author          String
+  status          ContentStatus @default(DRAFT)
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+
+  feedback UserFeedback[]
+
+  @@index([category, type])
+  @@index([tags])
+  @@map("help_content")
+}
+
+
+model VideoContent {
+  id           String      @id @default(uuid()) @db.Uuid
+  title        String
+  description  String      @db.Text
+  videoUrl     String      @map("video_url")
+  thumbnailUrl String?     @map("thumbnail_url")
+  duration     Int         // seconds
+  category     String
+  tags         String[]
+  difficulty   DifficultyLevel @default(INTERMEDIATE)
+  transcript   String?     @db.Text
+  chapters     Json        @default("[]")
+  viewCount    Int         @default(0) @map("view_count")
+  premiumOnly  Boolean     @default(false) @map("premium_only")
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+
+  progress TutorialProgress[]
+  feedback UserFeedback[]
+
+  @@index([category, difficulty])
+  @@index([tags])
+  @@map("video_content")
+}
+
+model SupportTicket {
+  id                   String        @id @default(uuid()) @db.Uuid
+  userId               String        @db.Uuid
+  subject              String
+  description          String        @db.Text
+  category             String
+  priority             Priority      @default(MEDIUM)
+  status               TicketStatus  @default(OPEN)
+  assignedTo           String?       @map("assigned_to")
+  subscriptionTier     String        @map("subscription_tier")
+  createdAt            DateTime      @default(now()) @map("created_at")
+  updatedAt            DateTime      @updatedAt @map("updated_at")
+  resolvedAt           DateTime?     @map("resolved_at")
+  satisfactionRating   Int?          @map("satisfaction_rating")
+  satisfactionFeedback String?       @map("satisfaction_feedback") @db.Text
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages SupportMessage[]
+
+  @@index([userId, status])
+  @@index([priority, status])
+  @@map("support_tickets")
+}
+
+model SupportMessage {
+  id         String      @id @default(uuid()) @db.Uuid
+  ticketId   String      @db.Uuid
+  senderId   String      @db.Uuid
+  senderType SenderType
+  message    String      @db.Text
+  timestamp  DateTime    @default(now())
+  attachments String[]   @default([])
+
+  ticket SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  sender User @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId, timestamp])
+  @@map("support_messages")
+}
+
+model CommunityPost {
+  id               String           @id @default(uuid()) @db.Uuid
+  userId           String           @db.Uuid
+  title            String
+  content          String           @db.Text
+  category         String
+  type             PostType         @default(DISCUSSION)
+  tags             String[]
+  upvotes          Int              @default(0)
+  downvotes        Int              @default(0)
+  viewCount        Int              @default(0) @map("view_count")
+  replyCount       Int              @default(0) @map("reply_count")
+  isFeatured       Boolean          @default(false) @map("is_featured")
+  isModerated      Boolean          @default(false) @map("is_moderated")
+  moderationStatus ModerationStatus @default(PENDING) @map("moderation_status")
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  replies CommunityReply[]
+
+  @@index([category, type])
+  @@index([moderationStatus, isFeatured])
+  @@map("community_posts")
+}
+
+model CommunityReply {
+  id         String   @id @default(uuid()) @db.Uuid
+  postId     String   @db.Uuid
+  userId     String   @db.Uuid
+  content    String   @db.Text
+  upvotes    Int      @default(0)
+  isSolution Boolean  @default(false) @map("is_solution")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  post CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([postId, createdAt])
+  @@map("community_replies")
+}
+
+model TutorialProgress {
+  id                 String   @id @default(uuid()) @db.Uuid
+  userId             String   @db.Uuid
+  videoId            String   @db.Uuid
+  progressPercentage Int      @default(0) @map("progress_percentage")
+  completed          Boolean  @default(false)
+  lastWatchedAt      DateTime @default(now()) @map("last_watched_at")
+  bookmarks          Int[]    @default([])
+  notes              String?  @db.Text
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  video VideoContent @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, videoId])
+  @@map("tutorial_progress")
+}
+
+model UserFeedback {
+  id           String       @id @default(uuid()) @db.Uuid
+  userId       String       @db.Uuid
+  contentId    String       @map("content_id")
+  contentType  ContentTypeEnum @map("content_type")
+  feedbackType FeedbackType @map("feedback_type")
+  rating       Int?
+  comment      String?      @db.Text
+  createdAt    DateTime     @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  helpContent HelpContent? @relation(fields: [contentId], references: [id], onDelete: Cascade, map: "user_feedback_help_content_fkey")
+  videoContent VideoContent? @relation(fields: [contentId], references: [id], onDelete: Cascade, map: "user_feedback_video_content_fkey")
+
+  @@index([contentId, contentType])
+  @@map("user_feedback")
+}
+
+// Enums for Help System
+enum ContentType {
+  ARTICLE
+  FAQ
+  TUTORIAL
+  GUIDE
+
+  @@map("content_type")
+}
+
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+
+  @@map("content_status")
+}
+
+enum Position {
+  TOP
+  BOTTOM
+  LEFT
+  RIGHT
+  CENTER
+
+  @@map("position")
+}
+
+enum ActionType {
+  CLICK
+  HOVER
+  INPUT
+  SCROLL
+  WAIT
+
+  @@map("action_type")
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+
+  @@map("priority")
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_RESPONSE
+  RESOLVED
+  CLOSED
+
+  @@map("ticket_status")
+}
+
+enum SenderType {
+  USER
+  SUPPORT
+
+  @@map("sender_type")
+}
+
+enum PostType {
+  QUESTION
+  SUCCESS_STORY
+  DISCUSSION
+  TIP
+
+  @@map("post_type")
+}
+
+enum ModerationStatus {
+  APPROVED
+  PENDING
+  FLAGGED
+
+  @@map("moderation_status")
+}
+
+enum ContentTypeEnum {
+  ARTICLE
+  VIDEO
+  TUTORIAL
+  SUPPORT
+
+  @@map("content_type_enum")
+}
+
+enum FeedbackType {
+  HELPFUL
+  NOT_HELPFUL
+  RATING
+  COMMENT
+
+  @@map("feedback_type")
+}
+
+// Story 4.5: Platform Analytics & Performance Optimization Models
+
+model UserEvent {
+  id               String    @id @default(uuid()) @db.Uuid
+  userId           String?   @db.Uuid @map("user_id")
+  sessionId        String    @map("session_id")
+  eventType        String    @map("event_type")
+  eventName        String    @map("event_name")
+  properties       Json      @default("{}")
+  pageUrl          String    @map("page_url")
+  referrer         String?
+  userAgent        String    @map("user_agent")
+  ipAddress        String    @map("ip_address")
+  timestamp        DateTime  @default(now())
+  funnelStep       String?   @map("funnel_step")
+  experimentVariant String?  @map("experiment_variant")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, timestamp])
+  @@index([sessionId])
+  @@index([eventType, eventName])
+  @@index([timestamp])
+  @@map("user_events")
+}
+
+model AIPerformanceMetric {
+  id           String    @id @default(uuid()) @db.Uuid
+  userId       String?   @db.Uuid @map("user_id")
+  modelName    String    @map("model_name")
+  version      String
+  metricType   AIMetricType @map("metric_type")
+  value        Float
+  context      Json      @default("{}")
+  userFeedback Json?     @map("user_feedback")
+  timestamp    DateTime  @default(now())
+  batchId      String?   @map("batch_id")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([modelName, version])
+  @@index([metricType, timestamp])
+  @@index([userId, timestamp])
+  @@map("ai_performance_metrics")
+}
+
+model PlatformMetric {
+  id           String           @id @default(uuid()) @db.Uuid
+  metricType   PlatformMetricType @map("metric_type")
+  value        Float
+  endpoint     String?
+  service      String?
+  statusCode   Int?             @map("status_code")
+  errorType    String?          @map("error_type")
+  userCount    Int?             @map("user_count")
+  timestamp    DateTime         @default(now())
+  tags         Json             @default("{}")
+
+  @@index([metricType, timestamp])
+  @@index([service, timestamp])
+  @@index([endpoint])
+  @@map("platform_metrics")
+}
+
+model ABTestExperiment {
+  id                   String              @id @default(uuid()) @db.Uuid
+  name                 String              @unique
+  description          String              @db.Text
+  hypothesis           String              @db.Text
+  status               ExperimentStatus    @default(DRAFT)
+  variants             Json                @default("[]")
+  targetMetric         String              @map("target_metric")
+  successCriteria      Json                @map("success_criteria")
+  startDate            DateTime?           @map("start_date")
+  endDate              DateTime?           @map("end_date")
+  sampleSizeRequired   Int                 @map("sample_size_required")
+  confidenceLevel      Float               @default(0.95) @map("confidence_level")
+  statisticalSignificance Float?           @map("statistical_significance")
+  winnerVariant        String?             @map("winner_variant")
+  results              Json                @default("{}")
+  createdAt            DateTime            @default(now()) @map("created_at")
+  updatedAt            DateTime            @updatedAt @map("updated_at")
+
+  participants ABTestParticipant[]
+
+  @@index([status])
+  @@index([startDate, endDate])
+  @@map("ab_test_experiments")
+}
+
+model ABTestParticipant {
+  id           String           @id @default(uuid()) @db.Uuid
+  userId       String           @db.Uuid @map("user_id")
+  experimentId String           @db.Uuid @map("experiment_id")
+  variantId    String           @map("variant_id")
+  assignedAt   DateTime         @default(now()) @map("assigned_at")
+  converted    Boolean          @default(false)
+  convertedAt  DateTime?        @map("converted_at")
+  events       Json             @default("[]")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  experiment ABTestExperiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, experimentId])
+  @@index([experimentId, variantId])
+  @@map("ab_test_participants")
+}
+
+model BusinessIntelligenceMetric {
+  id            String    @id @default(uuid()) @db.Uuid
+  metricType    BIMetricType @map("metric_type")
+  value         Float
+  dimensions    Json      @default("{}")
+  period        String    // daily, weekly, monthly, quarterly
+  periodStart   DateTime  @map("period_start")
+  periodEnd     DateTime  @map("period_end")
+  calculatedAt  DateTime  @default(now()) @map("calculated_at")
+  metadata      Json      @default("{}")
+
+  @@index([metricType, periodStart])
+  @@index([period, periodStart])
+  @@map("business_intelligence_metrics")
+}
+
+model PerformanceAlert {
+  id          String      @id @default(uuid()) @db.Uuid
+  alertType   AlertType   @map("alert_type")
+  severity    AlertSeverity
+  title       String
+  description String      @db.Text
+  metricType  String      @map("metric_type")
+  threshold   Float
+  currentValue Float      @map("current_value")
+  status      AlertStatus @default(ACTIVE)
+  triggeredAt DateTime    @default(now()) @map("triggered_at")
+  resolvedAt  DateTime?   @map("resolved_at")
+  metadata    Json        @default("{}")
+
+  @@index([status, severity])
+  @@index([alertType, triggeredAt])
+  @@map("performance_alerts")
+}
+
+// Analytics Enums
+
+enum AIMetricType {
+  ACCURACY
+  CONFIDENCE
+  RESPONSE_TIME
+  USER_SATISFACTION
+
+  @@map("ai_metric_type")
+}
+
+enum PlatformMetricType {
+  RESPONSE_TIME
+  ERROR_RATE
+  THROUGHPUT
+  CPU_USAGE
+  MEMORY_USAGE
+
+  @@map("platform_metric_type")
+}
+
+enum ExperimentStatus {
+  DRAFT
+  RUNNING
+  PAUSED
+  COMPLETED
+  ARCHIVED
+
+  @@map("experiment_status")
+}
+
+enum BIMetricType {
+  REVENUE
+  CHURN_RATE
+  CONVERSION_RATE
+  USER_GROWTH
+  SUBSCRIPTION_METRICS
+  FEATURE_ADOPTION
+  USER_SATISFACTION
+  PLATFORM_USAGE
+
+  @@map("bi_metric_type")
+}
+
+enum AlertType {
+  PERFORMANCE
+  ERROR_RATE
+  USER_BEHAVIOR
+  BUSINESS_METRIC
+  AI_ACCURACY
+
+  @@map("alert_type")
+}
+
+enum AlertStatus {
+  ACTIVE
+  ACKNOWLEDGED
+  RESOLVED
+
+  @@map("alert_status")
+}
+
+// Story 9.2: Admin User Dashboard - User Admin Actions Audit Log
+model UserAdminAction {
+  id           String    @id @default(uuid()) @db.Uuid
+  adminUserId  String    @db.Uuid @map("admin_user_id")
+  targetUserId String    @db.Uuid @map("target_user_id")
+  action       String
+  oldValues    Json?     @map("old_values")
+  newValues    Json?     @map("new_values")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  adminUser  User @relation("AdminUser", fields: [adminUserId], references: [id], onDelete: Cascade)
+  targetUser User @relation("TargetUser", fields: [targetUserId], references: [id], onDelete: Cascade)
+
+  @@index([adminUserId])
+  @@index([targetUserId])
+  @@index([createdAt])
+  @@map("user_admin_actions")
+}

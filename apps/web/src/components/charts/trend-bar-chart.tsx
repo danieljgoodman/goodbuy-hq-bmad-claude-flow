@@ -128,11 +128,8 @@ export default function TrendBarChart({
     isPositive: (filteredData[filteredData.length - 1]?.value || 0) > (filteredData[0]?.value || 0)
   } : null
 
-  // Determine if this should be a line chart (for health scores)
-  const shouldShowAsLineChart = title.toLowerCase().includes('health score') || 
-                                title.toLowerCase().includes('progression') ||
-                                filteredData[0]?.category === 'score' ||
-                                filteredData[0]?.category === 'health'
+  // Determine if this should be a line chart (for health scores and progression data)
+  const shouldShowAsLineChart = true // Always show as line chart for trend data
 
   const chartComponent = responsive ? (
     <ResponsiveContainer width="100%" height={height}>
@@ -148,10 +145,11 @@ export default function TrendBarChart({
           <Line
             type="monotone"
             dataKey={dataKey}
-            stroke={barColors?.[0] || getBarColor(filteredData[0]?.category || 'number')}
+            stroke="#9c87f5"
             strokeWidth={2}
-            dot={{ r: 4, fill: barColors?.[0] || getBarColor(filteredData[0]?.category || 'number') }}
-            activeDot={{ r: 6 }}
+            dot={{ r: 4, fill: "#9c87f5", strokeWidth: 1 }}
+            activeDot={{ r: 6, fill: "#9c87f5" }}
+            connectNulls={false}
           />
         </LineChart>
       ) : (

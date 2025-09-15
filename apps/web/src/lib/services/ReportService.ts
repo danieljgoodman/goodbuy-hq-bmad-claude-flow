@@ -4,11 +4,17 @@ import { AnalyticsService } from './AnalyticsService'
 import { ValueImpactService } from './ValueImpactService'
 import { PDFGenerationService, PDFReportData, PDFSection, ChartData } from './PDFGenerationService'
 import { ClaudeService, type EnhancedHealthAnalysis } from './claude-service'
-import { evaluationStorage } from '../evaluation-storage'
+import { BusinessEvaluationRepository } from '../repositories/BusinessEvaluationRepository'
+import { UserProfileRepository } from '../repositories/UserProfileRepository'
 import { handleClaudeRequest } from './claude-api-real'
+import { evaluationStorage } from '../evaluation-storage'
 
 // Initialize Prisma client
 const prisma = new PrismaClient()
+
+// Initialize repositories
+const userProfileRepository = new UserProfileRepository()
+const businessEvaluationRepository = BusinessEvaluationRepository
 
 export interface ProfessionalReport {
   id: string
@@ -83,18 +89,26 @@ export class ReportService {
     }
 
     try {
-      // Get user's evaluations using file storage
+      // Get user's evaluations from file storage (the working data source)
       const evaluations = evaluationStorage.getByUserId(userId)
-      
+      console.log(`Found ${evaluations.length} evaluations from file storage for user ${userId}`)
+
       if (!evaluations || evaluations.length === 0) {
         throw new Error('No evaluation data available for report generation')
       }
 
-      // Create a user object compatible with the rest of the code
+      // Try to get user profile from database (optional due to schema issues)
+      const userProfile = await userProfileRepository.findByUserId(userId).catch(() => {
+        console.log('Could not fetch user profile, using default values')
+        return null
+      })
+
+      // Create a user object with real database data
       const user = {
         id: userId,
-        businessName: evaluations[0]?.businessData?.businessName || 'Business Report',
-        evaluations: evaluations.slice(0, 10)
+        businessName: (evaluations[0]?.businessData as any)?.businessName || userProfile?.firstName + "'s Business" || 'Business Report',
+        evaluations: evaluations.slice(0, 10),
+        profile: userProfile
       }
 
       // Get analytics data
@@ -178,8 +192,25 @@ export class ReportService {
         throw new Error('No evaluation data available for AI analysis')
       }
 
-      const businessData = latestEvaluation.businessData || {}
-      
+      // Extract business data from database evaluation JSON field
+      const evalData = latestEvaluation.businessData as any
+      const businessData = {
+        businessName: evalData?.businessName || 'Business',
+        businessType: evalData?.businessType || 'General',
+        industryFocus: evalData?.industryFocus || evalData?.industry || 'General',
+        annualRevenue: evalData?.annualRevenue || 0,
+        expenses: evalData?.expenses || ((evalData?.annualRevenue || 0) - (evalData?.netProfit || 0)),
+        assets: evalData?.totalAssets || evalData?.assets || 0,
+        liabilities: evalData?.totalLiabilities || evalData?.liabilities || 0,
+        employeeCount: evalData?.employeeCount || 0,
+        customerCount: evalData?.customerCount || 0,
+        yearsInBusiness: evalData?.yearsInBusiness || 0,
+        businessModel: evalData?.businessModel || 'Standard',
+        marketPosition: evalData?.marketPosition || 'Growing Player',
+        cashFlow: evalData?.monthlyProfit || evalData?.cashFlow || 0,
+        netProfit: evalData?.netProfit || 0
+      }
+
       // Get enhanced AI health analysis from Claude
       const healthAnalysis = await ClaudeService.analyzeEnhancedBusinessHealth(businessData)
       
@@ -210,11 +241,11 @@ export class ReportService {
       }
       
       return {
-        keyInsights: aiSummary.keyInsights,
-        recommendations: aiSummary.recommendations,
-        businessHighlights: aiSummary.businessHighlights,
-        riskFactors: aiSummary.riskFactors,
-        nextSteps: aiSummary.nextSteps,
+        keyInsights: aiSummary.keyInsights || [],
+        recommendations: aiSummary.recommendations || [],
+        businessHighlights: aiSummary.businessHighlights || [],
+        riskFactors: aiSummary.riskFactors || [],
+        nextSteps: aiSummary.nextSteps || [],
         generatedBy: 'ai'
       }
     } catch (error) {
@@ -247,7 +278,7 @@ Health Analysis Highlights:
 - Growth Potential: ${healthAnalysis.scoringFactors?.growth?.score}/100
 
 Top Improvement Opportunities:
-${healthAnalysis.improvementOpportunities?.slice(0, 3).map(opp => `- ${opp.description}: ${opp.impactDescription}`).join('\n') || 'None identified'}
+${healthAnalysis.topOpportunities?.slice(0, 3).map(opp => `- ${opp.description}: ${opp.impactEstimate?.dollarAmount || 'TBD'}`).join('\n') || 'None identified'}
 
 Please provide:
 1. Key Insights (3-5 bullet points about business performance)
@@ -521,18 +552,22 @@ Format as structured text that can be parsed.`
     reportType: string,
     sections: string[]
   ) {
-    // Get user's evaluations using file storage
-    const evaluations = evaluationStorage.getByUserId(userId)
-    
+    // Get user's evaluations from database
+    const evaluations = await businessEvaluationRepository.findByUserId(userId)
+
     if (!evaluations || evaluations.length === 0) {
       throw new Error('No evaluation data available for preview')
     }
 
-    // Create a user object compatible with the rest of the code
+    // Get user profile from database
+    const userProfile = await userProfileRepository.findByUserId(userId)
+
+    // Create a user object with real database data
     const user = {
       id: userId,
-      businessName: evaluations[0]?.businessData?.businessName || 'Business Report',
-      evaluations: evaluations.slice(0, 1)
+      businessName: (evaluations[0]?.businessData as any)?.businessName || userProfile?.firstName + "'s Business" || 'Business Report',
+      evaluations: evaluations.slice(0, 1),
+      profile: userProfile
     }
 
     const template = this.getReportTemplate(reportType as any)
@@ -675,7 +710,27 @@ Format as structured text that can be parsed.`
 
     try {
       const latestEvaluation = user.evaluations[0]
-      const businessData = latestEvaluation?.businessData || {}
+      if (!latestEvaluation) {
+        throw new Error('No evaluation data available for analysis')
+      }
+
+      // Extract business data from database evaluation JSON field
+      const evalData = latestEvaluation.businessData as any
+      const businessData = {
+        businessName: evalData?.businessName || 'Business',
+        businessType: evalData?.businessType || 'General',
+        industryFocus: evalData?.industryFocus || evalData?.industry || 'General',
+        annualRevenue: evalData?.annualRevenue || 0,
+        expenses: evalData?.expenses || ((evalData?.annualRevenue || 0) - (evalData?.netProfit || 0)),
+        assets: evalData?.totalAssets || evalData?.assets || 0,
+        liabilities: evalData?.totalLiabilities || evalData?.liabilities || 0,
+        employeeCount: evalData?.employeeCount || 0,
+        customerCount: evalData?.customerCount || 0,
+        yearsInBusiness: evalData?.yearsInBusiness || 0,
+        businessModel: evalData?.businessModel || 'Standard',
+        marketPosition: evalData?.marketPosition || 'Growing Player',
+        cashFlow: evalData?.monthlyProfit || evalData?.cashFlow || 0
+      }
 
       // Generate AI-powered business overview
       const overviewAnalysis = await handleClaudeRequest({
@@ -695,11 +750,11 @@ Format as structured text that can be parsed.`
 
       return {
         businessName: user.businessName || businessData.businessName || 'Business Report',
-        industry: businessData.industry || businessData.industryFocus || 'Not specified',
-        evaluationDate: latestEvaluation?.createdAt || new Date(),
-        healthScore: latestEvaluation?.healthScore || 0,
+        industry: businessData.industryFocus || 'Not specified',
+        evaluationDate: latestEvaluation.createdAt || new Date(),
+        healthScore: latestEvaluation.healthScore || 0,
         totalEvaluations: user.evaluations.length,
-        lastEvaluation: new Date(latestEvaluation?.createdAt || Date.now()).toLocaleDateString(),
+        lastEvaluation: new Date(latestEvaluation.createdAt || Date.now()).toLocaleDateString(),
         description: parsedOverview.description || 'AI-generated business overview',
         keyHighlights: parsedOverview.highlights || [],
         financialSummary: parsedOverview.financialSummary || {},
@@ -708,8 +763,8 @@ Format as structured text that can be parsed.`
           revenue: businessData.annualRevenue || 0,
           employees: businessData.employeeCount || 0,
           customers: businessData.customerCount || 0,
-          valuation: this.extractValuation(latestEvaluation) || 0,
-          grossMargin: businessData.grossMargin || 0
+          valuation: latestEvaluation.valuation || 0,
+          grossMargin: latestEvaluation.grossMargin || 0
         },
         generatedBy: 'ai'
       }
@@ -729,7 +784,25 @@ Format as structured text that can be parsed.`
 
     try {
       const latestEvaluation = user.evaluations[0]
-      const businessData = latestEvaluation?.businessData || {}
+      if (!latestEvaluation) {
+        throw new Error('No evaluation data available for trend analysis')
+      }
+
+      // Extract business data from database evaluation JSON field
+      const evalData = latestEvaluation.businessData as any
+      const businessData = {
+        businessName: evalData?.businessName || 'Business',
+        businessType: evalData?.businessType || 'General',
+        industryFocus: evalData?.industryFocus || evalData?.industry || 'General',
+        annualRevenue: evalData?.annualRevenue || 0,
+        expenses: evalData?.expenses || ((evalData?.annualRevenue || 0) - (evalData?.netProfit || 0)),
+        assets: evalData?.totalAssets || evalData?.assets || 0,
+        liabilities: evalData?.totalLiabilities || evalData?.liabilities || 0,
+        employeeCount: evalData?.employeeCount || 0,
+        customerCount: evalData?.customerCount || 0,
+        yearsInBusiness: evalData?.yearsInBusiness || 0,
+        healthScore: latestEvaluation.healthScore
+      }
 
       // Generate AI-powered trend analysis
       const trendAnalysis = await handleClaudeRequest({
@@ -776,7 +849,26 @@ Format as structured text that can be parsed.`
 
     try {
       const latestEvaluation = user.evaluations[0]
-      const businessData = latestEvaluation?.businessData || {}
+      if (!latestEvaluation) {
+        throw new Error('No evaluation data available for improvement analysis')
+      }
+
+      // Extract business data from database evaluation JSON field
+      const evalData = latestEvaluation.businessData as any
+      const businessData = {
+        businessName: evalData?.businessName || 'Business',
+        businessType: evalData?.businessType || 'General',
+        industryFocus: evalData?.industryFocus || evalData?.industry || 'General',
+        annualRevenue: evalData?.annualRevenue || 0,
+        expenses: evalData?.expenses || ((evalData?.annualRevenue || 0) - (evalData?.netProfit || 0)),
+        assets: evalData?.totalAssets || evalData?.assets || 0,
+        liabilities: evalData?.totalLiabilities || evalData?.liabilities || 0,
+        employeeCount: evalData?.employeeCount || 0,
+        customerCount: evalData?.customerCount || 0,
+        yearsInBusiness: evalData?.yearsInBusiness || 0,
+        healthScore: latestEvaluation.healthScore,
+        netProfit: evalData?.netProfit || 0
+      }
 
       // Generate AI-powered improvement analysis
       const improvementAnalysis = await handleClaudeRequest({
@@ -826,7 +918,22 @@ Format as structured text that can be parsed.`
 
     try {
       const latestEvaluation = user.evaluations[0]
-      const businessData = latestEvaluation?.businessData || {}
+      if (!latestEvaluation) {
+        throw new Error('No evaluation data available for chart analysis')
+      }
+
+      // Extract business data from database evaluation JSON field
+      const evalData = latestEvaluation.businessData as any
+      const businessData = {
+        businessName: evalData?.businessName || 'Business',
+        businessType: evalData?.businessType || 'General',
+        industryFocus: evalData?.industryFocus || evalData?.industry || 'General',
+        annualRevenue: evalData?.annualRevenue || 0,
+        expenses: evalData?.expenses || ((evalData?.annualRevenue || 0) - (evalData?.netProfit || 0)),
+        assets: evalData?.totalAssets || evalData?.assets || 0,
+        liabilities: evalData?.totalLiabilities || evalData?.liabilities || 0,
+        healthScore: latestEvaluation.healthScore
+      }
 
       // Generate AI-powered chart analysis
       const chartAnalysis = await handleClaudeRequest({
@@ -878,16 +985,34 @@ Format as structured text that can be parsed.`
 
     try {
       const latestEvaluation = user.evaluations[0]
-      const businessData = latestEvaluation?.businessData || {}
-      
+      if (!latestEvaluation) {
+        throw new Error('No evaluation data available for recommendations')
+      }
+
+      // Extract business data from database evaluation JSON field
+      const evalData = latestEvaluation.businessData as any
+      const businessData = {
+        businessName: evalData?.businessName || 'Business',
+        businessType: evalData?.businessType || 'General',
+        industryFocus: evalData?.industryFocus || evalData?.industry || 'General',
+        annualRevenue: evalData?.annualRevenue || 0,
+        expenses: evalData?.expenses || ((evalData?.annualRevenue || 0) - (evalData?.netProfit || 0)),
+        assets: evalData?.totalAssets || evalData?.assets || 0,
+        liabilities: evalData?.totalLiabilities || evalData?.liabilities || 0,
+        employeeCount: evalData?.employeeCount || 0,
+        customerCount: evalData?.customerCount || 0,
+        yearsInBusiness: evalData?.yearsInBusiness || 0
+      }
+
       // Use AI-generated recommendations from Claude
       const healthAnalysis = await ClaudeService.analyzeEnhancedBusinessHealth(businessData)
-      
+
       return {
         description: 'AI-generated recommendations based on business analysis',
-        recommendations: healthAnalysis.improvementOpportunities?.slice(0, 5).map(opp => opp.description) || [],
+        recommendations: healthAnalysis.topOpportunities?.slice(0, 5).map(opp => opp.description) || [],
         priorityLevel: 'high',
-        expectedImpact: healthAnalysis.improvementOpportunities?.[0]?.impactDescription || 'medium'
+        expectedImpact: healthAnalysis.topOpportunities?.[0]?.impactEstimate?.dollarAmount ?
+          `$${healthAnalysis.topOpportunities[0].impactEstimate.dollarAmount.toLocaleString()}` : 'medium'
       }
     } catch (error) {
       console.error('Error generating AI recommendations:', error)
@@ -1187,11 +1312,11 @@ Format as structured text that can be parsed.`
 
   private static async generateChartData(content: any, userId: string): Promise<ChartData> {
     try {
-      // Get user's evaluation data for chart using file storage
-      const evaluations = evaluationStorage.getByUserId(userId)
-      
+      // Get user's evaluation data for chart from database
+      const evaluations = await businessEvaluationRepository.findByUserId(userId)
+
       if (!evaluations || evaluations.length === 0) {
-        return this.getDefaultChartData()
+        throw new Error('No evaluation data available for chart generation')
       }
 
       // Generate valuation trend chart - take last 12 and reverse for chronological order
@@ -1203,7 +1328,7 @@ Format as structured text that can be parsed.`
           labels: recentEvaluations.map(evaluation => new Date(evaluation.createdAt).toLocaleDateString()),
           datasets: [{
             label: 'Business Valuation',
-            data: recentEvaluations.map(evaluation => this.extractValuation(evaluation)),
+            data: recentEvaluations.map(evaluation => (evaluation.valuations as any)?.weighted?.value || (evaluation.valuations as any)?.businessValue || 0),
             borderColor: '#3b82f6',
             backgroundColor: 'rgba(59, 130, 246, 0.1)',
             borderWidth: 2,
@@ -1232,27 +1357,10 @@ Format as structured text that can be parsed.`
       }
     } catch (error) {
       console.error('Error generating chart data:', error)
-      return this.getDefaultChartData()
+      throw error // No fallbacks
     }
   }
 
-  private static getDefaultChartData(): ChartData {
-    return {
-      type: 'line',
-      title: 'Business Performance',
-      data: {
-        labels: ['Q1', 'Q2', 'Q3', 'Q4'],
-        datasets: [{
-          label: 'Performance Score',
-          data: [65, 72, 78, 85],
-          borderColor: '#3b82f6',
-          backgroundColor: 'rgba(59, 130, 246, 0.1)',
-          borderWidth: 2,
-          fill: true
-        }]
-      }
-    }
-  }
 
   private static async generatePDF(
     userId: string,
@@ -1308,9 +1416,7 @@ Format as structured text that can be parsed.`
       return fileUrl
     } catch (error) {
       console.error('Error generating PDF:', error)
-      // Fallback to mock URL if PDF generation fails
-      const filename = `report_${userId}_${Date.now()}.pdf`
-      return `/api/reports/files/${filename}`
+      throw error // No fallbacks - fix the root cause
     }
   }
 
@@ -1347,13 +1453,4 @@ Format as structured text that can be parsed.`
     return 2.5 * 1024 * 1024 // 2.5 MB
   }
 
-  private static extractValuation(evaluation: any): number {
-    if (evaluation?.valuations) {
-      return evaluation.valuations.weighted?.value || 
-             evaluation.valuations.weighted || 
-             evaluation.valuations.businessValue || 
-             500000
-    }
-    return 500000
-  }
 }

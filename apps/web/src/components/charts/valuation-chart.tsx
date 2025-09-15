@@ -107,15 +107,16 @@ export default function ValuationChart({
         />
         <Tooltip content={<CustomTooltip />} />
         <Legend />
-        <Line 
-          type="monotone" 
-          dataKey="value" 
-          stroke={lineColor}
-          strokeWidth={strokeWidth}
-          dot={showDots ? { fill: lineColor, strokeWidth: 2, r: 4 } : false}
-          activeDot={{ r: 6, fill: lineColor }}
+        <Line
+          type="monotone"
+          dataKey="value"
+          stroke="#c96442"
+          strokeWidth={2}
+          dot={{ fill: "#c96442", strokeWidth: 1, r: 4 }}
+          activeDot={{ r: 6, fill: "#c96442" }}
           name="Valuation"
           onClick={onPointClick}
+          connectNulls={false}
         />
       </LineChart>
     </ResponsiveContainer>
@@ -133,15 +134,16 @@ export default function ValuationChart({
       />
       <Tooltip content={<CustomTooltip />} />
       <Legend />
-      <Line 
-        type="monotone" 
-        dataKey="value" 
-        stroke={lineColor}
-        strokeWidth={strokeWidth}
-        dot={showDots ? { fill: lineColor, strokeWidth: 2, r: 4 } : false}
-        activeDot={{ r: 6, fill: lineColor }}
+      <Line
+        type="monotone"
+        dataKey="value"
+        stroke="#c96442"
+        strokeWidth={2}
+        dot={{ fill: "#c96442", strokeWidth: 1, r: 4 }}
+        activeDot={{ r: 6, fill: "#c96442" }}
         name="Valuation"
         onClick={onPointClick}
+        connectNulls={false}
       />
     </LineChart>
   )
