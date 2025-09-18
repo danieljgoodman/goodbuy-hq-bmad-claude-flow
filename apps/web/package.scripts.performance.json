@@ -1,0 +1,28 @@
+{
+  "scripts": {
+    "performance:validate": "tsx src/scripts/test-middleware-performance.ts",
+    "performance:benchmark": "tsx -e \"import { runMiddlewarePerformanceBenchmark, generateMiddlewarePerformanceReport } from './src/lib/performance/middleware-benchmarks'; (async () => { const results = await runMiddlewarePerformanceBenchmark(1000); console.log(generateMiddlewarePerformanceReport(results)); })()\"",
+    "performance:cache-test": "tsx -e \"import { tierCache } from './src/lib/cache/tier-cache'; console.log('Testing cache performance...'); for(let i = 0; i < 1000; i++) { tierCache.setTierResult(`test-${i}`, { tier: 'PROFESSIONAL', status: 'ACTIVE', features: ['test'], hasAccess: true, isTrialing: false, executionTime: 5, source: 'test' }); } console.log('Cache stats:', tierCache.getStats());\"",
+    "performance:monitor": "tsx -e \"import { MiddlewarePerformanceMonitor } from './src/lib/performance/middleware-monitor'; const monitor = MiddlewarePerformanceMonitor.getInstance(); console.log('Performance stats:', monitor.getPerformanceStats()); console.log('Circuit breakers:', monitor.getCircuitBreakerStatus());\"",
+    "performance:stress-test": "tsx -e \"import { runMiddlewarePerformanceBenchmark } from './src/lib/performance/middleware-benchmarks'; console.log('Running stress test with 5000 iterations...'); runMiddlewarePerformanceBenchmark(5000).then(results => console.log('Stress test P95:', results.overallMiddleware.p95Time + 'ms'));\"",
+    "test:performance": "jest src/tests/middleware-performance.test.ts --verbose",
+    "performance:all": "npm run performance:validate && npm run test:performance"
+  },
+  "description": "Performance testing and validation scripts for middleware optimization",
+  "commands": {
+    "validate": "Runs comprehensive performance validation against requirements",
+    "benchmark": "Runs middleware benchmarks and generates performance report",
+    "cache-test": "Tests cache performance and displays statistics",
+    "monitor": "Shows current performance monitoring statistics",
+    "stress-test": "Runs stress test with high iteration count",
+    "test:performance": "Runs Jest performance test suite",
+    "all": "Runs all performance validation and tests"
+  },
+  "requirements": {
+    "execution_time": "<100ms (P95)",
+    "cache_hit_rate": ">85%",
+    "failover_time": "<50ms",
+    "memory_usage": "<50MB",
+    "success_rate": ">99%"
+  }
+}

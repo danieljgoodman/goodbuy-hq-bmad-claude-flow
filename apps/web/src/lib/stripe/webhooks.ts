@@ -1,5 +1,8 @@
 import { stripe, STRIPE_CONFIG } from './server'
 import { PrismaClient } from '@prisma/client'
+import { UserTierService } from '@/lib/services/user-tier-service'
+import { ClerkTierIntegration } from '@/lib/auth/clerk-tier-integration'
+import type { SubscriptionTier, SubscriptionStatus } from '@/types/subscription'
 import Stripe from 'stripe'
 
 const prisma = new PrismaClient()
@@ -70,125 +73,176 @@ export async function handleStripeWebhook(
 
 async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
   console.log('Subscription created:', subscription.id)
-  
-  // Find user by customer ID
-  const user = await prisma.user.findFirst({
-    where: { stripeCustomerId: subscription.customer as string },
-  })
 
-  if (!user) {
-    console.error('User not found for subscription:', subscription.id)
-    return
-  }
+  try {
+    // Find user by customer ID
+    const user = await prisma.user.findFirst({
+      where: { stripeCustomerId: subscription.customer as string },
+    })
 
-  // Check if subscription already exists
-  const existingSubscription = await prisma.subscription.findUnique({
-    where: { stripeSubscriptionId: subscription.id },
-  })
+    if (!user) {
+      console.error('User not found for subscription:', subscription.id)
+      return
+    }
 
-  if (existingSubscription) {
-    console.log('Subscription already exists in database')
-    return
-  }
+    // Check if subscription already exists
+    const existingSubscription = await prisma.subscription.findUnique({
+      where: { stripeSubscriptionId: subscription.id },
+    })
 
-  // Get price info to determine tier
-  const priceId = subscription.items.data[0]?.price?.id
-  if (!priceId) {
-    console.error('No price ID found in subscription')
-    return
-  }
+    if (existingSubscription) {
+      console.log('Subscription already exists in database')
+      return
+    }
 
-  const { tier, billingCycle } = getPriceInfo(priceId)
+    // Get price info to determine tier
+    const priceId = subscription.items.data[0]?.price?.id
+    if (!priceId) {
+      console.error('No price ID found in subscription')
+      return
+    }
 
-  await prisma.subscription.create({
-    data: {
-      userId: user.id,
+    const { tier, billingCycle } = getPriceInfo(priceId)
+    const mappedTier = mapToInternalTier(tier)
+
+    // Use UserTierService for comprehensive tier management
+    await UserTierService.updateUserTier(user.id, {
+      tier: mappedTier,
+      status: mapToInternalStatus(subscription.status),
+      stripeCustomerId: subscription.customer as string,
       stripeSubscriptionId: subscription.id,
       stripePriceId: priceId,
-      status: mapSubscriptionStatus(subscription.status),
-      tier,
-      billingCycle,
-      trialEndsAt: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
       currentPeriodStart: new Date(subscription.current_period_start * 1000),
       currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-      cancelAtPeriodEnd: subscription.cancel_at_period_end || false,
-    },
-  })
+      trialStart: subscription.trial_start ? new Date(subscription.trial_start * 1000) : undefined,
+      trialEnd: subscription.trial_end ? new Date(subscription.trial_end * 1000) : undefined,
+      cancelAtPeriodEnd: subscription.cancel_at_period_end || false
+    })
 
-  // Update user subscription tier
-  await prisma.user.update({
-    where: { id: user.id },
-    data: { subscriptionTier: tier },
-  })
+    // Also maintain the existing database structure for backward compatibility
+    await prisma.subscription.create({
+      data: {
+        userId: user.id,
+        stripeSubscriptionId: subscription.id,
+        stripePriceId: priceId,
+        status: mapSubscriptionStatus(subscription.status),
+        tier,
+        billingCycle,
+        trialEndsAt: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
+        currentPeriodStart: new Date(subscription.current_period_start * 1000),
+        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+        cancelAtPeriodEnd: subscription.cancel_at_period_end || false,
+      },
+    })
+
+    console.log(`Successfully created subscription for user ${user.id} with tier ${mappedTier}`)
+
+  } catch (error) {
+    console.error('Error in handleSubscriptionCreated:', error)
+    throw error // Re-throw to be handled by main webhook handler
+  }
 }
 
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   console.log('Subscription updated:', subscription.id)
 
-  const dbSubscription = await prisma.subscription.findUnique({
-    where: { stripeSubscriptionId: subscription.id },
-  })
+  try {
+    const dbSubscription = await prisma.subscription.findUnique({
+      where: { stripeSubscriptionId: subscription.id },
+    })
 
-  if (!dbSubscription) {
-    console.error('Subscription not found in database:', subscription.id)
-    return
-  }
+    if (!dbSubscription) {
+      console.error('Subscription not found in database:', subscription.id)
+      return
+    }
 
-  const priceId = subscription.items.data[0]?.price?.id
-  if (!priceId) {
-    console.error('No price ID found in subscription')
-    return
-  }
+    const priceId = subscription.items.data[0]?.price?.id
+    if (!priceId) {
+      console.error('No price ID found in subscription')
+      return
+    }
 
-  const { tier, billingCycle } = getPriceInfo(priceId)
+    const { tier, billingCycle } = getPriceInfo(priceId)
+    const mappedTier = mapToInternalTier(tier)
 
-  await prisma.subscription.update({
-    where: { stripeSubscriptionId: subscription.id },
-    data: {
+    // Use UserTierService for comprehensive updates
+    await UserTierService.updateUserTier(dbSubscription.userId, {
+      tier: mappedTier,
+      status: mapToInternalStatus(subscription.status),
+      stripeCustomerId: subscription.customer as string,
+      stripeSubscriptionId: subscription.id,
       stripePriceId: priceId,
-      status: mapSubscriptionStatus(subscription.status),
-      tier,
-      billingCycle,
-      trialEndsAt: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
       currentPeriodStart: new Date(subscription.current_period_start * 1000),
       currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-      cancelAtPeriodEnd: subscription.cancel_at_period_end || false,
-      cancelledAt: subscription.canceled_at ? new Date(subscription.canceled_at * 1000) : null,
-    },
-  })
+      trialStart: subscription.trial_start ? new Date(subscription.trial_start * 1000) : undefined,
+      trialEnd: subscription.trial_end ? new Date(subscription.trial_end * 1000) : undefined,
+      cancelAtPeriodEnd: subscription.cancel_at_period_end || false
+    })
 
-  // Update user subscription tier
-  await prisma.user.update({
-    where: { id: dbSubscription.userId },
-    data: { subscriptionTier: tier },
-  })
+    // Update existing subscription record
+    await prisma.subscription.update({
+      where: { stripeSubscriptionId: subscription.id },
+      data: {
+        stripePriceId: priceId,
+        status: mapSubscriptionStatus(subscription.status),
+        tier,
+        billingCycle,
+        trialEndsAt: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
+        currentPeriodStart: new Date(subscription.current_period_start * 1000),
+        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+        cancelAtPeriodEnd: subscription.cancel_at_period_end || false,
+        cancelledAt: subscription.canceled_at ? new Date(subscription.canceled_at * 1000) : null,
+      },
+    })
+
+    console.log(`Successfully updated subscription for user ${dbSubscription.userId} to tier ${mappedTier}`)
+
+  } catch (error) {
+    console.error('Error in handleSubscriptionUpdated:', error)
+    throw error
+  }
 }
 
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   console.log('Subscription deleted:', subscription.id)
 
-  const dbSubscription = await prisma.subscription.findUnique({
-    where: { stripeSubscriptionId: subscription.id },
-  })
+  try {
+    const dbSubscription = await prisma.subscription.findUnique({
+      where: { stripeSubscriptionId: subscription.id },
+    })
 
-  if (!dbSubscription) {
-    console.error('Subscription not found in database:', subscription.id)
-    return
-  }
+    if (!dbSubscription) {
+      console.error('Subscription not found in database:', subscription.id)
+      return
+    }
 
-  await prisma.subscription.update({
-    where: { stripeSubscriptionId: subscription.id },
-    data: {
+    // Use UserTierService to downgrade to BASIC tier
+    await UserTierService.updateUserTier(dbSubscription.userId, {
+      tier: 'BASIC',
       status: 'CANCELED',
-      cancelledAt: new Date(),
-    },
-  })
+      stripeCustomerId: subscription.customer as string,
+      stripeSubscriptionId: subscription.id,
+      stripePriceId: '',
+      currentPeriodStart: new Date(subscription.current_period_start * 1000),
+      currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+      cancelAtPeriodEnd: true
+    })
 
-  // Update user back to free tier
-  await prisma.user.update({
-    where: { id: dbSubscription.userId },
-    data: { subscriptionTier: 'FREE' },
-  })
+    // Update existing subscription record
+    await prisma.subscription.update({
+      where: { stripeSubscriptionId: subscription.id },
+      data: {
+        status: 'CANCELED',
+        cancelledAt: new Date(),
+      },
+    })
+
+    console.log(`Successfully canceled subscription for user ${dbSubscription.userId}`)
+
+  } catch (error) {
+    console.error('Error in handleSubscriptionDeleted:', error)
+    throw error
+  }
 }
 
 async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
@@ -291,15 +345,45 @@ function mapSubscriptionStatus(stripeStatus: string): 'TRIALING' | 'ACTIVE' | 'P
   return statusMap[stripeStatus] || 'INCOMPLETE'
 }
 
-function getPriceInfo(priceId: string): { tier: 'FREE' | 'PREMIUM' | 'ENTERPRISE', billingCycle: 'MONTHLY' | 'ANNUAL' } {
+function getPriceInfo(priceId: string): { tier: 'free' | 'premium' | 'enterprise', billingCycle: 'MONTHLY' | 'ANNUAL' } {
   // This should match your Stripe price IDs
   // You'll need to configure these based on your actual Stripe setup
-  const priceMap: Record<string, { tier: 'FREE' | 'PREMIUM' | 'ENTERPRISE', billingCycle: 'MONTHLY' | 'ANNUAL' }> = {
-    [process.env.STRIPE_PREMIUM_MONTHLY_PRICE_ID || '']: { tier: 'PREMIUM', billingCycle: 'MONTHLY' },
-    [process.env.STRIPE_PREMIUM_ANNUAL_PRICE_ID || '']: { tier: 'PREMIUM', billingCycle: 'ANNUAL' },
-    [process.env.STRIPE_ENTERPRISE_MONTHLY_PRICE_ID || '']: { tier: 'ENTERPRISE', billingCycle: 'MONTHLY' },
-    [process.env.STRIPE_ENTERPRISE_ANNUAL_PRICE_ID || '']: { tier: 'ENTERPRISE', billingCycle: 'ANNUAL' },
+  const priceMap: Record<string, { tier: 'free' | 'premium' | 'enterprise', billingCycle: 'MONTHLY' | 'ANNUAL' }> = {
+    [process.env.STRIPE_PROFESSIONAL_PRICE_ID || '']: { tier: 'premium', billingCycle: 'MONTHLY' },
+    [process.env.STRIPE_PROFESSIONAL_MONTHLY_PRICE_ID || '']: { tier: 'premium', billingCycle: 'MONTHLY' },
+    [process.env.STRIPE_PROFESSIONAL_ANNUAL_PRICE_ID || '']: { tier: 'premium', billingCycle: 'ANNUAL' },
+    [process.env.STRIPE_ENTERPRISE_PRICE_ID || '']: { tier: 'enterprise', billingCycle: 'MONTHLY' },
+    [process.env.STRIPE_ENTERPRISE_MONTHLY_PRICE_ID || '']: { tier: 'enterprise', billingCycle: 'MONTHLY' },
+    [process.env.STRIPE_ENTERPRISE_ANNUAL_PRICE_ID || '']: { tier: 'enterprise', billingCycle: 'ANNUAL' },
   }
 
-  return priceMap[priceId] || { tier: 'FREE', billingCycle: 'MONTHLY' }
+  return priceMap[priceId] || { tier: 'free', billingCycle: 'MONTHLY' }
+}
+
+/**
+ * Map database tier to internal types
+ */
+function mapToInternalTier(tier: string): SubscriptionTier {
+  const tierMap: Record<string, SubscriptionTier> = {
+    'free': 'BASIC',
+    'premium': 'PROFESSIONAL',
+    'enterprise': 'ENTERPRISE'
+  }
+  return tierMap[tier] || 'BASIC'
+}
+
+/**
+ * Map Stripe status to internal types
+ */
+function mapToInternalStatus(stripeStatus: string): SubscriptionStatus {
+  const statusMap: Record<string, SubscriptionStatus> = {
+    'trialing': 'TRIALING',
+    'active': 'ACTIVE',
+    'past_due': 'PAST_DUE',
+    'canceled': 'CANCELED',
+    'unpaid': 'UNPAID',
+    'incomplete': 'INCOMPLETE',
+    'incomplete_expired': 'INCOMPLETE_EXPIRED'
+  }
+  return statusMap[stripeStatus] || 'ACTIVE'
 }

@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { evaluationStorage } from '@/lib/evaluation-storage'
 import { BusinessEvaluationRepository } from '@/lib/repositories/BusinessEvaluationRepository'
+import { TierValidationMiddleware } from '@/middleware/tier-validation'
 import type { BusinessData } from '@/types/evaluation'
 
 export async function POST(request: NextRequest) {
   try {
+    // Validate user tier for evaluation creation
+    const tierResult = await TierValidationMiddleware.validateTier(request, {
+      requiredTier: 'PREMIUM',
+      featureType: 'analytics',
+      fallbackToBasic: true
+    })
+
     const { businessData, userId } = await request.json()
     
     if (!businessData) {
@@ -31,7 +39,18 @@ export async function POST(request: NextRequest) {
     // Store in file-based storage
     evaluationStorage.store(evaluation)
 
-    return NextResponse.json(evaluation)
+    // Return tier-aware response with filtered data based on user's subscription
+    const filteredEvaluation = TierValidationMiddleware.filterDataByTier(
+      evaluation,
+      tierResult.userTier,
+      'evaluation'
+    )
+
+    return TierValidationMiddleware.createTierAwareResponse(
+      filteredEvaluation,
+      tierResult,
+      { includeUpgradeInfo: true }
+    )
   } catch (error) {
     console.error('Failed to create evaluation:', error)
     return NextResponse.json(
@@ -43,11 +62,18 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    // Validate user tier for data access
+    const tierResult = await TierValidationMiddleware.validateTier(request, {
+      requiredTier: 'PREMIUM',
+      featureType: 'analytics',
+      fallbackToBasic: true
+    })
+
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('userId')
     const evaluationId = searchParams.get('id')
 
-    console.log('🔍 GET evaluations - userId:', userId, 'evaluationId:', evaluationId)
+    console.log('🔍 GET evaluations - userId:', userId, 'evaluationId:', evaluationId, 'userTier:', tierResult.userTier)
 
     if (evaluationId) {
       // Get single evaluation
@@ -62,18 +88,58 @@ export async function GET(request: NextRequest) {
       }
       
       console.log('✅ Found evaluation:', evaluationId)
-      return NextResponse.json(evaluation)
+
+      // Filter evaluation data based on user's tier
+      const filteredEvaluation = TierValidationMiddleware.filterDataByTier(
+        evaluation,
+        tierResult.userTier,
+        'evaluation'
+      )
+
+      return TierValidationMiddleware.createTierAwareResponse(
+        filteredEvaluation,
+        tierResult,
+        { includeUpgradeInfo: true }
+      )
     } else if (userId) {
       // Get user evaluations - try database first, fallback to file storage
       try {
         const userEvaluations = await BusinessEvaluationRepository.findByUserId(userId)
         console.log('✅ Found', userEvaluations.length, 'evaluations for user:', userId, '(from database)')
-        return NextResponse.json(userEvaluations)
+
+        // Filter each evaluation based on user's tier
+        const filteredEvaluations = userEvaluations.map(evaluation =>
+          TierValidationMiddleware.filterDataByTier(
+            evaluation,
+            tierResult.userTier,
+            'evaluation'
+          )
+        )
+
+        return TierValidationMiddleware.createTierAwareResponse(
+          filteredEvaluations,
+          tierResult,
+          { includeUpgradeInfo: true }
+        )
       } catch (error) {
         console.log('📁 Falling back to file storage for user evaluations')
         const userEvaluations = evaluationStorage.getByUserId(userId)
         console.log('✅ Found', userEvaluations.length, 'evaluations for user:', userId, '(from file storage)')
-        return NextResponse.json(userEvaluations)
+
+        // Filter each evaluation based on user's tier
+        const filteredEvaluations = userEvaluations.map(evaluation =>
+          TierValidationMiddleware.filterDataByTier(
+            evaluation,
+            tierResult.userTier,
+            'evaluation'
+          )
+        )
+
+        return TierValidationMiddleware.createTierAwareResponse(
+          filteredEvaluations,
+          tierResult,
+          { includeUpgradeInfo: true }
+        )
       }
     } else {
       return NextResponse.json(

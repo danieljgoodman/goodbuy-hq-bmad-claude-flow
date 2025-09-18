@@ -1,0 +1,106 @@
+{
+  "testSuite": "Subscription-Based Routing Middleware",
+  "story": "11.2",
+  "framework": {
+    "unit": "Vitest",
+    "e2e": "Playwright",
+    "mocking": "Vi"
+  },
+  "coverage": {
+    "target": 90,
+    "statements": ">90%",
+    "branches": ">85%",
+    "functions": ">90%",
+    "lines": ">90%"
+  },
+  "performance": {
+    "tierDetection": "<100ms",
+    "routeDecision": "<10ms",
+    "dataFiltering": "<50ms",
+    "webhookProcessing": "<200ms"
+  },
+  "testFiles": {
+    "unit": [
+      "src/lib/subscription/__tests__/tier-utils.test.ts",
+      "src/lib/routing/__tests__/tier-routes.test.ts"
+    ],
+    "integration": [
+      "tests/middleware/__tests__/tier-middleware.test.ts",
+      "tests/integration/stripe-webhooks.test.ts"
+    ],
+    "e2e": [
+      "tests/e2e/tier-routing.spec.ts"
+    ]
+  },
+  "mockData": {
+    "users": {
+      "basic": {
+        "email": "basic@test.com",
+        "tier": "BASIC",
+        "features": ["basic_evaluation", "basic_reports", "basic_analytics"]
+      },
+      "professional": {
+        "email": "professional@test.com",
+        "tier": "PROFESSIONAL",
+        "features": ["basic_evaluation", "basic_reports", "basic_analytics", "professional_evaluation", "ai_guides", "progress_tracking", "pdf_reports", "advanced_analytics", "priority_support", "export_data"]
+      },
+      "enterprise": {
+        "email": "enterprise@test.com",
+        "tier": "ENTERPRISE",
+        "features": ["basic_evaluation", "basic_reports", "basic_analytics", "professional_evaluation", "ai_guides", "progress_tracking", "pdf_reports", "advanced_analytics", "priority_support", "export_data", "enterprise_evaluation", "benchmarks", "multi_user", "api_access", "custom_branding", "dedicated_support", "sla_guarantee"]
+      }
+    },
+    "stripe": {
+      "priceIds": {
+        "price_professional_monthly": "PROFESSIONAL",
+        "price_professional_yearly": "PROFESSIONAL",
+        "price_enterprise_monthly": "ENTERPRISE",
+        "price_enterprise_yearly": "ENTERPRISE"
+      },
+      "webhookEvents": [
+        "customer.subscription.created",
+        "customer.subscription.updated",
+        "customer.subscription.deleted",
+        "invoice.payment_succeeded",
+        "invoice.payment_failed"
+      ]
+    }
+  },
+  "environment": {
+    "STRIPE_WEBHOOK_SECRET": "whsec_test_secret",
+    "STRIPE_SECRET_KEY": "sk_test_key",
+    "NODE_ENV": "test"
+  },
+  "testPatterns": {
+    "tierDetection": [
+      "should detect tier from multiple sources",
+      "should cache results for performance",
+      "should handle errors gracefully",
+      "should meet <100ms requirement"
+    ],
+    "routing": [
+      "should allow/deny access based on tier",
+      "should redirect to appropriate routes",
+      "should validate feature access",
+      "should handle edge cases"
+    ],
+    "middleware": [
+      "should validate user tiers",
+      "should filter data by tier",
+      "should handle concurrent requests",
+      "should provide graceful fallbacks"
+    ],
+    "webhooks": [
+      "should process subscription lifecycle",
+      "should validate webhook signatures",
+      "should handle high volume",
+      "should update user tiers"
+    ],
+    "e2e": [
+      "should authenticate users by tier",
+      "should navigate tier-specific features",
+      "should enforce access boundaries",
+      "should handle tier upgrades/downgrades"
+    ]
+  }
+}

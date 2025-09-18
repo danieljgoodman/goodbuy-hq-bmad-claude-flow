@@ -14,12 +14,23 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Bell, ChevronDown, Crown, User, Settings, LogOut, CreditCard, Menu, X, Plus, FileText, BarChart3, HelpCircle, BookOpen, PlayCircle, Users, TrendingUp, Target, Activity } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth-store'
+import { useSubscriptionTier } from '@/hooks/use-subscription-tier'
+import { TierBadge, FeatureRequirementBadge } from '@/components/tier/tier-badge'
+import { TierFilteredNav } from '@/components/navigation/tier-filtered-nav'
 
 export default function Navbar() {
   const { user, signOut } = useAuthStore()
   const router = useRouter()
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const {
+    currentTier,
+    hasFeatureAccess,
+    showUpgradePrompt,
+    hasAnalytics,
+    hasProgressTracking,
+    hasBenchmarks
+  } = useSubscriptionTier()
 
   const handleLogout = async () => {
     await signOut()
@@ -68,128 +79,13 @@ export default function Navbar() {
                 </Link>
               ))}
 
-              {/* Features Dropdown - Only for authenticated users */}
+              {/* Features Dropdown - Only for authenticated users with tier filtering */}
               {user && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="text-sm font-medium text-muted-foreground hover:text-primary">
-                      Features
-                      <ChevronDown className="ml-1 h-3 w-3" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-[720px] bg-background border-border">
-                    <div className="grid grid-cols-2 gap-6 p-4">
-                      {/* Left Column - Evaluation & Analysis */}
-                      <div className="space-y-4">
-                        {/* Evaluation Section */}
-                        <div>
-                          <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">EVALUATION</div>
-                          <div className="space-y-2">
-                            <Link href="/onboarding" className="flex items-start space-x-3 p-2 rounded-md hover:bg-accent group">
-                              <div className="w-8 h-8 bg-[hsl(var(--chart-1)/0.1)] rounded-md flex items-center justify-center flex-shrink-0">
-                                <Plus className="h-4 w-4 text-[hsl(var(--chart-1))]" />
-                              </div>
-                              <div>
-                                <div className="font-medium text-sm group-hover:text-primary">New Evaluation</div>
-                                <div className="text-xs text-muted-foreground">Start a fresh business valuation assessment</div>
-                              </div>
-                            </Link>
-                            <Link href="/reports" className="flex items-start space-x-3 p-2 rounded-md hover:bg-accent group">
-                              <div className="w-8 h-8 bg-[hsl(var(--primary)/0.1)] rounded-md flex items-center justify-center flex-shrink-0">
-                                <FileText className="h-4 w-4 text-primary" />
-                              </div>
-                              <div>
-                                <div className="font-medium text-sm group-hover:text-primary">Reports</div>
-                                <div className="text-xs text-muted-foreground">View and download previous valuations</div>
-                              </div>
-                            </Link>
-                          </div>
-                        </div>
-
-                        {/* Analysis Section */}
-                        <div>
-                          <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">ANALYSIS</div>
-                          <div className="space-y-2">
-                            <Link href="/progress" className="flex items-start space-x-3 p-2 rounded-md hover:bg-accent group">
-                              <div className="w-8 h-8 bg-[hsl(var(--chart-2)/0.1)] rounded-md flex items-center justify-center flex-shrink-0">
-                                <Activity className="h-4 w-4 text-[hsl(var(--chart-2))]" />
-                              </div>
-                              <div className="flex-1">
-                                <div className="font-medium text-sm group-hover:text-primary flex items-center">
-                                  Progress Tracking
-                                  <Badge className="ml-2 text-xs bg-primary text-primary-foreground">PREMIUM</Badge>
-                                </div>
-                                <div className="text-xs text-muted-foreground">Monitor business growth over time</div>
-                              </div>
-                            </Link>
-                            <Link href="/analytics" className="flex items-start space-x-3 p-2 rounded-md hover:bg-accent group">
-                              <div className="w-8 h-8 bg-[hsl(var(--chart-5)/0.1)] rounded-md flex items-center justify-center flex-shrink-0">
-                                <BarChart3 className="h-4 w-4 text-[hsl(var(--chart-5))]" />
-                              </div>
-                              <div className="flex-1">
-                                <div className="font-medium text-sm group-hover:text-primary flex items-center">
-                                  Analytics Dashboard
-                                  <Badge className="ml-2 text-xs bg-primary text-primary-foreground">PREMIUM</Badge>
-                                </div>
-                                <div className="text-xs text-muted-foreground">Track performance metrics and trends</div>
-                              </div>
-                            </Link>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Right Column - Market Insights */}
-                      <div className="space-y-4">
-                        {/* Market Intelligence Section */}
-                        <div>
-                          <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">MARKET INSIGHTS</div>
-                          <div className="space-y-2">
-                            <Link href="/market-intelligence" className="flex items-start space-x-3 p-2 rounded-md hover:bg-accent group">
-                              <div className="w-8 h-8 bg-[hsl(var(--primary)/0.1)] rounded-md flex items-center justify-center flex-shrink-0">
-                                <TrendingUp className="h-4 w-4 text-primary" />
-                              </div>
-                              <div className="flex-1">
-                                <div className="font-medium text-sm group-hover:text-primary flex items-center">
-                                  Market Intelligence
-                                  <Badge className="ml-2 text-xs bg-primary text-primary-foreground">PREMIUM</Badge>
-                                </div>
-                                <div className="text-xs text-muted-foreground">Industry trends and competitive analysis</div>
-                              </div>
-                            </Link>
-                            <Link href="/benchmarking" className="flex items-start space-x-3 p-2 rounded-md hover:bg-accent group">
-                              <div className="w-8 h-8 bg-muted rounded-md flex items-center justify-center flex-shrink-0">
-                                <Target className="h-4 w-4 text-muted-foreground" />
-                              </div>
-                              <div className="flex-1">
-                                <div className="font-medium text-sm group-hover:text-primary flex items-center">
-                                  Industry Benchmarking
-                                  <Badge variant="secondary" className="ml-2 text-xs">ENTERPRISE</Badge>
-                                </div>
-                                <div className="text-xs text-muted-foreground">Compare against sector standards</div>
-                              </div>
-                            </Link>
-                          </div>
-                        </div>
-
-                        {/* Additional Tools Section */}
-                        <div>
-                          <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">ADDITIONAL TOOLS</div>
-                          <div className="space-y-2">
-                            <Link href="/reports" className="flex items-start space-x-3 p-2 rounded-md hover:bg-accent group">
-                              <div className="w-8 h-8 bg-[hsl(var(--chart-3)/0.1)] rounded-md flex items-center justify-center flex-shrink-0">
-                                <FileText className="h-4 w-4 text-[hsl(var(--chart-3))]" />
-                              </div>
-                              <div>
-                                <div className="font-medium text-sm group-hover:text-primary">Custom Reports</div>
-                                <div className="text-xs text-muted-foreground">Professional PDF reports with AI analysis</div>
-                              </div>
-                            </Link>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <TierFilteredNav
+                  triggerLabel="Features"
+                  showUpgradePrompts={true}
+                  className="text-muted-foreground hover:text-primary"
+                />
               )}
 
               {/* Resources Dropdown */}
@@ -284,9 +180,12 @@ export default function Navbar() {
                       <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
                         <User className="h-4 w-4 text-primary" />
                       </div>
-                      <span className="text-sm text-muted-foreground hidden sm:block">
-                        {user.businessName || user.email}
-                      </span>
+                      <div className="hidden sm:flex items-center space-x-2">
+                        <span className="text-sm text-muted-foreground">
+                          {user.businessName || user.email}
+                        </span>
+                        <TierBadge tier={currentTier} size="sm" />
+                      </div>
                       <ChevronDown className="h-3 w-3" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -393,22 +292,34 @@ export default function Navbar() {
                     <div className="pl-4 space-y-3">
                       <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Analysis</div>
                       <div className="pl-2 space-y-2">
-                        <Link
-                          href="/progress"
-                          className="block text-sm text-muted-foreground hover:text-foreground flex items-center"
-                          onClick={() => setMobileMenuOpen(false)}
+                        <button
+                          onClick={() => {
+                            if (hasProgressTracking) {
+                              router.push('/progress')
+                            } else {
+                              showUpgradePrompt('progress_tracking')
+                            }
+                            setMobileMenuOpen(false)
+                          }}
+                          className="block w-full text-left text-sm text-muted-foreground hover:text-foreground flex items-center"
                         >
                           Progress Tracking
-                          <Badge variant="secondary" className="ml-2 text-xs bg-amber-100 text-amber-800">PREMIUM</Badge>
-                        </Link>
-                        <Link
-                          href="/analytics"
-                          className="block text-sm text-muted-foreground hover:text-foreground flex items-center"
-                          onClick={() => setMobileMenuOpen(false)}
+                          <FeatureRequirementBadge requiredTier="premium" className="ml-2" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (hasAnalytics) {
+                              router.push('/analytics')
+                            } else {
+                              showUpgradePrompt('analytics')
+                            }
+                            setMobileMenuOpen(false)
+                          }}
+                          className="block w-full text-left text-sm text-muted-foreground hover:text-foreground flex items-center"
                         >
                           Analytics Dashboard
-                          <Badge variant="secondary" className="ml-2 text-xs bg-amber-100 text-amber-800">PREMIUM</Badge>
-                        </Link>
+                          <FeatureRequirementBadge requiredTier="premium" className="ml-2" />
+                        </button>
                       </div>
                     </div>
 
@@ -416,22 +327,34 @@ export default function Navbar() {
                     <div className="pl-4 space-y-3">
                       <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Market Insights</div>
                       <div className="pl-2 space-y-2">
-                        <Link
-                          href="/market-intelligence"
-                          className="block text-sm text-muted-foreground hover:text-foreground flex items-center"
-                          onClick={() => setMobileMenuOpen(false)}
+                        <button
+                          onClick={() => {
+                            if (hasAnalytics) {
+                              router.push('/market-intelligence')
+                            } else {
+                              showUpgradePrompt('analytics')
+                            }
+                            setMobileMenuOpen(false)
+                          }}
+                          className="block w-full text-left text-sm text-muted-foreground hover:text-foreground flex items-center"
                         >
                           Market Intelligence
-                          <Badge variant="secondary" className="ml-2 text-xs bg-amber-100 text-amber-800">PREMIUM</Badge>
-                        </Link>
-                        <Link
-                          href="/benchmarking"
-                          className="block text-sm text-muted-foreground hover:text-foreground flex items-center"
-                          onClick={() => setMobileMenuOpen(false)}
+                          <FeatureRequirementBadge requiredTier="premium" className="ml-2" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (hasBenchmarks) {
+                              router.push('/benchmarking')
+                            } else {
+                              showUpgradePrompt('benchmarks')
+                            }
+                            setMobileMenuOpen(false)
+                          }}
+                          className="block w-full text-left text-sm text-muted-foreground hover:text-foreground flex items-center"
                         >
                           Industry Benchmarking
-                          <Badge variant="secondary" className="ml-2 text-xs">ENTERPRISE</Badge>
-                        </Link>
+                          <FeatureRequirementBadge requiredTier="enterprise" className="ml-2" />
+                        </button>
                       </div>
                     </div>
                   </div>

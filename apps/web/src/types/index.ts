@@ -891,3 +891,24 @@ export interface BusinessIntelligenceSummary {
     trend: 'up' | 'down' | 'stable'
   }[]
 }
+
+// Professional Tier Types - Re-export from evaluation.ts and validations
+export type { ProfessionalTierData } from './evaluation'
+
+// Professional Tier Validation Types - Re-export from validations
+export type {
+  ProfessionalFinancialMetrics,
+  CustomerAnalytics,
+  OperationalEfficiency,
+  CompetitorAnalysis,
+  MarketIntelligence,
+  ScenarioAnalysis,
+  FinancialPlanning,
+  RegulatoryCompliance,
+  RiskAssessment,
+  InsuranceCoverage,
+  AuditTrail,
+  Compliance,
+  ProfessionalBusinessData,
+  ProfessionalEvaluation
+} from '../lib/validations/professional-tier'

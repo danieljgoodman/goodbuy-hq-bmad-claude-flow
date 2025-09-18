@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import { ConditionalClerkProvider } from '@/components/providers/conditional-clerk-provider'
 import Navbar from '@/components/layout/navbar'
 import EnhancedNavbar from '@/components/layout/enhanced-navbar'
 import BreadcrumbNavigation from '@/components/layout/breadcrumb-navigation'
@@ -28,27 +29,29 @@ export default function RootLayout({
   const USE_ENHANCED_NAVIGATION = process.env.NEXT_PUBLIC_EPIC9_6A_ENABLED === 'true'
   
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <AccessibilityProvider>
-          <NavigationProvider>
-            <OnboardingProvider>
-              <HelpProvider>
-                <SmartHelpTrigger>
-                  <SkipLinks />
-                  <AuthInitializer />
-                  {USE_ENHANCED_NAVIGATION ? <EnhancedNavbar /> : <Navbar />}
-                  {USE_ENHANCED_NAVIGATION && <BreadcrumbNavigation />}
-                  <main role="main" id="main-content" tabIndex={-1}>
-                    {children}
-                  </main>
-                  <OnboardingModal />
-                </SmartHelpTrigger>
-              </HelpProvider>
-            </OnboardingProvider>
-          </NavigationProvider>
-        </AccessibilityProvider>
-      </body>
-    </html>
+    <ConditionalClerkProvider>
+      <html lang="en">
+        <body className={inter.className}>
+          <AccessibilityProvider>
+            <NavigationProvider>
+              <OnboardingProvider>
+                <HelpProvider>
+                  <SmartHelpTrigger>
+                    <SkipLinks />
+                    <AuthInitializer />
+                    {USE_ENHANCED_NAVIGATION ? <EnhancedNavbar /> : <Navbar />}
+                    {USE_ENHANCED_NAVIGATION && <BreadcrumbNavigation />}
+                    <main role="main" id="main-content" tabIndex={-1}>
+                      {children}
+                    </main>
+                    <OnboardingModal />
+                  </SmartHelpTrigger>
+                </HelpProvider>
+              </OnboardingProvider>
+            </NavigationProvider>
+          </AccessibilityProvider>
+        </body>
+      </html>
+    </ConditionalClerkProvider>
   )
 }

@@ -93,3 +93,107 @@ export const OperationalDataSchema = z.object({
 export type BusinessBasics = z.infer<typeof BusinessBasicsSchema>
 export type FinancialMetrics = z.infer<typeof FinancialMetricsSchema>
 export type OperationalData = z.infer<typeof OperationalDataSchema>
+
+// Professional Tier Extended Data Structure
+export interface ProfessionalTierData {
+  // Enhanced Financial Metrics (15 fields)
+  financialMetrics: {
+    // Core metrics (from basic tier)
+    annualRevenue: number
+    monthlyRecurring: number
+    expenses: number
+    cashFlow: number
+    grossMargin: number
+
+    // Professional tier additions
+    netProfit: number
+    ebitda: number
+    burnRate: number
+    runwayMonths: number
+    debtToEquityRatio: number
+    currentRatio: number
+    quickRatio: number
+    inventoryTurnover: number
+    receivablesTurnover: number
+    workingCapital: number
+  }
+
+  // Customer Analytics & Segmentation (8 fields)
+  customerAnalytics: {
+    customerAcquisitionCost: number
+    customerLifetimeValue: number
+    churnRate: number
+    netPromoterScore: number
+    monthlyActiveUsers: number
+    conversionRate: number
+    averageOrderValue: number
+    repeatCustomerRate: number
+  }
+
+  // Operational Efficiency (7 fields)
+  operationalEfficiency: {
+    employeeProductivity: number
+    operatingExpenseRatio: number
+    capacityUtilization: number
+    inventoryDaysOnHand: number
+    paymentTermsDays: number
+    vendorPaymentDays: number
+    cashConversionCycle: number
+  }
+
+  // Market Intelligence (6 fields)
+  marketIntelligence: {
+    marketShare: number
+    marketGrowthRate: number
+    competitorAnalysis: Array<{
+      name: string
+      marketShare: number
+      strengths: string[]
+      weaknesses: string[]
+    }>
+    marketTrends: string[]
+    threatLevel: 'low' | 'medium' | 'high'
+    opportunityScore: number
+  }
+
+  // Financial Planning & Forecasting (5 fields)
+  financialPlanning: {
+    revenueForecast12Month: number[]
+    expenseForecast12Month: number[]
+    cashFlowForecast12Month: number[]
+    scenarioAnalysis: {
+      optimistic: { revenue: number; expenses: number }
+      realistic: { revenue: number; expenses: number }
+      pessimistic: { revenue: number; expenses: number }
+    }
+    budgetVariance: number
+  }
+
+  // Compliance & Risk Management (4 fields)
+  compliance: {
+    regulatoryCompliance: Array<{
+      regulation: string
+      status: 'compliant' | 'non-compliant' | 'pending'
+      lastAuditDate: Date
+      nextAuditDate: Date
+    }>
+    riskAssessment: {
+      financialRisk: 'low' | 'medium' | 'high'
+      operationalRisk: 'low' | 'medium' | 'high'
+      marketRisk: 'low' | 'medium' | 'high'
+      overallRiskScore: number
+    }
+    insuranceCoverage: Array<{
+      type: string
+      coverage: number
+      premium: number
+      expires: Date
+    }>
+    auditTrail: Array<{
+      date: Date
+      action: string
+      user: string
+      details: string
+    }>
+  }
+}
