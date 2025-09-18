@@ -110,6 +110,8 @@ export const PUBLIC_ROUTES: string[] = [
   '/auth/login',
   '/auth/register',
   '/auth/callback',
+  '/sign-in',
+  '/sign-up',
   '/pricing',
   '/about',
   '/contact',

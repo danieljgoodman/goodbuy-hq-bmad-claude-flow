@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { prisma } from '@/lib/prisma'
 import type { ExportData } from '@/types/dashboard'
+import { writeFile, mkdir } from 'fs/promises'
+import { join } from 'path'
+import { existsSync } from 'fs'
 
 export async function POST(request: NextRequest) {
   try {
@@ -151,26 +154,19 @@ async function generatePDF(evaluations: any[], filters: any, includeCharts: bool
 }
 
 async function uploadToStorage(filename: string, content: string | Buffer, mimeType: string): Promise<string> {
-  // Use existing supabase client
+  // Save to public directory for now (in production, use cloud storage)
+  const publicDir = join(process.cwd(), 'public', 'exports')
 
-  const { data, error } = await supabase.storage
-    .from('exports')
-    .upload(filename, content, {
-      contentType: mimeType,
-      upsert: true
-    })
-
-  if (error) {
-    console.error('Storage upload error:', error)
-    throw new Error('Failed to upload export file')
+  // Create exports directory if it doesn't exist
+  if (!existsSync(publicDir)) {
+    await mkdir(publicDir, { recursive: true })
   }
 
-  // Get public URL
-  const { data: urlData } = supabase.storage
-    .from('exports')
-    .getPublicUrl(filename)
+  const filePath = join(publicDir, filename)
+  await writeFile(filePath, content)
 
-  return urlData.publicUrl
+  // Return public URL path
+  return `/exports/${filename}`
 }
 
 async function saveExportRecord(record: {
@@ -180,24 +176,27 @@ async function saveExportRecord(record: {
   downloadUrl: string
   evaluationCount: number
 }) {
-  // Use existing supabase client
+  // Save export record using Prisma (if you have an ExportHistory model)
+  // For now, just log it
+  console.log('Export record:', {
+    userId: record.userId,
+    filename: record.filename,
+    format: record.format,
+    downloadUrl: record.downloadUrl,
+    evaluationCount: record.evaluationCount,
+    createdAt: new Date().toISOString(),
+    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days
+  })
 
-  const { error } = await supabase
-    .from('export_history')
-    .insert([
-      {
-        user_id: record.userId,
-        filename: record.filename,
-        format: record.format,
-        download_url: record.downloadUrl,
-        evaluation_count: record.evaluationCount,
-        created_at: new Date().toISOString(),
-        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days
-      }
-    ])
-
-  if (error) {
-    console.error('Failed to save export record:', error)
-    // Don't throw - export still succeeded
-  }
+  // TODO: If you want to track exports, add an ExportHistory model to schema.prisma
+  // await prisma.exportHistory.create({
+  //   data: {
+  //     userId: record.userId,
+  //     filename: record.filename,
+  //     format: record.format,
+  //     downloadUrl: record.downloadUrl,
+  //     evaluationCount: record.evaluationCount,
+  //     expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+  //   }
+  // })
 }

@@ -4,6 +4,7 @@ import { UserTierService } from '@/lib/services/user-tier-service'
 import { ClerkTierIntegration } from '@/lib/auth/clerk-tier-integration'
 import type { SubscriptionTier, SubscriptionStatus } from '@/types/subscription'
 import Stripe from 'stripe'
+import { clerkClient } from '@clerk/nextjs/server'
 
 const prisma = new PrismaClient()
 
@@ -85,6 +86,17 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
       return
     }
 
+    // Update Clerk user metadata with subscription info
+    if (user.clerkId) {
+      await clerkClient.users.updateUserMetadata(user.clerkId, {
+        publicMetadata: {
+          subscriptionTier: getPriceInfo(subscription.items.data[0]?.price?.id || '').tier,
+          subscriptionStatus: subscription.status,
+          stripeCustomerId: subscription.customer as string,
+        },
+      })
+    }
+
     // Check if subscription already exists
     const existingSubscription = await prisma.subscription.findUnique({
       where: { stripeSubscriptionId: subscription.id },
@@ -149,11 +161,26 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   try {
     const dbSubscription = await prisma.subscription.findUnique({
       where: { stripeSubscriptionId: subscription.id },
+      include: { user: true }
     })
 
     if (!dbSubscription) {
       console.error('Subscription not found in database:', subscription.id)
       return
+    }
+
+    // Update Clerk user metadata with updated subscription info
+    if (dbSubscription.user.clerkId) {
+      const priceId = subscription.items.data[0]?.price?.id || ''
+      const { tier } = getPriceInfo(priceId)
+
+      await clerkClient.users.updateUserMetadata(dbSubscription.user.clerkId, {
+        publicMetadata: {
+          subscriptionTier: tier,
+          subscriptionStatus: subscription.status,
+          stripeCustomerId: subscription.customer as string,
+        },
+      })
     }
 
     const priceId = subscription.items.data[0]?.price?.id
@@ -209,11 +236,23 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   try {
     const dbSubscription = await prisma.subscription.findUnique({
       where: { stripeSubscriptionId: subscription.id },
+      include: { user: true }
     })
 
     if (!dbSubscription) {
       console.error('Subscription not found in database:', subscription.id)
       return
+    }
+
+    // Update Clerk user metadata - downgrade to free tier
+    if (dbSubscription.user.clerkId) {
+      await clerkClient.users.updateUserMetadata(dbSubscription.user.clerkId, {
+        publicMetadata: {
+          subscriptionTier: 'free',
+          subscriptionStatus: 'canceled',
+          stripeCustomerId: subscription.customer as string,
+        },
+      })
     }
 
     // Use UserTierService to downgrade to BASIC tier

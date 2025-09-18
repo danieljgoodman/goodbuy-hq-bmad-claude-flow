@@ -9,9 +9,9 @@ interface ProtectedRouteProps {
   redirectTo?: string
 }
 
-export default function ProtectedRoute({ 
-  children, 
-  redirectTo = '/auth/login' 
+export default function ProtectedRoute({
+  children,
+  redirectTo = '/sign-in'
 }: ProtectedRouteProps) {
   const router = useRouter()
   const { isAuthenticated, isLoading, initialize } = useAuthStore()

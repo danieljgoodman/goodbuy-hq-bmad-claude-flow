@@ -1,11 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react';
-import { useAuthStore } from '@/stores/auth-store';
+import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { useEvaluationStore } from '@/stores/evaluation-store'
 import { EvaluationService } from '@/lib/services/evaluation-service';
-import ProtectedRoute from '@/components/auth/protected-route';
+// Removed ProtectedRoute - Clerk middleware handles authentication
 import DashboardLayout from '@/components/dashboard/dashboard-layout';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { DashboardMetrics, ChartDataPoint, ActivityItem, HealthScoreBreakdown, DashboardFilters, ComparisonState, ExportData } from '@/types/dashboard';
@@ -146,7 +146,7 @@ const generateActivityFromEvaluations = (evaluations: any[]): ActivityItem[] => 
 };
 
 export default function DashboardPage() {
-  const { user, isLoading: loading } = useAuthStore();
+  const { isLoaded, user } = useUser();
   const router = useRouter();
   const { evaluations, loadEvaluations, isLoading: evaluationsLoading } = useEvaluationStore();
   
@@ -217,6 +217,13 @@ export default function DashboardPage() {
     }
   };
 
+  // Check if user has completed onboarding
+  useEffect(() => {
+    if (isLoaded && user && !user.unsafeMetadata?.onboardingCompleted) {
+      router.push('/onboarding');
+    }
+  }, [isLoaded, user, router]);
+
   useEffect(() => {
     if (user) {
       loadEvaluations(true).catch(error => {
@@ -225,29 +232,22 @@ export default function DashboardPage() {
     }
   }, [user, loadEvaluations]);
 
-  if (loading || evaluationsLoading) {
+  if (!isLoaded || evaluationsLoading) {
     return (
-      <ProtectedRoute>
-        <div className="container mx-auto py-6">
-          <DashboardSkeleton />
-        </div>
-      </ProtectedRoute>
+      <div className="container mx-auto py-6">
+        <DashboardSkeleton />
+      </div>
     );
   }
 
   if (!user) {
-    return (
-      <ProtectedRoute>
-        <div className="min-h-screen bg-gradient-to-br from-background to-secondary pt-20 pb-8">
-          <div className="container mx-auto px-4 max-w-7xl">
-            <div className="text-center py-12">
-              <h1 className="text-2xl font-bold mb-4">Welcome to your Business Dashboard</h1>
-              <p className="text-muted-foreground mb-8">Please log in to continue.</p>
-            </div>
-          </div>
-        </div>
-      </ProtectedRoute>
-    );
+    router.push('/sign-in');
+    return null;
+  }
+
+  // If user hasn't completed onboarding, they'll be redirected by the useEffect above
+  if (!user.unsafeMetadata?.onboardingCompleted) {
+    return null;
   }
 
   // Calculate real data from evaluations
@@ -256,8 +256,7 @@ export default function DashboardPage() {
   const activityData = generateActivityFromEvaluations(evaluations);
 
   return (
-    <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-background to-secondary pt-20 pb-8">
+    <div className="min-h-screen bg-gradient-to-br from-background to-secondary pt-20 pb-8">
         <div className="container mx-auto px-4 max-w-7xl">
           <DashboardLayout
             metrics={realMetrics}
@@ -282,6 +281,5 @@ export default function DashboardPage() {
           />
         </div>
       </div>
-    </ProtectedRoute>
   );
 }

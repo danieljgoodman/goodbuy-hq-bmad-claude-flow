@@ -1,16 +1,7 @@
 'use client'
 
-import { useEffect } from 'react'
-import { useAuthStore } from '@/stores/auth-store'
-
+// Clerk handles auth initialization automatically
+// This component is kept for backward compatibility
 export function AuthInitializer() {
-  const { initialize } = useAuthStore()
-
-  useEffect(() => {
-    initialize().catch(error => {
-      console.error('Failed to initialize auth:', error)
-    })
-  }, [initialize])
-
-  return null // This component doesn't render anything
+  return null
 }

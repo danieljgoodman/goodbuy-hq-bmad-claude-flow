@@ -13,13 +13,14 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Bell, ChevronDown, Crown, User, Settings, LogOut, CreditCard, Menu, X, Plus, FileText, BarChart3, HelpCircle, BookOpen, PlayCircle, Users, TrendingUp, Target, Activity } from 'lucide-react'
-import { useAuthStore } from '@/stores/auth-store'
+import { useClerk, useUser } from '@clerk/nextjs'
 import { useSubscriptionTier } from '@/hooks/use-subscription-tier'
 import { TierBadge, FeatureRequirementBadge } from '@/components/tier/tier-badge'
 import { TierFilteredNav } from '@/components/navigation/tier-filtered-nav'
 
 export default function Navbar() {
-  const { user, signOut } = useAuthStore()
+  const { user } = useUser()
+  const { signOut } = useClerk()
   const router = useRouter()
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -34,7 +35,7 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     await signOut()
-    router.push('/auth/login')
+    router.push('/sign-in')
   }
 
   // Different navigation for authenticated vs non-authenticated users
@@ -50,7 +51,7 @@ export default function Navbar() {
   const navItems = user ? authenticatedNavItems : publicNavItems
 
   // Add admin link for admin users (mock check - in production would check user role)
-  const isAdmin = user?.email === 'admin@goodbuyhq.com' || user?.email?.includes('admin')
+  const isAdmin = user?.emailAddresses?.[0]?.emailAddress === 'admin@goodbuyhq.com' || user?.emailAddresses?.[0]?.emailAddress?.includes('admin')
 
   return (
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -229,12 +230,12 @@ export default function Navbar() {
               </>
             ) : (
               <div className="space-x-2">
-                <Link href="/auth/login">
+                <Link href="/sign-in">
                   <Button variant="ghost" size="sm">
                     Login
                   </Button>
                 </Link>
-                <Link href="/auth/register">
+                <Link href="/sign-up">
                   <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
                     Get Started
                   </Button>
@@ -446,12 +447,12 @@ export default function Navbar() {
               {/* Auth buttons for non-authenticated users */}
               {!user && (
                 <div className="pt-6 border-t space-y-3">
-                  <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)}>
+                  <Link href="/sign-in" onClick={() => setMobileMenuOpen(false)}>
                     <Button variant="ghost" className="w-full justify-start">
                       Login
                     </Button>
                   </Link>
-                  <Link href="/auth/register" onClick={() => setMobileMenuOpen(false)}>
+                  <Link href="/sign-up" onClick={() => setMobileMenuOpen(false)}>
                     <Button className="w-full">
                       Get Started
                     </Button>

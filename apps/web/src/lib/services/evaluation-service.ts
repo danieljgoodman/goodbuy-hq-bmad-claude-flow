@@ -45,12 +45,23 @@ export class EvaluationService {
   static async getUserEvaluations(userId: string): Promise<Evaluation[]> {
     try {
       const response = await fetch(`${this.baseUrl}?userId=${userId}`)
-      
+
       if (!response.ok) {
         throw new Error(`Failed to get user evaluations: ${response.statusText}`)
       }
 
-      return response.json()
+      const data = await response.json()
+
+      // Ensure we always return an array
+      if (Array.isArray(data)) {
+        return data
+      } else if (data && typeof data === 'object' && Array.isArray(data.evaluations)) {
+        // Handle case where API returns { evaluations: [...] }
+        return data.evaluations
+      } else {
+        console.warn('Unexpected response format from getUserEvaluations:', data)
+        return []
+      }
     } catch (error) {
       console.error('EvaluationService.getUserEvaluations error:', error)
       throw error

@@ -443,9 +443,11 @@ export const useEvaluationStore = create<EvaluationState>()(
             console.log('📥 User ID from getCurrentUserId():', getCurrentUserId())
             console.log('📥 User IDs match:', userId === getCurrentUserId())
             
-            evaluations = await EvaluationService.getUserEvaluations(userId)
+            const result = await EvaluationService.getUserEvaluations(userId)
+            // Ensure evaluations is always an array
+            evaluations = Array.isArray(result) ? result : []
             console.log('📥✅ SUCCESS: Loaded', evaluations.length, 'evaluations from database')
-            
+
             // If no evaluations found, try to migrate existing ones
             if (evaluations.length === 0) {
               console.log('📥 No evaluations found for current user, checking for migration...')
@@ -465,7 +467,8 @@ export const useEvaluationStore = create<EvaluationState>()(
                   
                   if (migrateResult.migratedCount > 0) {
                     // Reload evaluations after migration
-                    evaluations = await EvaluationService.getUserEvaluations(userId)
+                    const reloadResult = await EvaluationService.getUserEvaluations(userId)
+                    evaluations = Array.isArray(reloadResult) ? reloadResult : []
                     console.log('📥✅ After migration: Loaded', evaluations.length, 'evaluations')
                   }
                 }
@@ -474,7 +477,11 @@ export const useEvaluationStore = create<EvaluationState>()(
               }
             }
             
-            console.log('📥 Evaluation details:', evaluations.map(e => ({ id: e.id, status: e.status, createdAt: e.createdAt })))
+            if (Array.isArray(evaluations) && evaluations.length > 0) {
+              console.log('📥 Evaluation details:', evaluations.map(e => ({ id: e.id, status: e.status, createdAt: e.createdAt })))
+            } else {
+              console.log('📥 No evaluations to display')
+            }
           } catch (apiError) {
             console.error('📥❌ Database fetch failed:', apiError)
             // Don't fallback to localStorage - database should be source of truth

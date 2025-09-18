@@ -9,16 +9,21 @@ datasource db {
 
 model User {
   id               String    @id @default(uuid()) @db.Uuid
+  clerkId          String    @unique @map("clerk_id")
   email            String    @unique
-  businessName     String @map("business_name")
-  industry         String
+  name             String?
+  imageUrl         String?   @map("image_url")
+  businessName     String?   @map("business_name")
+  industry         String?
   role             Role      @default(OWNER)
   userRole         UserRole  @default(user) @map("user_role")
   subscriptionTier String    @default("free") @map("subscription_tier")
+  subscriptionStatus String  @default("active") @map("subscription_status")
   stripeCustomerId String?   @map("stripe_customer_id")
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
   lastLoginAt      DateTime? @map("last_login_at")
+  deletedAt        DateTime? @map("deleted_at")
   
   // Enhanced signup fields - Story 9.4
   businessAddress           Json?
@@ -68,10 +73,12 @@ model User {
   adminActionsReceived UserAdminAction[] @relation("TargetUser")
   professionalDataAudits ProfessionalDataAudit[]
 
+  @@index([clerkId])
   @@index([subscriptionTier])
   @@index([industry])
   @@index([userRole])
   @@index([createdAt])
+  @@index([deletedAt])
   @@map("users")
 }
 
@@ -84,6 +91,17 @@ model BusinessEvaluation {
 
   // Professional tier extended data (JSONB for structured storage)
   professionalData Json?            // ProfessionalTierData structure when tier = professional
+
+  // Enterprise tier data (JSONB with encryption)
+  enterpriseTierData Json?          // EnterpriseTierData structure when tier = enterprise
+
+  // Enhanced metadata for Enterprise tier
+  scenarioModelingData Json?        // Complex scenario projections
+  strategicProjections Json?        // Strategic planning projections
+
+  // Security and compliance
+  encryptedFields Json?             // Field-level encryption for sensitive data
+  complianceMetadata Json?          // SOC 2 compliance metadata
 
   // Tier and analysis metadata
   subscriptionTier String           @default("basic") // 'basic' | 'professional' | 'enterprise'
@@ -105,6 +123,8 @@ model BusinessEvaluation {
   implementationGuides ImplementationGuide[]
   businessRevaluations BusinessRevaluation[]
   professionalDataAudits ProfessionalDataAudit[]
+  auditLogEntries AuditLogEntry[]
+  enterpriseScenarioModels EnterpriseScenarioModel[]
 
   // Enhanced indexing strategy for Professional tier performance
   @@index([userId, subscriptionTier])           // Primary user access with tier filtering
@@ -112,6 +132,7 @@ model BusinessEvaluation {
   @@index([userId, createdAt])                  // Existing user timeline queries
   @@index([deletedAt])                          // Existing soft delete queries
   @@index([status, subscriptionTier])           // Status filtering by tier
+  @@index([userId, subscriptionTier, updatedAt]) // Enterprise tier optimization
 
   @@map("business_evaluations")
 }
@@ -1216,4 +1237,51 @@ model ProfessionalDataAudit {
   @@index([changeType])
   @@index([sessionId])
   @@map("professional_data_audit")
+}
+
+// Enterprise-specific audit logging
+model AuditLogEntry {
+  id                   String            @id @default(cuid())
+  businessEvaluationId String
+  businessEvaluation   BusinessEvaluation @relation(fields: [businessEvaluationId], references: [id], onDelete: Cascade)
+
+  action      String    // 'create', 'read', 'update', 'delete', 'export'
+  fieldName   String?   // specific field accessed
+  oldValue    Json?     // previous value (encrypted if sensitive)
+  newValue    Json?     // new value (encrypted if sensitive)
+  userId      String
+  userTier    String
+  ipAddress   String?
+  userAgent   String?
+  metadata    Json?     // Additional metadata (sessionId, reason, etc.)
+  timestamp   DateTime  @default(now())
+
+  @@index([businessEvaluationId, timestamp])
+  @@index([userId, timestamp])
+  @@index([action, timestamp])
+  @@map("audit_log_entries")
+}
+
+// Separate table for complex scenario modeling
+model EnterpriseScenarioModel {
+  id                   String            @id @default(cuid())
+  businessEvaluationId String            @unique
+  businessEvaluation   BusinessEvaluation @relation(fields: [businessEvaluationId], references: [id], onDelete: Cascade)
+
+  // Scenario configurations
+  baseScenario         Json    // Base case projections
+  optimisticScenario   Json    // High growth scenario
+  conservativeScenario Json    // Conservative scenario
+  customScenarios      Json    // User-defined scenarios
+
+  // Projection metadata
+  projectionHorizon    Int     @default(5) // years
+  lastUpdated         DateTime @default(now())
+  calculationVersion  String   // for schema versioning
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([businessEvaluationId])
+  @@map("enterprise_scenario_models")
 }
