@@ -77,66 +77,70 @@ HTMLCanvasElement.prototype.getContext = () => ({
 })
 
 // Mock chart.js
-vi.mock('chart.js', () => ({
-  Chart: class Chart {
-    constructor() {}
-    destroy() {}
-    update() {}
-    render() {}
-  },
-  registerables: []
-}))
+if (typeof vi !== 'undefined') {
+  vi.mock('chart.js', () => ({
+    Chart: class Chart {
+      constructor() {}
+      destroy() {}
+      update() {}
+      render() {}
+    },
+    registerables: []
+  }))
+}
 
 // Mock recharts for SSR compatibility
-vi.mock('recharts', () => ({
-  ResponsiveContainer: ({ children }: { children: React.ReactNode }) => children,
-  LineChart: ({ children }: { children: React.ReactNode }) => <div data-testid="line-chart">{children}</div>,
-  BarChart: ({ children }: { children: React.ReactNode }) => <div data-testid="bar-chart">{children}</div>,
-  AreaChart: ({ children }: { children: React.ReactNode }) => <div data-testid="area-chart">{children}</div>,
-  RadarChart: ({ children }: { children: React.ReactNode }) => <div data-testid="radar-chart">{children}</div>,
-  PieChart: ({ children }: { children: React.ReactNode }) => <div data-testid="pie-chart">{children}</div>,
-  ScatterChart: ({ children }: { children: React.ReactNode }) => <div data-testid="scatter-chart">{children}</div>,
-  RadialBarChart: ({ children }: { children: React.ReactNode }) => <div data-testid="radial-bar-chart">{children}</div>,
-  Line: () => null,
-  Bar: () => null,
-  Area: () => null,
-  Radar: () => null,
-  Pie: () => null,
-  Scatter: () => null,
-  RadialBar: () => null,
-  XAxis: () => null,
-  YAxis: () => null,
-  CartesianGrid: () => null,
-  Tooltip: () => null,
-  Legend: () => null,
-  PolarGrid: () => null,
-  PolarAngleAxis: () => null,
-  PolarRadiusAxis: () => null,
-  ReferenceLine: () => null,
-  Cell: () => null
-}))
+if (typeof vi !== 'undefined') {
+  vi.mock('recharts', () => ({
+    ResponsiveContainer: ({ children }: { children: React.ReactNode }) => children,
+    LineChart: ({ children }: { children: React.ReactNode }) => null,
+    BarChart: ({ children }: { children: React.ReactNode }) => null,
+    AreaChart: ({ children }: { children: React.ReactNode }) => null,
+    RadarChart: ({ children }: { children: React.ReactNode }) => null,
+    PieChart: ({ children }: { children: React.ReactNode }) => null,
+    ScatterChart: ({ children }: { children: React.ReactNode }) => null,
+    RadialBarChart: ({ children }: { children: React.ReactNode }) => null,
+    Line: () => null,
+    Bar: () => null,
+    Area: () => null,
+    Radar: () => null,
+    Pie: () => null,
+    Scatter: () => null,
+    RadialBar: () => null,
+    XAxis: () => null,
+    YAxis: () => null,
+    CartesianGrid: () => null,
+    Tooltip: () => null,
+    Legend: () => null,
+    PolarGrid: () => null,
+    PolarAngleAxis: () => null,
+    PolarRadiusAxis: () => null,
+    ReferenceLine: () => null,
+    Cell: () => null
+  }))
+}
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
+  value: (typeof vi !== 'undefined' ? vi.fn() : jest.fn()).mockImplementation(query => ({
     matches: false,
     media: query,
     onchange: null,
-    addListener: vi.fn(), // deprecated
-    removeListener: vi.fn(), // deprecated
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
+    addListener: (typeof vi !== 'undefined' ? vi.fn() : jest.fn()), // deprecated
+    removeListener: (typeof vi !== 'undefined' ? vi.fn() : jest.fn()), // deprecated
+    addEventListener: (typeof vi !== 'undefined' ? vi.fn() : jest.fn()),
+    removeEventListener: (typeof vi !== 'undefined' ? vi.fn() : jest.fn()),
+    dispatchEvent: (typeof vi !== 'undefined' ? vi.fn() : jest.fn()),
   })),
 })
 
 // Mock localStorage
 const localStorageMock = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn(),
+  getItem: (typeof vi !== 'undefined' ? vi.fn() : jest.fn()),
+  setItem: (typeof vi !== 'undefined' ? vi.fn() : jest.fn()),
+  removeItem: (typeof vi !== 'undefined' ? vi.fn() : jest.fn()),
+  clear: (typeof vi !== 'undefined' ? vi.fn() : jest.fn()),
 }
 Object.defineProperty(window, 'localStorage', {
   value: localStorageMock
@@ -144,10 +148,10 @@ Object.defineProperty(window, 'localStorage', {
 
 // Mock sessionStorage
 const sessionStorageMock = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn(),
+  getItem: (typeof vi !== 'undefined' ? vi.fn() : jest.fn()),
+  setItem: (typeof vi !== 'undefined' ? vi.fn() : jest.fn()),
+  removeItem: (typeof vi !== 'undefined' ? vi.fn() : jest.fn()),
+  clear: (typeof vi !== 'undefined' ? vi.fn() : jest.fn()),
 }
 Object.defineProperty(window, 'sessionStorage', {
   value: sessionStorageMock
