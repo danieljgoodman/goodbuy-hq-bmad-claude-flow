@@ -304,3 +304,6 @@ export type OperationalScalability = z.infer<typeof OperationalScalabilitySchema
 export type FinancialOptimization = z.infer<typeof FinancialOptimizationSchema>;
 export type StrategicScenarioPlanning = z.infer<typeof StrategicScenarioPlanningSchema>;
 export type MultiYearProjections = z.infer<typeof MultiYearProjectionsSchema>;
+
+// Export alias for compatibility
+export const enterpriseTierSchema = EnterpriseTierDataSchema;

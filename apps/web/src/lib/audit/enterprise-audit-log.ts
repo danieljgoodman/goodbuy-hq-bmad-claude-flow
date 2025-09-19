@@ -13,6 +13,21 @@ import { prisma } from '@/lib/prisma';
 export type AuditAction = 'create' | 'read' | 'update' | 'delete' | 'export' | 'access_denied';
 
 /**
+ * Enum version of AuditAction for compatibility
+ */
+export enum AuditActionEnum {
+  CREATE = 'create',
+  READ = 'read',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  EXPORT = 'export',
+  ACCESS_DENIED = 'access_denied'
+}
+
+// Export AuditActionEnum as AuditAction for backward compatibility
+export { AuditActionEnum as AuditAction };
+
+/**
  * Audit context for tracking user actions
  */
 export interface AuditContext {
@@ -354,3 +369,6 @@ export async function detectSuspiciousActivity(
 
   return { isSuspicious: false };
 }
+
+// Export aliases for backward compatibility
+export { createAuditLog as createAuditLogEntry };

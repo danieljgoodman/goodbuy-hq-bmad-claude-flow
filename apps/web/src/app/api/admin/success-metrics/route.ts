@@ -1,19 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
+import { currentUser } from '@clerk/nextjs/server'
 import { SuccessTrackingService } from '@/lib/services/SuccessTrackingService'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.email) {
+    const clerkUser = await currentUser()
+    if (!clerkUser?.emailAddresses?.[0]?.emailAddress) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // TODO: Add admin role check
-    // if (!session.user.isAdmin) {
-    //   return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    // }
+    // Check admin role from Clerk metadata
+    const isAdmin = clerkUser.publicMetadata?.role === 'admin'
+    if (!isAdmin) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
 
     const { searchParams } = new URL(request.url)
     const timeframe = searchParams.get('timeframe') || '30d'

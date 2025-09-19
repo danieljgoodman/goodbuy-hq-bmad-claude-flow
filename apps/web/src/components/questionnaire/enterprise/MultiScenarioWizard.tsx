@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback, Suspense, lazy } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   BarChart3,
   TrendingUp,
@@ -24,6 +25,7 @@ import {
   LineChart
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { performanceMonitor, withPerformanceTracking } from '@/lib/utils/performance-monitoring';
 
 interface Scenario {
   id: string;
@@ -47,13 +49,60 @@ interface MultiScenarioWizardProps {
   onAnalyze?: () => void;
 }
 
-export const MultiScenarioWizard: React.FC<MultiScenarioWizardProps> = ({
+// Lazy load heavy components for code splitting
+const ScenarioVisualization = lazy(() => import('./ScenarioVisualization').catch(() => ({
+  default: () => <div>Visualization not available</div>
+})));
+
+// Memoized comparison table row component
+const MemoizedComparisonRow = React.memo<{
+  label: string;
+  scenarios: Scenario[];
+  getValue: (scenario: Scenario) => string | number;
+  formatValue?: (value: string | number) => string;
+}>(({ label, scenarios, getValue, formatValue = (v) => String(v) }) => (
+  <tr className="border-b">
+    <td className="p-3 font-medium">{label}</td>
+    {scenarios.map(scenario => (
+      <td key={scenario.id} className="p-3 text-center">
+        {formatValue(getValue(scenario))}
+      </td>
+    ))}
+  </tr>
+));
+
+MemoizedComparisonRow.displayName = 'MemoizedComparisonRow';
+
+// Skeleton component for loading states
+const ScenarioSkeleton = () => (
+  <Card className="tier-enterprise">
+    <CardHeader>
+      <Skeleton className="h-6 w-1/3" />
+      <Skeleton className="h-4 w-2/3" />
+    </CardHeader>
+    <CardContent className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+      </div>
+      <Skeleton className="h-16 w-full" />
+      <div className="grid grid-cols-3 gap-4">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+      </div>
+    </CardContent>
+  </Card>
+);
+
+const MultiScenarioWizardComponent: React.FC<MultiScenarioWizardProps> = ({
   scenarios = [],
   onUpdate,
   onAnalyze
 }) => {
   const [activeScenario, setActiveScenario] = useState<string>(scenarios[0]?.id || 'base');
   const [compareMode, setCompareMode] = useState(false);
+  const [isCalculating, setIsCalculating] = useState(false);
 
   const defaultScenarios: Scenario[] = [
     {
@@ -103,17 +152,22 @@ export const MultiScenarioWizard: React.FC<MultiScenarioWizardProps> = ({
     }
   ];
 
-  // Initialize with default scenarios if none provided
-  const currentScenarios = scenarios.length > 0 ? scenarios : defaultScenarios;
+  // Memoize current scenarios to prevent unnecessary recalculations
+  const currentScenarios = useMemo(() =>
+    scenarios.length > 0 ? scenarios : defaultScenarios,
+    [scenarios, defaultScenarios]
+  );
 
-  const updateScenario = (scenarioId: string, field: keyof Scenario, value: any) => {
+  // Memoized update function
+  const updateScenario = useCallback((scenarioId: string, field: keyof Scenario, value: any) => {
     const updated = currentScenarios.map(scenario =>
       scenario.id === scenarioId ? { ...scenario, [field]: value } : scenario
     );
     onUpdate(updated);
-  };
+  }, [currentScenarios, onUpdate]);
 
-  const addScenario = () => {
+  // Memoized scenario manipulation functions
+  const addScenario = useCallback(() => {
     const newScenario: Scenario = {
       id: `custom_${Date.now()}`,
       name: 'Custom Scenario',
@@ -131,18 +185,18 @@ export const MultiScenarioWizard: React.FC<MultiScenarioWizardProps> = ({
     };
     onUpdate([...currentScenarios, newScenario]);
     setActiveScenario(newScenario.id);
-  };
+  }, [currentScenarios, onUpdate]);
 
-  const removeScenario = (scenarioId: string) => {
+  const removeScenario = useCallback((scenarioId: string) => {
     if (currentScenarios.length <= 1) return;
     const updated = currentScenarios.filter(scenario => scenario.id !== scenarioId);
     onUpdate(updated);
     if (activeScenario === scenarioId) {
       setActiveScenario(updated[0]?.id || '');
     }
-  };
+  }, [currentScenarios, onUpdate, activeScenario]);
 
-  const duplicateScenario = (scenarioId: string) => {
+  const duplicateScenario = useCallback((scenarioId: string) => {
     const scenario = currentScenarios.find(s => s.id === scenarioId);
     if (!scenario) return;
 
@@ -153,28 +207,34 @@ export const MultiScenarioWizard: React.FC<MultiScenarioWizardProps> = ({
     };
     onUpdate([...currentScenarios, newScenario]);
     setActiveScenario(newScenario.id);
-  };
+  }, [currentScenarios, onUpdate]);
 
-  const addToArray = (scenarioId: string, field: 'keyAssumptions' | 'investmentAreas', value: string) => {
+  // Memoized array manipulation functions
+  const addToArray = useCallback((scenarioId: string, field: 'keyAssumptions' | 'investmentAreas', value: string) => {
     if (!value.trim()) return;
     const scenario = currentScenarios.find(s => s.id === scenarioId);
     if (!scenario) return;
 
     const currentArray = scenario[field] || [];
     updateScenario(scenarioId, field, [...currentArray, value]);
-  };
+  }, [currentScenarios, updateScenario]);
 
-  const removeFromArray = (scenarioId: string, field: 'keyAssumptions' | 'investmentAreas', index: number) => {
+  const removeFromArray = useCallback((scenarioId: string, field: 'keyAssumptions' | 'investmentAreas', index: number) => {
     const scenario = currentScenarios.find(s => s.id === scenarioId);
     if (!scenario) return;
 
     const currentArray = scenario[field] || [];
     updateScenario(scenarioId, field, currentArray.filter((_, i) => i !== index));
-  };
+  }, [currentScenarios, updateScenario]);
 
-  const getScenarioActive = () => currentScenarios.find(s => s.id === activeScenario);
+  // Memoized active scenario
+  const activeScenarioData = useMemo(() =>
+    currentScenarios.find(s => s.id === activeScenario),
+    [currentScenarios, activeScenario]
+  );
 
-  const getRiskColor = (level: string) => {
+  // Memoized utility functions
+  const getRiskColor = useCallback((level: string) => {
     switch (level) {
       case 'low': return 'text-green-600 bg-green-50';
       case 'medium': return 'text-yellow-600 bg-yellow-50';
@@ -182,16 +242,75 @@ export const MultiScenarioWizard: React.FC<MultiScenarioWizardProps> = ({
       case 'critical': return 'text-red-600 bg-red-50';
       default: return 'text-gray-600 bg-gray-50';
     }
-  };
+  }, []);
 
-  const formatCurrency = (value: number) => {
+  const formatCurrency = useCallback((value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     }).format(value);
-  };
+  }, []);
+
+  // Memoized weighted calculations for comparison view
+  const weightedMetrics = useMemo(() => {
+    const totalProbability = currentScenarios.reduce((sum, s) => sum + s.probability, 0);
+    if (totalProbability === 0) return { revenueGrowth: 0, expectedROI: 0, capitalNeed: 0, valueImpact: 0 };
+
+    return {
+      revenueGrowth: currentScenarios.reduce((acc, s) => acc + (s.revenueGrowth * s.probability / 100), 0),
+      expectedROI: currentScenarios.reduce((acc, s) => acc + (s.expectedROI * s.probability / 100), 0),
+      capitalNeed: currentScenarios.reduce((acc, s) => acc + (s.capitalRequirement * s.probability / 100), 0),
+      valueImpact: currentScenarios.reduce((acc, s) => acc + (s.valuationImpact * s.probability / 100), 0)
+    };
+  }, [currentScenarios]);
+
+  // Enhanced analyze function with Web Worker
+  const handleAnalyze = useCallback(async () => {
+    if (!onAnalyze) return;
+
+    setIsCalculating(true);
+    performanceMonitor.markMilestone('scenario-analysis-start');
+
+    try {
+      // Run analysis in Web Worker if available
+      if (typeof Worker !== 'undefined') {
+        const worker = new Worker(new URL('@/lib/workers/enterprise-calculations.worker.ts', import.meta.url));
+
+        worker.postMessage({
+          id: 'scenario-analysis',
+          type: 'scenario-analysis',
+          params: {
+            baseCase: currentScenarios.find(s => s.id === 'base') || currentScenarios[0],
+            scenarios: currentScenarios,
+            correlations: [[1, 0.3, 0.2], [0.3, 1, 0.4], [0.2, 0.4, 1]], // Example correlation matrix
+            confidenceLevel: 0.95
+          }
+        });
+
+        worker.onmessage = (e) => {
+          const { result, error } = e.data;
+          if (error) {
+            console.error('Worker error:', error);
+          } else {
+            console.log('Analysis result:', result);
+          }
+          setIsCalculating(false);
+          worker.terminate();
+        };
+      } else {
+        // Fallback for environments without Web Worker support
+        await onAnalyze();
+        setIsCalculating(false);
+      }
+
+      performanceMonitor.markMilestone('scenario-analysis-end');
+    } catch (error) {
+      console.error('Analysis failed:', error);
+      setIsCalculating(false);
+    }
+  }, [onAnalyze, currentScenarios]);
 
   const sectionVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -199,14 +318,15 @@ export const MultiScenarioWizard: React.FC<MultiScenarioWizardProps> = ({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header Controls */}
-      <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={sectionVariants}
-        className="flex items-center justify-between"
-      >
+    <Suspense fallback={<ScenarioSkeleton />}>
+      <div className="space-y-6">
+        {/* Header Controls */}
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={sectionVariants}
+          className="flex items-center justify-between"
+        >
         <div>
           <h3 className="text-xl font-semibold">Multi-Scenario Analysis</h3>
           <p className="text-sm text-muted-foreground">
@@ -233,11 +353,21 @@ export const MultiScenarioWizard: React.FC<MultiScenarioWizardProps> = ({
           {onAnalyze && (
             <Button
               size="sm"
-              onClick={onAnalyze}
+              onClick={handleAnalyze}
               className="tier-enterprise"
+              disabled={isCalculating}
             >
-              <Calculator className="h-4 w-4 mr-2" />
-              Analyze
+              {isCalculating ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Analyzing...
+                </>
+              ) : (
+                <>
+                  <Calculator className="h-4 w-4 mr-2" />
+                  Analyze
+                </>
+              )}
             </Button>
           )}
         </div>
@@ -280,70 +410,64 @@ export const MultiScenarioWizard: React.FC<MultiScenarioWizardProps> = ({
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="border-b">
-                      <td className="p-3 font-medium">Probability</td>
-                      {currentScenarios.map(scenario => (
-                        <td key={scenario.id} className="p-3 text-center">
-                          {scenario.probability}%
-                        </td>
-                      ))}
-                    </tr>
-                    <tr className="border-b">
-                      <td className="p-3 font-medium">Revenue Growth</td>
-                      {currentScenarios.map(scenario => (
-                        <td key={scenario.id} className="p-3 text-center">
-                          <span className={scenario.revenueGrowth >= 0 ? 'text-green-600' : 'text-red-600'}>
-                            {scenario.revenueGrowth}%
-                          </span>
-                        </td>
-                      ))}
-                    </tr>
-                    <tr className="border-b">
-                      <td className="p-3 font-medium">Margin Improvement</td>
-                      {currentScenarios.map(scenario => (
-                        <td key={scenario.id} className="p-3 text-center">
-                          <span className={scenario.marginImprovement >= 0 ? 'text-green-600' : 'text-red-600'}>
-                            {scenario.marginImprovement}%
-                          </span>
-                        </td>
-                      ))}
-                    </tr>
-                    <tr className="border-b">
-                      <td className="p-3 font-medium">Capital Required</td>
-                      {currentScenarios.map(scenario => (
-                        <td key={scenario.id} className="p-3 text-center">
-                          {formatCurrency(scenario.capitalRequirement)}
-                        </td>
-                      ))}
-                    </tr>
-                    <tr className="border-b">
-                      <td className="p-3 font-medium">Expected ROI</td>
-                      {currentScenarios.map(scenario => (
-                        <td key={scenario.id} className="p-3 text-center">
-                          <span className={scenario.expectedROI >= 15 ? 'text-green-600' : scenario.expectedROI >= 10 ? 'text-yellow-600' : 'text-red-600'}>
-                            {scenario.expectedROI}%
-                          </span>
-                        </td>
-                      ))}
-                    </tr>
-                    <tr className="border-b">
-                      <td className="p-3 font-medium">Valuation Impact</td>
-                      {currentScenarios.map(scenario => (
-                        <td key={scenario.id} className="p-3 text-center">
-                          <span className={scenario.valuationImpact >= 0 ? 'text-green-600' : 'text-red-600'}>
-                            {scenario.valuationImpact}%
-                          </span>
-                        </td>
-                      ))}
-                    </tr>
-                    <tr>
-                      <td className="p-3 font-medium">Timeline</td>
-                      {currentScenarios.map(scenario => (
-                        <td key={scenario.id} className="p-3 text-center">
-                          {scenario.timeline} months
-                        </td>
-                      ))}
-                    </tr>
+                    <MemoizedComparisonRow
+                      label="Probability"
+                      scenarios={currentScenarios}
+                      getValue={(s) => s.probability}
+                      formatValue={(v) => `${v}%`}
+                    />
+                    <MemoizedComparisonRow
+                      label="Revenue Growth"
+                      scenarios={currentScenarios}
+                      getValue={(s) => s.revenueGrowth}
+                      formatValue={(v) => (
+                        <span className={Number(v) >= 0 ? 'text-green-600' : 'text-red-600'}>
+                          {v}%
+                        </span>
+                      )}
+                    />
+                    <MemoizedComparisonRow
+                      label="Margin Improvement"
+                      scenarios={currentScenarios}
+                      getValue={(s) => s.marginImprovement}
+                      formatValue={(v) => (
+                        <span className={Number(v) >= 0 ? 'text-green-600' : 'text-red-600'}>
+                          {v}%
+                        </span>
+                      )}
+                    />
+                    <MemoizedComparisonRow
+                      label="Capital Required"
+                      scenarios={currentScenarios}
+                      getValue={(s) => s.capitalRequirement}
+                      formatValue={(v) => formatCurrency(Number(v))}
+                    />
+                    <MemoizedComparisonRow
+                      label="Expected ROI"
+                      scenarios={currentScenarios}
+                      getValue={(s) => s.expectedROI}
+                      formatValue={(v) => {
+                        const val = Number(v);
+                        const color = val >= 15 ? 'text-green-600' : val >= 10 ? 'text-yellow-600' : 'text-red-600';
+                        return <span className={color}>{val}%</span>;
+                      }}
+                    />
+                    <MemoizedComparisonRow
+                      label="Valuation Impact"
+                      scenarios={currentScenarios}
+                      getValue={(s) => s.valuationImpact}
+                      formatValue={(v) => (
+                        <span className={Number(v) >= 0 ? 'text-green-600' : 'text-red-600'}>
+                          {v}%
+                        </span>
+                      )}
+                    />
+                    <MemoizedComparisonRow
+                      label="Timeline"
+                      scenarios={currentScenarios}
+                      getValue={(s) => s.timeline}
+                      formatValue={(v) => `${v} months`}
+                    />
                   </tbody>
                 </table>
               </div>
@@ -354,25 +478,25 @@ export const MultiScenarioWizard: React.FC<MultiScenarioWizardProps> = ({
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-blue-600">
-                      {(currentScenarios.reduce((acc, s) => acc + (s.revenueGrowth * s.probability / 100), 0)).toFixed(1)}%
+                      {weightedMetrics.revenueGrowth.toFixed(1)}%
                     </div>
                     <p className="text-sm text-muted-foreground">Expected Revenue Growth</p>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-green-600">
-                      {(currentScenarios.reduce((acc, s) => acc + (s.expectedROI * s.probability / 100), 0)).toFixed(1)}%
+                      {weightedMetrics.expectedROI.toFixed(1)}%
                     </div>
                     <p className="text-sm text-muted-foreground">Expected ROI</p>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-purple-600">
-                      {formatCurrency(currentScenarios.reduce((acc, s) => acc + (s.capitalRequirement * s.probability / 100), 0))}
+                      {formatCurrency(weightedMetrics.capitalNeed)}
                     </div>
                     <p className="text-sm text-muted-foreground">Expected Capital Need</p>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-orange-600">
-                      {(currentScenarios.reduce((acc, s) => acc + (s.valuationImpact * s.probability / 100), 0)).toFixed(1)}%
+                      {weightedMetrics.valueImpact.toFixed(1)}%
                     </div>
                     <p className="text-sm text-muted-foreground">Expected Value Impact</p>
                   </div>
@@ -649,7 +773,16 @@ export const MultiScenarioWizard: React.FC<MultiScenarioWizardProps> = ({
             ))}
           </Tabs>
         </motion.div>
-      )}
-    </div>
+        )}
+      </div>
+    </Suspense>
   );
 };
+
+// Export the memoized and performance-tracked component
+export const MultiScenarioWizard = React.memo(
+  withPerformanceTracking(
+    MultiScenarioWizardComponent,
+    'MultiScenarioWizard'
+  )
+);

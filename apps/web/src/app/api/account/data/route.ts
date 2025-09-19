@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
+import { currentUser } from '@clerk/nextjs/server'
 import { AccountService } from '@/lib/services/AccountService'
 
 const accountService = new AccountService()
@@ -8,15 +7,15 @@ const accountService = new AccountService()
 export async function GET(request: NextRequest) {
   try {
     // Authentication check
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    const clerkUser = await currentUser()
+    if (!clerkUser?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       )
     }
 
-    const userId = session.user.id
+    const userId = clerkUser.id
 
     const accountData = await accountService.getAccountData(userId)
     return NextResponse.json(accountData, {

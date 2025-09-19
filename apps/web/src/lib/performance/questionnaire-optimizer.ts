@@ -9,7 +9,7 @@
  */
 
 import { useMemo, useCallback, useRef, useEffect } from 'react'
-import { debounce } from 'lodash'
+import debounce from 'lodash.debounce'
 import { ProfessionalTierData } from '@/types/evaluation'
 
 // Performance monitoring utilities

@@ -1,0 +1,343 @@
+/**
+ * Enterprise Form Encryption & Security Utilities
+ * Field-level encryption for sensitive business data with audit logging
+ */
+
+import { z } from 'zod'
+
+/**
+ * Configuration for encryption settings
+ */
+interface EncryptionConfig {
+  enabled: boolean
+  algorithm: 'AES-GCM' | 'ChaCha20-Poly1305'
+  keyDerivation: 'PBKDF2' | 'Argon2id'
+  compressionEnabled: boolean
+  auditLogging: boolean
+}
+
+/**
+ * Sensitive field definitions for Enterprise questionnaire
+ */
+const SENSITIVE_FIELDS = {
+  financial: [
+    'annualRevenue',
+    'revenueYear1',
+    'revenueYear2',
+    'revenueYear3',
+    'profitYear1',
+    'profitYear2',
+    'profitYear3',
+    'cashFlowYear1',
+    'cashFlowYear2',
+    'cashFlowYear3',
+    'totalDebt',
+    'ownerCompensation',
+    'marketRateCompensation',
+    'compensationAdjustment',
+    'oneTimeExpenses2024',
+    'oneTimeExpenses2023',
+    'oneTimeExpenses2022',
+    'debtServiceRequirements',
+    'workingCapitalReduction',
+    'growthInvestmentCapacity'
+  ],
+  strategic: [
+    'ipPortfolioValue',
+    'partnershipAgreementsValue',
+    'customerDatabaseValue',
+    'customerAcquisitionCost',
+    'brandDevelopmentInvestment',
+    'technologyInvestmentThreeYear',
+    'infrastructureInvestmentRequired',
+    'largestCustomerRevenue',
+    'top5CustomerRevenue'
+  ],
+  operational: [
+    'majorInfrastructureThreshold',
+    'debtCapacityGrowth',
+    'capex',
+    'investmentRequired',
+    'expectedROI',
+    'valueCreationPotential',
+    'opportunitySize'
+  ]
+} as const
+
+type SensitiveFieldCategory = keyof typeof SENSITIVE_FIELDS
+type SensitiveField = typeof SENSITIVE_FIELDS[SensitiveFieldCategory][number]
+
+/**
+ * Audit log entry interface
+ */
+interface AuditLogEntry {
+  timestamp: Date
+  userId?: string
+  sessionId: string
+  action: 'encrypt' | 'decrypt' | 'access' | 'modify'
+  fieldPath: string
+  fieldCategory: SensitiveFieldCategory
+  success: boolean
+  metadata?: {
+    userAgent?: string
+    ipAddress?: string
+    pageUrl?: string
+    encryptionMethod?: string
+    errorMessage?: string
+  }
+}
+
+/**
+ * Encrypted field wrapper
+ */
+interface EncryptedField {
+  encrypted: true
+  algorithm: string
+  data: string
+  iv: string
+  salt?: string
+  timestamp: string
+  integrity: string
+}
+
+/**
+ * Encryption result
+ */
+interface EncryptionResult {
+  success: boolean
+  data?: EncryptedField
+  error?: string
+  auditId?: string
+}
+
+/**
+ * Decryption result
+ */
+interface DecryptionResult {
+  success: boolean
+  data?: any
+  error?: string
+  auditId?: string
+}
+
+/**
+ * Enterprise form encryption class
+ */
+export class EnterpriseFormEncryption {
+  private config: EncryptionConfig
+  private auditLog: AuditLogEntry[] = []
+  private sessionId: string
+  private derivedKey?: CryptoKey
+
+  constructor(config: Partial<EncryptionConfig> = {}) {
+    this.config = {
+      enabled: true,
+      algorithm: 'AES-GCM',
+      keyDerivation: 'PBKDF2',
+      compressionEnabled: true,
+      auditLogging: true,
+      ...config
+    }
+    this.sessionId = this.generateSessionId()
+  }
+
+  /**
+   * Generate unique session ID
+   */
+  private generateSessionId(): string {
+    if (typeof window !== 'undefined' && window.crypto && window.crypto.randomUUID) {
+      return window.crypto.randomUUID()
+    }
+    // Fallback for older browsers
+    return Date.now().toString(36) + Math.random().toString(36).substring(2)
+  }
+
+  /**
+   * Derive encryption key from user session
+   */
+  private async deriveKey(password: string, salt: Uint8Array): Promise<CryptoKey> {
+    if (typeof window === 'undefined' || !window.crypto || !window.crypto.subtle) {
+      throw new Error('Web Crypto API not available')
+    }
+
+    const encoder = new TextEncoder()
+    const keyMaterial = await window.crypto.subtle.importKey(
+      'raw',
+      encoder.encode(password),
+      { name: 'PBKDF2' },
+      false,
+      ['deriveBits', 'deriveKey']
+    )
+
+    return window.crypto.subtle.deriveKey(
+      {
+        name: 'PBKDF2',
+        salt: salt,
+        iterations: 100000,
+        hash: 'SHA-256'
+      },
+      keyMaterial,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['encrypt', 'decrypt']
+    )
+  }
+
+  /**
+   * Initialize encryption with user session
+   */
+  async initialize(userSession: string): Promise<boolean> {
+    if (!this.config.enabled) return true
+
+    try {
+      const salt = new Uint8Array(16)
+      if (typeof window !== 'undefined' && window.crypto) {
+        window.crypto.getRandomValues(salt)
+      }
+
+      this.derivedKey = await this.deriveKey(userSession + this.sessionId, salt)
+      return true
+    } catch (error) {
+      console.error('Failed to initialize encryption:', error)
+      return false
+    }
+  }
+
+  /**
+   * Check if field is sensitive and requires encryption
+   */
+  private isSensitiveField(fieldPath: string): { isSensitive: boolean; category?: SensitiveFieldCategory } {
+    for (const [category, fields] of Object.entries(SENSITIVE_FIELDS)) {
+      if (fields.some(field => fieldPath.includes(field))) {
+        return { isSensitive: true, category: category as SensitiveFieldCategory }
+      }
+    }
+    return { isSensitive: false }
+  }
+
+  /**
+   * Compress data before encryption
+   */
+  private async compressData(data: string): Promise<Uint8Array> {
+    if (!this.config.compressionEnabled || typeof window === 'undefined') {
+      return new TextEncoder().encode(data)
+    }
+
+    try {
+      // Use CompressionStream if available (modern browsers)
+      if ('CompressionStream' in window) {
+        const stream = new CompressionStream('gzip')
+        const writer = stream.writable.getWriter()
+        const reader = stream.readable.getReader()
+
+        writer.write(new TextEncoder().encode(data))
+        writer.close()
+
+        const chunks: Uint8Array[] = []
+        let result = await reader.read()
+        while (!result.done) {
+          chunks.push(result.value)
+          result = await reader.read()
+        }
+
+        // Combine chunks
+        const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0)
+        const compressed = new Uint8Array(totalLength)
+        let offset = 0
+        for (const chunk of chunks) {
+          compressed.set(chunk, offset)
+          offset += chunk.length
+        }
+
+        return compressed
+      }
+    } catch (error) {
+      console.warn('Compression failed, using uncompressed data:', error)
+    }
+
+    return new TextEncoder().encode(data)
+  }
+
+  /**
+   * Decompress data after decryption
+   */
+  private async decompressData(compressedData: Uint8Array): Promise<string> {
+    if (!this.config.compressionEnabled || typeof window === 'undefined') {
+      return new TextDecoder().decode(compressedData)
+    }
+
+    try {
+      if ('DecompressionStream' in window) {
+        const stream = new DecompressionStream('gzip')
+        const writer = stream.writable.getWriter()
+        const reader = stream.readable.getReader()
+
+        writer.write(compressedData)
+        writer.close()
+
+        const chunks: Uint8Array[] = []
+        let result = await reader.read()
+        while (!result.done) {
+          chunks.push(result.value)
+          result = await reader.read()
+        }
+
+        // Combine chunks
+        const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0)
+        const decompressed = new Uint8Array(totalLength)
+        let offset = 0
+        for (const chunk of chunks) {
+          decompressed.set(chunk, offset)
+          offset += chunk.length
+        }
+
+        return new TextDecoder().decode(decompressed)
+      }
+    } catch (error) {
+      console.warn('Decompression failed, treating as uncompressed:', error)
+    }
+
+    return new TextDecoder().decode(compressedData)
+  }
+
+  /**
+   * Calculate integrity hash
+   */
+  private async calculateIntegrity(data: Uint8Array): Promise<string> {
+    if (typeof window === 'undefined' || !window.crypto || !window.crypto.subtle) {
+      return btoa(String.fromCharCode(...data.slice(0, 16))) // Simple fallback
+    }
+
+    const hashBuffer = await window.crypto.subtle.digest('SHA-256', data)
+    const hashArray = Array.from(new Uint8Array(hashBuffer))
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+  }
+
+  /**
+   * Log audit entry
+   */
+  private logAudit(entry: Omit<AuditLogEntry, 'timestamp'>): string {
+    if (!this.config.auditLogging) return ''
+
+    const auditEntry: AuditLogEntry = {
+      ...entry,
+      timestamp: new Date()
+    }
+
+    this.auditLog.push(auditEntry)
+
+    // In production, send to secure logging service
+    if (typeof window !== 'undefined') {
+      console.log('Enterprise Form Audit:', {
+        id: this.auditLog.length.toString(),
+        timestamp: auditEntry.timestamp,
+        action: auditEntry.action,
+        fieldPath: auditEntry.fieldPath,
+        success: auditEntry.success
+      })
+    }
+
+    return this.auditLog.length.toString()\n  }\n\n  /**\n   * Encrypt sensitive field data\n   */\n  async encryptField(fieldPath: string, value: any, userId?: string): Promise<EncryptionResult> {\n    const { isSensitive, category } = this.isSensitiveField(fieldPath)\n    \n    if (!this.config.enabled || !isSensitive) {\n      return { success: true, data: value }\n    }\n\n    if (!this.derivedKey) {\n      const auditId = this.logAudit({\n        userId,\n        sessionId: this.sessionId,\n        action: 'encrypt',\n        fieldPath,\n        fieldCategory: category!,\n        success: false,\n        metadata: { errorMessage: 'Encryption not initialized' }\n      })\n      return { success: false, error: 'Encryption not initialized', auditId }\n    }\n\n    try {\n      const jsonData = JSON.stringify(value)\n      const compressedData = await this.compressData(jsonData)\n      \n      // Generate IV\n      const iv = new Uint8Array(12)\n      if (typeof window !== 'undefined' && window.crypto) {\n        window.crypto.getRandomValues(iv)\n      }\n\n      // Encrypt data\n      const encryptedBuffer = await window.crypto.subtle.encrypt(\n        { name: 'AES-GCM', iv: iv },\n        this.derivedKey,\n        compressedData\n      )\n\n      const encryptedData = new Uint8Array(encryptedBuffer)\n      const integrity = await this.calculateIntegrity(encryptedData)\n\n      const encryptedField: EncryptedField = {\n        encrypted: true,\n        algorithm: this.config.algorithm,\n        data: btoa(String.fromCharCode(...encryptedData)),\n        iv: btoa(String.fromCharCode(...iv)),\n        timestamp: new Date().toISOString(),\n        integrity\n      }\n\n      const auditId = this.logAudit({\n        userId,\n        sessionId: this.sessionId,\n        action: 'encrypt',\n        fieldPath,\n        fieldCategory: category!,\n        success: true,\n        metadata: {\n          encryptionMethod: this.config.algorithm,\n          pageUrl: typeof window !== 'undefined' ? window.location.href : undefined\n        }\n      })\n\n      return { success: true, data: encryptedField, auditId }\n    } catch (error) {\n      const auditId = this.logAudit({\n        userId,\n        sessionId: this.sessionId,\n        action: 'encrypt',\n        fieldPath,\n        fieldCategory: category!,\n        success: false,\n        metadata: { errorMessage: error instanceof Error ? error.message : 'Unknown error' }\n      })\n\n      return { success: false, error: 'Encryption failed', auditId }\n    }\n  }\n\n  /**\n   * Decrypt sensitive field data\n   */\n  async decryptField(fieldPath: string, encryptedField: EncryptedField, userId?: string): Promise<DecryptionResult> {\n    const { isSensitive, category } = this.isSensitiveField(fieldPath)\n    \n    if (!this.config.enabled || !isSensitive) {\n      return { success: true, data: encryptedField }\n    }\n\n    if (!this.derivedKey) {\n      const auditId = this.logAudit({\n        userId,\n        sessionId: this.sessionId,\n        action: 'decrypt',\n        fieldPath,\n        fieldCategory: category!,\n        success: false,\n        metadata: { errorMessage: 'Encryption not initialized' }\n      })\n      return { success: false, error: 'Encryption not initialized', auditId }\n    }\n\n    try {\n      // Verify this is an encrypted field\n      if (!encryptedField.encrypted || !encryptedField.data || !encryptedField.iv) {\n        throw new Error('Invalid encrypted field format')\n      }\n\n      // Decode base64 data\n      const encryptedData = new Uint8Array(\n        atob(encryptedField.data).split('').map(char => char.charCodeAt(0))\n      )\n      const iv = new Uint8Array(\n        atob(encryptedField.iv).split('').map(char => char.charCodeAt(0))\n      )\n\n      // Verify integrity if available\n      if (encryptedField.integrity) {\n        const calculatedIntegrity = await this.calculateIntegrity(encryptedData)\n        if (calculatedIntegrity !== encryptedField.integrity) {\n          throw new Error('Data integrity check failed')\n        }\n      }\n\n      // Decrypt data\n      const decryptedBuffer = await window.crypto.subtle.decrypt(\n        { name: 'AES-GCM', iv: iv },\n        this.derivedKey,\n        encryptedData\n      )\n\n      const decryptedData = new Uint8Array(decryptedBuffer)\n      const jsonData = await this.decompressData(decryptedData)\n      const value = JSON.parse(jsonData)\n\n      const auditId = this.logAudit({\n        userId,\n        sessionId: this.sessionId,\n        action: 'decrypt',\n        fieldPath,\n        fieldCategory: category!,\n        success: true,\n        metadata: {\n          encryptionMethod: encryptedField.algorithm,\n          pageUrl: typeof window !== 'undefined' ? window.location.href : undefined\n        }\n      })\n\n      return { success: true, data: value, auditId }\n    } catch (error) {\n      const auditId = this.logAudit({\n        userId,\n        sessionId: this.sessionId,\n        action: 'decrypt',\n        fieldPath,\n        fieldCategory: category!,\n        success: false,\n        metadata: { errorMessage: error instanceof Error ? error.message : 'Unknown error' }\n      })\n\n      return { success: false, error: 'Decryption failed', auditId }\n    }\n  }\n\n  /**\n   * Bulk encrypt form data\n   */\n  async encryptFormData(formData: Record<string, any>, userId?: string): Promise<{\n    success: boolean\n    data: Record<string, any>\n    errors: string[]\n    auditIds: string[]\n  }> {\n    const result: Record<string, any> = {}\n    const errors: string[] = []\n    const auditIds: string[] = []\n\n    for (const [fieldPath, value] of Object.entries(formData)) {\n      if (value === null || value === undefined) {\n        result[fieldPath] = value\n        continue\n      }\n\n      const encryptionResult = await this.encryptField(fieldPath, value, userId)\n      \n      if (encryptionResult.success) {\n        result[fieldPath] = encryptionResult.data\n        if (encryptionResult.auditId) {\n          auditIds.push(encryptionResult.auditId)\n        }\n      } else {\n        errors.push(`Failed to encrypt ${fieldPath}: ${encryptionResult.error}`)\n        result[fieldPath] = value // Keep original value if encryption fails\n        if (encryptionResult.auditId) {\n          auditIds.push(encryptionResult.auditId)\n        }\n      }\n    }\n\n    return {\n      success: errors.length === 0,\n      data: result,\n      errors,\n      auditIds\n    }\n  }\n\n  /**\n   * Bulk decrypt form data\n   */\n  async decryptFormData(encryptedData: Record<string, any>, userId?: string): Promise<{\n    success: boolean\n    data: Record<string, any>\n    errors: string[]\n    auditIds: string[]\n  }> {\n    const result: Record<string, any> = {}\n    const errors: string[] = []\n    const auditIds: string[] = []\n\n    for (const [fieldPath, value] of Object.entries(encryptedData)) {\n      if (value === null || value === undefined || !this.isEncryptedField(value)) {\n        result[fieldPath] = value\n        continue\n      }\n\n      const decryptionResult = await this.decryptField(fieldPath, value, userId)\n      \n      if (decryptionResult.success) {\n        result[fieldPath] = decryptionResult.data\n        if (decryptionResult.auditId) {\n          auditIds.push(decryptionResult.auditId)\n        }\n      } else {\n        errors.push(`Failed to decrypt ${fieldPath}: ${decryptionResult.error}`)\n        result[fieldPath] = value // Keep encrypted value if decryption fails\n        if (decryptionResult.auditId) {\n          auditIds.push(decryptionResult.auditId)\n        }\n      }\n    }\n\n    return {\n      success: errors.length === 0,\n      data: result,\n      errors,\n      auditIds\n    }\n  }\n\n  /**\n   * Check if value is an encrypted field\n   */\n  private isEncryptedField(value: any): value is EncryptedField {\n    return (\n      typeof value === 'object' &&\n      value !== null &&\n      value.encrypted === true &&\n      typeof value.data === 'string' &&\n      typeof value.iv === 'string'\n    )\n  }\n\n  /**\n   * Get audit log for security review\n   */\n  getAuditLog(): AuditLogEntry[] {\n    return [...this.auditLog]\n  }\n\n  /**\n   * Clear audit log (use with caution)\n   */\n  clearAuditLog(): void {\n    this.auditLog = []\n  }\n\n  /**\n   * Export audit log for compliance\n   */\n  exportAuditLog(): string {\n    return JSON.stringify(this.auditLog, null, 2)\n  }\n\n  /**\n   * Get security metrics\n   */\n  getSecurityMetrics(): {\n    totalOperations: number\n    successfulOperations: number\n    failedOperations: number\n    encryptionOperations: number\n    decryptionOperations: number\n    uniqueFields: number\n    sessionDuration: number\n  } {\n    const successful = this.auditLog.filter(entry => entry.success).length\n    const failed = this.auditLog.filter(entry => !entry.success).length\n    const encryptions = this.auditLog.filter(entry => entry.action === 'encrypt').length\n    const decryptions = this.auditLog.filter(entry => entry.action === 'decrypt').length\n    const uniqueFields = new Set(this.auditLog.map(entry => entry.fieldPath)).size\n    \n    const firstEntry = this.auditLog[0]\n    const lastEntry = this.auditLog[this.auditLog.length - 1]\n    const sessionDuration = firstEntry && lastEntry \n      ? lastEntry.timestamp.getTime() - firstEntry.timestamp.getTime()\n      : 0\n\n    return {\n      totalOperations: this.auditLog.length,\n      successfulOperations: successful,\n      failedOperations: failed,\n      encryptionOperations: encryptions,\n      decryptionOperations: decryptions,\n      uniqueFields,\n      sessionDuration\n    }\n  }\n}\n\n/**\n * Secure transmission utilities\n */\nexport class SecureTransmission {\n  /**\n   * Prepare data for secure API transmission\n   */\n  static async prepareForTransmission(data: any, encryption: EnterpriseFormEncryption, userId?: string): Promise<{\n    data: any\n    integrity: string\n    timestamp: string\n    auditIds: string[]\n  }> {\n    const encryptionResult = await encryption.encryptFormData(data, userId)\n    \n    if (!encryptionResult.success) {\n      throw new Error(`Encryption failed: ${encryptionResult.errors.join(', ')}`)\n    }\n\n    const timestamp = new Date().toISOString()\n    const dataString = JSON.stringify({ data: encryptionResult.data, timestamp })\n    \n    // Calculate integrity hash\n    let integrity = ''\n    if (typeof window !== 'undefined' && window.crypto && window.crypto.subtle) {\n      const encoder = new TextEncoder()\n      const dataBuffer = encoder.encode(dataString)\n      const hashBuffer = await window.crypto.subtle.digest('SHA-256', dataBuffer)\n      const hashArray = Array.from(new Uint8Array(hashBuffer))\n      integrity = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')\n    }\n\n    return {\n      data: encryptionResult.data,\n      integrity,\n      timestamp,\n      auditIds: encryptionResult.auditIds\n    }\n  }\n\n  /**\n   * Verify received data integrity\n   */\n  static async verifyIntegrity(data: any, integrity: string, timestamp: string): Promise<boolean> {\n    if (typeof window === 'undefined' || !window.crypto || !window.crypto.subtle) {\n      return true // Skip verification in non-browser environments\n    }\n\n    try {\n      const dataString = JSON.stringify({ data, timestamp })\n      const encoder = new TextEncoder()\n      const dataBuffer = encoder.encode(dataString)\n      const hashBuffer = await window.crypto.subtle.digest('SHA-256', dataBuffer)\n      const hashArray = Array.from(new Uint8Array(hashBuffer))\n      const calculatedIntegrity = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')\n      \n      return calculatedIntegrity === integrity\n    } catch (error) {\n      console.error('Integrity verification failed:', error)\n      return false\n    }\n  }\n}\n\n/**\n * Export utility functions for form components\n */\nexport const createEnterpriseEncryption = (config?: Partial<EncryptionConfig>) => {\n  return new EnterpriseFormEncryption(config)\n}\n\nexport const isFieldSensitive = (fieldPath: string): boolean => {\n  for (const fields of Object.values(SENSITIVE_FIELDS)) {\n    if (fields.some(field => fieldPath.includes(field))) {\n      return true\n    }\n  }\n  return false\n}\n\nexport const getSensitiveFieldCategory = (fieldPath: string): SensitiveFieldCategory | null => {\n  for (const [category, fields] of Object.entries(SENSITIVE_FIELDS)) {\n    if (fields.some(field => fieldPath.includes(field))) {\n      return category as SensitiveFieldCategory\n    }\n  }\n  return null\n}\n\n/**\n * Type exports\n */\nexport type {\n  EncryptionConfig,\n  EncryptedField,\n  EncryptionResult,\n  DecryptionResult,\n  AuditLogEntry,\n  SensitiveField,\n  SensitiveFieldCategory\n}"
+    ]
+  }
+}

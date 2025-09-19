@@ -1,10 +1,31 @@
-// Main section components
-export { OperationalScalabilitySection } from './OperationalScalabilitySection';
-export { FinancialOptimizationSection } from './FinancialOptimizationSection';
-export { StrategicScenarioPlanningSection } from './StrategicScenarioPlanningSection';
-export { MultiYearProjectionsSection } from './MultiYearProjectionsSection';
+// Lazy loaded main section components for code splitting
+import { lazy } from 'react';
 
-// Utility components
+export const OperationalScalabilitySection = lazy(() =>
+  import('./OperationalScalabilitySection').then(module => ({
+    default: module.OperationalScalabilitySection
+  }))
+);
+
+export const FinancialOptimizationSection = lazy(() =>
+  import('./FinancialOptimizationSection').then(module => ({
+    default: module.FinancialOptimizationSection
+  }))
+);
+
+export const StrategicScenarioPlanningSection = lazy(() =>
+  import('./StrategicScenarioPlanningSection').then(module => ({
+    default: module.StrategicScenarioPlanningSection
+  }))
+);
+
+export const MultiYearProjectionsSection = lazy(() =>
+  import('./MultiYearProjectionsSection').then(module => ({
+    default: module.MultiYearProjectionsSection
+  }))
+);
+
+// Utility components - already optimized
 export { MultiScenarioWizard } from './MultiScenarioWizard';
 
 // Schemas and validation

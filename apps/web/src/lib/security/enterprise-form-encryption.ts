@@ -304,6 +304,37 @@ export const getSensitiveFieldCategory = (fieldPath: string): SensitiveFieldCate
 }
 
 /**
+ * Decrypt enterprise data helper function
+ */
+export async function decryptEnterpriseData(encryptedData: any): Promise<any> {
+  const encryption = createEnterpriseEncryption();
+
+  // If data is not encrypted, return as-is
+  if (!encryptedData || typeof encryptedData !== 'object') {
+    return encryptedData;
+  }
+
+  // Check if it's an encrypted field object
+  if (encryptedData.encrypted && encryptedData.iv && encryptedData.tag) {
+    const result = await encryption.decryptField(encryptedData, 'data');
+    return result.success ? result.data : null;
+  }
+
+  // Recursively decrypt nested objects
+  const decrypted: any = {};
+  for (const [key, value] of Object.entries(encryptedData)) {
+    if (value && typeof value === 'object' && 'encrypted' in value) {
+      const result = await encryption.decryptField(value, key);
+      decrypted[key] = result.success ? result.data : null;
+    } else {
+      decrypted[key] = value;
+    }
+  }
+
+  return decrypted;
+}
+
+/**
  * Type exports
  */
 export type {

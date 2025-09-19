@@ -1,0 +1,82 @@
+{
+  "bundleAnalysis": {},
+  "renderPerformance": {
+    "MultiScenarioWizard": {
+      "renderTime": 174.53,
+      "status": "warning",
+      "recommendation": "Consider memoization or component splitting"
+    },
+    "OperationalScalabilitySection": {
+      "renderTime": 131.21,
+      "status": "warning",
+      "recommendation": "Consider memoization or component splitting"
+    },
+    "FinancialOptimizationSection": {
+      "renderTime": 139.19,
+      "status": "warning",
+      "recommendation": "Consider memoization or component splitting"
+    },
+    "StrategicScenarioPlanningSection": {
+      "renderTime": 205.53,
+      "status": "critical",
+      "recommendation": "Needs optimization - use React.memo, useMemo, and code splitting"
+    },
+    "MultiYearProjectionsSection": {
+      "renderTime": 101.33,
+      "status": "warning",
+      "recommendation": "Consider memoization or component splitting"
+    }
+  },
+  "loadTimeMetrics": {
+    "First Contentful Paint": {
+      "value": 1138.93,
+      "status": "warning",
+      "threshold": {
+        "good": 1000,
+        "warning": 1800
+      }
+    },
+    "Largest Contentful Paint": {
+      "value": 1762.18,
+      "status": "good",
+      "threshold": {
+        "good": 2500,
+        "warning": 4000
+      }
+    },
+    "Time to Interactive": {
+      "value": 3047.46,
+      "status": "warning",
+      "threshold": {
+        "good": 3000,
+        "warning": 5000
+      }
+    },
+    "Total Blocking Time": {
+      "value": 150.98,
+      "status": "good",
+      "threshold": {
+        "good": 200,
+        "warning": 600
+      }
+    },
+    "Cumulative Layout Shift": {
+      "value": 0.1,
+      "status": "warning",
+      "threshold": {
+        "good": 0.1,
+        "warning": 0.25
+      }
+    }
+  },
+  "timestamp": "2025-09-19T02:02:34.917Z",
+  "overallScore": {
+    "score": null,
+    "breakdown": {
+      "bundleSize": null,
+      "renderPerformance": 25,
+      "loadTime": 39
+    },
+    "grade": "F"
+  }
+}

@@ -1,0 +1,1115 @@
+/* Enterprise Dashboard Color Scheme and Styling - Investment Banker Grade */
+
+:root {
+  /* Enterprise tier color system - Complete from story 11.7 lines 439-461 */
+  --tier-enterprise: #2c1810;        /* Deep brown for enterprise */
+  --tier-enterprise-light: #3d2317;
+  --tier-enterprise-accent: #8b4513;
+  --tier-enterprise-muted: #a0522d;
+
+  /* Strategic dashboard colors */
+  --enterprise-primary: #1a365d;     /* Navy blue for strategic elements */
+  --enterprise-success: #1a5d3a;     /* Forest green for positive scenarios */
+  --enterprise-warning: #b45309;     /* Amber for moderate risk */
+  --enterprise-danger: #7f1d1d;      /* Dark red for high risk */
+  --enterprise-info: #1e3a8a;        /* Royal blue for insights */
+
+  /* Advanced visualization colors */
+  --scenario-base: #374151;          /* Base case scenario */
+  --scenario-optimistic: #059669;    /* Optimistic scenario */
+  --scenario-conservative: #dc2626;  /* Conservative scenario */
+  --scenario-custom: #7c3aed;        /* Custom scenarios */
+  --scenario-digital: #0891b2;       /* Digital transformation */
+  --scenario-acquisition: #ea580c;   /* Acquisition strategy */
+
+  /* Risk level colors */
+  --risk-low: #10b981;
+  --risk-medium: #f59e0b;
+  --risk-high: #ef4444;
+
+  /* Interactive elements */
+  --enterprise-hover: #4a5568;
+  --enterprise-focus: #2d3748;
+  --enterprise-border: #e2e8f0;
+  --enterprise-bg-light: #f8fafc;
+  --enterprise-bg-dark: #1a202c;
+
+  /* Board room presentation colors */
+  --boardroom-gold: #d4af37;         /* Premium gold accents */
+  --boardroom-platinum: #e5e4e2;     /* Platinum highlights */
+  --boardroom-charcoal: #36454f;     /* Executive charcoal */
+  --boardroom-navy: #000080;         /* Deep navy */
+  --boardroom-crimson: #8b0000;      /* Executive red */
+
+  /* High-resolution display optimizations */
+  --hr-shadow-light: 0 2px 4px rgba(0, 0, 0, 0.06);
+  --hr-shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --hr-shadow-heavy: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --hr-border-width: 0.5px;
+  --hr-text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+
+  /* Professional typography scales */
+  --font-scale-executive: 1.25;
+  --font-scale-board: 1.125;
+  --font-scale-detail: 0.875;
+  --line-height-executive: 1.4;
+  --line-height-board: 1.5;
+  --letter-spacing-executive: -0.025em;
+}
+
+/* Dark mode enterprise colors */
+:root[data-theme="dark"] {
+  --tier-enterprise: #4a3426;
+  --tier-enterprise-light: #5c422f;
+  --tier-enterprise-accent: #a0643b;
+  --tier-enterprise-muted: #b8744a;
+
+  --enterprise-primary: #2563eb;
+  --enterprise-success: #22c55e;
+  --enterprise-warning: #f59e0b;
+  --enterprise-danger: #ef4444;
+  --enterprise-info: #3b82f6;
+
+  --enterprise-bg-light: #0f172a;
+  --enterprise-bg-dark: #020617;
+  --enterprise-border: #334155;
+  --enterprise-hover: #64748b;
+  --enterprise-focus: #475569;
+
+  --boardroom-gold: #fbbf24;
+  --boardroom-platinum: #f1f5f9;
+  --boardroom-charcoal: #1e293b;
+  --boardroom-navy: #1e40af;
+  --boardroom-crimson: #dc2626;
+}
+
+/* Enterprise tier specific styling */
+.border-tier-enterprise {
+  border-color: var(--tier-enterprise);
+}
+
+.text-tier-enterprise {
+  color: var(--tier-enterprise);
+}
+
+.bg-tier-enterprise {
+  background-color: var(--tier-enterprise);
+}
+
+/* Strategic scenario styling */
+.scenario-matrix-container {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-radius: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.scenario-card {
+  transition: all 0.3s ease;
+  border: 1px solid var(--enterprise-border);
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.scenario-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  border-color: var(--tier-enterprise);
+}
+
+.scenario-card.selected {
+  border-color: var(--tier-enterprise);
+  background: rgba(44, 24, 16, 0.02);
+  box-shadow: 0 8px 12px -2px rgba(44, 24, 16, 0.15);
+}
+
+/* Risk level indicators */
+.risk-indicator {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.risk-low {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: var(--risk-low);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.risk-medium {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: var(--risk-medium);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.risk-high {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--risk-high);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* ROI indicators */
+.roi-positive {
+  color: var(--enterprise-success);
+  font-weight: 600;
+}
+
+.roi-negative {
+  color: var(--enterprise-danger);
+  font-weight: 600;
+}
+
+/* Chart styling */
+.enterprise-chart {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid var(--enterprise-border);
+}
+
+.chart-tooltip {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--enterprise-border);
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(8px);
+}
+
+/* Strategic recommendations */
+.recommendation-card {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border: 1px solid #3b82f6;
+  border-radius: 12px;
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.recommendation-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+}
+
+.risk-assessment-card {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 1px solid #f59e0b;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.mitigation-card {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  border: 1px solid #10b981;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+/* Interactive controls */
+.scenario-selector {
+  border: 2px solid var(--enterprise-border);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.scenario-selector:hover {
+  border-color: var(--tier-enterprise);
+  background-color: rgba(44, 24, 16, 0.02);
+}
+
+.scenario-selector.active {
+  border-color: var(--tier-enterprise);
+  background-color: rgba(44, 24, 16, 0.05);
+  box-shadow: 0 0 0 3px rgba(44, 24, 16, 0.1);
+}
+
+/* Progress indicators */
+.enterprise-progress {
+  background: linear-gradient(90deg,
+    var(--enterprise-success) 0%,
+    var(--enterprise-warning) 50%,
+    var(--enterprise-danger) 100%);
+  border-radius: 8px;
+  height: 8px;
+  overflow: hidden;
+}
+
+/* Monte Carlo simulation styling */
+.monte-carlo-container {
+  background: linear-gradient(135deg, #fefefe 0%, #f9fafb 100%);
+  border: 1px solid var(--enterprise-border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.confidence-interval {
+  background: rgba(44, 24, 16, 0.05);
+  border-left: 4px solid var(--tier-enterprise);
+  padding: 12px;
+  border-radius: 0 8px 8px 0;
+  margin: 8px 0;
+}
+
+/* Sensitivity analysis */
+.sensitivity-chart {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid var(--enterprise-border);
+  overflow: hidden;
+}
+
+/* Tab styling for enterprise */
+.enterprise-tabs .tab-trigger {
+  background: transparent;
+  border: 1px solid var(--enterprise-border);
+  color: var(--tier-enterprise);
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.enterprise-tabs .tab-trigger:hover {
+  background: rgba(44, 24, 16, 0.05);
+  border-color: var(--tier-enterprise);
+}
+
+.enterprise-tabs .tab-trigger[data-state="active"] {
+  background: var(--tier-enterprise);
+  color: white;
+  border-color: var(--tier-enterprise);
+}
+
+/* Table styling */
+.enterprise-table {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--enterprise-border);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.enterprise-table th {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  color: var(--tier-enterprise);
+  font-weight: 600;
+  padding: 16px;
+  border-bottom: 2px solid var(--enterprise-border);
+}
+
+.enterprise-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--enterprise-border);
+}
+
+.enterprise-table tr:hover {
+  background: rgba(44, 24, 16, 0.02);
+}
+
+/* Responsive design for enterprise dashboards */
+@media (max-width: 768px) {
+  .scenario-matrix-container {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .scenario-card {
+    margin-bottom: 16px;
+  }
+
+  .enterprise-chart {
+    padding: 12px;
+  }
+}
+
+/* Animation for loading states */
+@keyframes enterprise-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.enterprise-loading {
+  animation: enterprise-pulse 2s ease-in-out infinite;
+}
+
+/* Board Room Presentation Mode */
+.boardroom-mode {
+  --presentation-scale: 1.2;
+  --presentation-spacing: 1.5;
+  font-size: calc(1rem * var(--presentation-scale));
+  line-height: var(--line-height-board);
+  letter-spacing: var(--letter-spacing-executive);
+}
+
+.boardroom-mode .enterprise-dashboard {
+  max-width: none;
+  padding: calc(2rem * var(--presentation-spacing));
+  background: linear-gradient(135deg, #fafcff 0%, #f0f4f8 100%);
+  min-height: 100vh;
+}
+
+.boardroom-mode .dashboard-header {
+  text-align: center;
+  margin-bottom: calc(3rem * var(--presentation-spacing));
+  padding: calc(2rem * var(--presentation-spacing));
+  background: linear-gradient(135deg, var(--boardroom-navy) 0%, var(--tier-enterprise) 100%);
+  color: white;
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.boardroom-mode .dashboard-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--boardroom-gold), var(--boardroom-platinum), var(--boardroom-gold));
+}
+
+.boardroom-mode .dashboard-title {
+  font-size: calc(2.5rem * var(--font-scale-executive));
+  font-weight: 700;
+  margin-bottom: 1rem;
+  text-shadow: var(--hr-text-shadow);
+}
+
+.boardroom-mode .dashboard-subtitle {
+  font-size: calc(1.25rem * var(--font-scale-board));
+  opacity: 0.9;
+  font-weight: 400;
+}
+
+.boardroom-mode .scenario-card {
+  transform: scale(1.05);
+  margin: calc(1.5rem * var(--presentation-spacing));
+  box-shadow: var(--hr-shadow-heavy);
+  border: var(--hr-border-width) solid var(--tier-enterprise);
+}
+
+.boardroom-mode .chart-container {
+  margin: calc(2rem * var(--presentation-spacing)) 0;
+  padding: calc(1.5rem * var(--presentation-spacing));
+  background: white;
+  border-radius: 16px;
+  box-shadow: var(--hr-shadow-heavy);
+  border: var(--hr-border-width) solid var(--enterprise-border);
+}
+
+/* High-Resolution Display Optimization */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .enterprise-dashboard {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  .scenario-card,
+  .enterprise-chart,
+  .recommendation-card {
+    border-width: var(--hr-border-width);
+    box-shadow: var(--hr-shadow-medium);
+  }
+
+  .enterprise-table th,
+  .enterprise-table td {
+    border-width: var(--hr-border-width);
+  }
+
+  .chart-elements {
+    shape-rendering: geometricPrecision;
+  }
+
+  .text-enterprise-title {
+    text-shadow: var(--hr-text-shadow);
+  }
+}
+
+/* 4K and Ultra-High Resolution */
+@media (min-width: 2560px) {
+  .enterprise-dashboard {
+    --base-font-size: 18px;
+    font-size: var(--base-font-size);
+  }
+
+  .scenario-matrix-container {
+    padding: 32px;
+  }
+
+  .enterprise-chart {
+    padding: 24px;
+  }
+
+  .dashboard-grid {
+    gap: 32px;
+  }
+}
+
+/* Professional Export Formatting */
+.export-mode {
+  background: white !important;
+  color: #000 !important;
+  font-family: 'Times New Roman', serif;
+  line-height: 1.6;
+}
+
+.export-mode .dashboard-header {
+  background: white !important;
+  color: var(--tier-enterprise) !important;
+  border: 2px solid var(--tier-enterprise);
+  text-align: center;
+  padding: 32px;
+  margin-bottom: 32px;
+}
+
+.export-mode .scenario-card {
+  background: white !important;
+  border: 1px solid var(--tier-enterprise);
+  box-shadow: none !important;
+  margin-bottom: 24px;
+  page-break-inside: avoid;
+}
+
+.export-mode .enterprise-chart {
+  background: white !important;
+  border: 1px solid var(--tier-enterprise);
+  box-shadow: none !important;
+  page-break-inside: avoid;
+}
+
+.export-mode .chart-title {
+  color: var(--tier-enterprise) !important;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.export-mode .watermark {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  opacity: 0.3;
+  font-size: 12px;
+  color: var(--tier-enterprise);
+}
+
+/* Dark Mode Support for Enterprise Users */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --enterprise-bg-light: var(--enterprise-bg-dark);
+    --enterprise-border: var(--enterprise-focus);
+  }
+
+  .scenario-matrix-container {
+    background: linear-gradient(135deg, var(--enterprise-bg-dark) 0%, var(--boardroom-charcoal) 100%);
+  }
+
+  .scenario-card {
+    background: var(--enterprise-bg-light);
+    border-color: var(--enterprise-border);
+    color: var(--boardroom-platinum);
+  }
+
+  .enterprise-chart {
+    background: var(--enterprise-bg-light);
+    border-color: var(--enterprise-border);
+  }
+
+  .recommendation-card {
+    background: linear-gradient(135deg, var(--boardroom-charcoal) 0%, var(--enterprise-bg-dark) 100%);
+    border-color: var(--enterprise-info);
+    color: var(--boardroom-platinum);
+  }
+
+  .risk-assessment-card {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%);
+    border-color: var(--enterprise-warning);
+  }
+
+  .mitigation-card {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%);
+    border-color: var(--enterprise-success);
+  }
+}
+
+/* Enhanced Print Styles for Board Reports */
+@media print {
+  @page {
+    size: A4;
+    margin: 0.75in;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .enterprise-dashboard {
+    background: white !important;
+    box-shadow: none !important;
+  }
+
+  .scenario-matrix-container {
+    box-shadow: none;
+    border: 2px solid var(--tier-enterprise);
+    background: white !important;
+    page-break-inside: avoid;
+    margin-bottom: 20px;
+  }
+
+  .scenario-card {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid var(--tier-enterprise);
+    background: white !important;
+    margin-bottom: 16px;
+  }
+
+  .enterprise-chart {
+    break-inside: avoid;
+    background: white !important;
+    border: 1px solid var(--tier-enterprise);
+    box-shadow: none;
+  }
+
+  .boardroom-mode .dashboard-header {
+    background: white !important;
+    color: var(--tier-enterprise) !important;
+    border: 3px solid var(--tier-enterprise);
+    page-break-after: avoid;
+  }
+
+  .chart-container {
+    page-break-inside: avoid;
+    margin: 16px 0;
+  }
+
+  .recommendation-card,
+  .risk-assessment-card,
+  .mitigation-card {
+    background: white !important;
+    border: 1px solid var(--tier-enterprise);
+    box-shadow: none;
+    page-break-inside: avoid;
+  }
+
+  .enterprise-table {
+    page-break-inside: avoid;
+    background: white !important;
+  }
+
+  .page-header {
+    position: running(header);
+    text-align: center;
+    font-weight: 600;
+    color: var(--tier-enterprise);
+    border-bottom: 1px solid var(--tier-enterprise);
+    padding-bottom: 8px;
+  }
+
+  .page-footer {
+    position: running(footer);
+    text-align: center;
+    font-size: 12px;
+    color: var(--tier-enterprise);
+    border-top: 1px solid var(--tier-enterprise);
+    padding-top: 8px;
+  }
+
+  .confidential-watermark {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    font-size: 48px;
+    opacity: 0.05;
+    color: var(--tier-enterprise);
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  /* Hide interactive elements in print */
+  .interactive-controls,
+  .scenario-selector,
+  .tab-triggers,
+  button,
+  input,
+  select {
+    display: none !important;
+  }
+
+  /* Ensure charts are visible */
+  .chart-svg,
+  .chart-canvas {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+}
+
+/* Executive Summary Print Layout */
+@media print and (orientation: portrait) {
+  .executive-summary {
+    page-break-before: always;
+    margin-top: 0;
+  }
+
+  .key-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    page-break-inside: avoid;
+  }
+
+  .financial-projections {
+    page-break-before: always;
+  }
+
+  .strategic-recommendations {
+    page-break-before: always;
+  }
+}
+
+/* Landscape orientation for wide charts */
+@media print and (orientation: landscape) {
+  .wide-chart-container {
+    width: 100%;
+    height: auto;
+    page-break-inside: avoid;
+  }
+
+  .scenario-comparison-matrix {
+    width: 100%;
+    font-size: 12px;
+  }
+}
+
+/* C-Suite Executive Styling */
+.c-suite-mode {
+  --executive-scale: 1.4;
+  --executive-margin: 2.5rem;
+  --executive-padding: 2rem;
+}
+
+.c-suite-mode .enterprise-dashboard {
+  background: linear-gradient(135deg, #fefefe 0%, #f8fafc 50%, #f1f5f9 100%);
+  position: relative;
+}
+
+.c-suite-mode .enterprise-dashboard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: linear-gradient(90deg,
+    var(--boardroom-gold) 0%,
+    var(--boardroom-navy) 25%,
+    var(--tier-enterprise) 50%,
+    var(--boardroom-navy) 75%,
+    var(--boardroom-gold) 100%);
+  z-index: 1;
+}
+
+.c-suite-mode .dashboard-title {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: calc(3rem * var(--executive-scale));
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  color: var(--tier-enterprise);
+  text-align: center;
+  margin: var(--executive-margin) 0;
+  position: relative;
+}
+
+.c-suite-mode .dashboard-title::after {
+  content: '';
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--boardroom-gold), transparent);
+}
+
+.c-suite-mode .strategic-summary {
+  background: linear-gradient(135deg, rgba(26, 54, 93, 0.02) 0%, rgba(44, 24, 16, 0.02) 100%);
+  border: 1px solid var(--tier-enterprise);
+  border-radius: 20px;
+  padding: var(--executive-padding);
+  margin: var(--executive-margin) 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.c-suite-mode .strategic-summary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, var(--boardroom-gold), var(--tier-enterprise));
+}
+
+/* Advanced Typography Hierarchy */
+.enterprise-h1 {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: calc(2.5rem * var(--font-scale-executive));
+  font-weight: 300;
+  letter-spacing: var(--letter-spacing-executive);
+  line-height: var(--line-height-executive);
+  color: var(--tier-enterprise);
+  margin-bottom: 1.5rem;
+}
+
+.enterprise-h2 {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: calc(2rem * var(--font-scale-board));
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  line-height: var(--line-height-board);
+  color: var(--tier-enterprise);
+  margin-bottom: 1.25rem;
+}
+
+.enterprise-h3 {
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: calc(1.5rem * var(--font-scale-board));
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--tier-enterprise);
+  margin-bottom: 1rem;
+}
+
+.enterprise-body {
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--boardroom-charcoal);
+  letter-spacing: 0.01em;
+}
+
+.enterprise-caption {
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: calc(0.875rem * var(--font-scale-detail));
+  line-height: 1.5;
+  color: var(--tier-enterprise-muted);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+/* Professional Visual Hierarchy */
+.strategic-metric-card {
+  background: white;
+  border: var(--hr-border-width) solid var(--enterprise-border);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: var(--hr-shadow-medium);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.strategic-metric-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg,
+    var(--scenario-optimistic) 0%,
+    var(--boardroom-gold) 50%,
+    var(--scenario-conservative) 100%);
+  opacity: 0.8;
+}
+
+.strategic-metric-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--hr-shadow-heavy);
+  border-color: var(--tier-enterprise);
+}
+
+.metric-value {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 2.5rem;
+  font-weight: 300;
+  color: var(--tier-enterprise);
+  line-height: 1.2;
+  margin-bottom: 0.5rem;
+}
+
+.metric-label {
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--tier-enterprise-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+}
+
+.metric-change {
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.metric-change.positive {
+  color: var(--enterprise-success);
+}
+
+.metric-change.negative {
+  color: var(--enterprise-danger);
+}
+
+.metric-change.neutral {
+  color: var(--tier-enterprise-muted);
+}
+
+/* Advanced Chart Styling */
+.enterprise-chart-container {
+  background: white;
+  border-radius: 16px;
+  border: var(--hr-border-width) solid var(--enterprise-border);
+  box-shadow: var(--hr-shadow-medium);
+  padding: 24px;
+  margin: 24px 0;
+  position: relative;
+}
+
+.enterprise-chart-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 24px;
+  right: 24px;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    var(--tier-enterprise) 20%,
+    var(--tier-enterprise) 80%,
+    transparent 100%);
+  opacity: 0.3;
+}
+
+.chart-header {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--enterprise-border);
+}
+
+.chart-title {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 1.5rem;
+  font-weight: 400;
+  color: var(--tier-enterprise);
+  margin-bottom: 0.5rem;
+}
+
+.chart-subtitle {
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 0.875rem;
+  color: var(--tier-enterprise-muted);
+  line-height: 1.5;
+}
+
+/* Executive Data Table Styling */
+.executive-data-table {
+  width: 100%;
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  border: var(--hr-border-width) solid var(--enterprise-border);
+  box-shadow: var(--hr-shadow-medium);
+}
+
+.executive-data-table thead {
+  background: linear-gradient(135deg, var(--tier-enterprise) 0%, var(--tier-enterprise-light) 100%);
+}
+
+.executive-data-table th {
+  padding: 16px 20px;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+  text-align: left;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+  border: none;
+}
+
+.executive-data-table td {
+  padding: 16px 20px;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 0.9rem;
+  color: var(--boardroom-charcoal);
+  border-bottom: 1px solid var(--enterprise-border);
+  transition: background-color 0.2s ease;
+}
+
+.executive-data-table tr:hover td {
+  background-color: rgba(44, 24, 16, 0.02);
+}
+
+.executive-data-table .numeric-cell {
+  text-align: right;
+  font-family: 'Monaco', 'Menlo', monospace;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Strategic Alert Banners */
+.strategic-alert {
+  background: linear-gradient(135deg,
+    rgba(26, 54, 93, 0.05) 0%,
+    rgba(44, 24, 16, 0.05) 100%);
+  border: 1px solid var(--enterprise-info);
+  border-left: 4px solid var(--enterprise-info);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 24px 0;
+  position: relative;
+}
+
+.strategic-alert.warning {
+  background: linear-gradient(135deg,
+    rgba(180, 83, 9, 0.05) 0%,
+    rgba(245, 158, 11, 0.05) 100%);
+  border-color: var(--enterprise-warning);
+  border-left-color: var(--enterprise-warning);
+}
+
+.strategic-alert.success {
+  background: linear-gradient(135deg,
+    rgba(26, 93, 58, 0.05) 0%,
+    rgba(16, 185, 129, 0.05) 100%);
+  border-color: var(--enterprise-success);
+  border-left-color: var(--enterprise-success);
+}
+
+.strategic-alert.danger {
+  background: linear-gradient(135deg,
+    rgba(127, 29, 29, 0.05) 0%,
+    rgba(239, 68, 68, 0.05) 100%);
+  border-color: var(--enterprise-danger);
+  border-left-color: var(--enterprise-danger);
+}
+
+.alert-title {
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--tier-enterprise);
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.alert-content {
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--boardroom-charcoal);
+}
+
+/* Investment Grade Buttons */
+.enterprise-button {
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: var(--hr-border-width) solid var(--tier-enterprise);
+  background: white;
+  color: var(--tier-enterprise);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.enterprise-button:hover {
+  background: var(--tier-enterprise);
+  color: white;
+  box-shadow: var(--hr-shadow-medium);
+  transform: translateY(-1px);
+}
+
+.enterprise-button:active {
+  transform: translateY(0);
+  box-shadow: var(--hr-shadow-light);
+}
+
+.enterprise-button.primary {
+  background: var(--tier-enterprise);
+  color: white;
+}
+
+.enterprise-button.primary:hover {
+  background: var(--tier-enterprise-light);
+  box-shadow: var(--hr-shadow-heavy);
+}
+
+/* Accessibility Enhancements for Enterprise */
+@media (prefers-reduced-motion: reduce) {
+  .scenario-card,
+  .strategic-metric-card,
+  .enterprise-button {
+    transition: none;
+  }
+
+  .enterprise-loading {
+    animation: none;
+  }
+}
+
+@media (prefers-contrast: high) {
+  :root {
+    --tier-enterprise: #000000;
+    --enterprise-border: #000000;
+    --enterprise-bg-light: #ffffff;
+    --boardroom-charcoal: #000000;
+  }
+
+  .scenario-card,
+  .enterprise-chart,
+  .strategic-metric-card {
+    border-width: 2px;
+  }
+}
+
+/* Focus management for keyboard navigation */
+.enterprise-dashboard :focus {
+  outline: 2px solid var(--tier-enterprise);
+  outline-offset: 2px;
+}
+
+.enterprise-dashboard :focus:not(:focus-visible) {
+  outline: none;
+}
+
+.enterprise-dashboard :focus-visible {
+  outline: 2px solid var(--tier-enterprise);
+  outline-offset: 2px;
+}

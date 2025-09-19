@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { clerkClient } from '@clerk/nextjs/server'
-import { auth } from '@clerk/nextjs'
+import { clerkClient, currentUser } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
 
 // Admin endpoint to set user subscription tier for testing
 export async function POST(request: NextRequest) {
   try {
     // Check if current user is admin (you can add your own admin check logic)
-    const { userId: adminId } = auth()
+    const user = await currentUser()
+    const adminId = user?.id
     if (!adminId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
