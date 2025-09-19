@@ -50,7 +50,7 @@ export default function GuidesPage() {
     if (user?.id) {
       loadGuides()
     }
-  }, [user?.id])
+  }, [user?.id, loadGuides])
 
   const loadGuides = async () => {
     if (!user?.id) return

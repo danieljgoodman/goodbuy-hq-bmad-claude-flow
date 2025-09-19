@@ -131,7 +131,7 @@ export default function KnowledgeBase() {
         <div className="space-y-4">
           {[
             {
-              title: "How to Prepare Financial Documents for Valuation",
+              title: 'How to Prepare Financial Documents for Valuation',
               description: "Learn what financial documents you need and how to organize them for the best results.",
               readTime: "5 min read",
               author: "GoodBuy HQ Team",
@@ -191,7 +191,7 @@ export default function KnowledgeBase() {
       {/* CTA Section */}
       <Card className="bg-muted">
         <CardContent className="p-8 text-center">
-          <h2 className="text-2xl font-bold mb-4">Can't find what you're looking for?</h2>
+          <h2 className="text-2xl font-bold mb-4">Can&apos;t find what you&apos;re looking for?</h2>
           <p className="text-muted-foreground mb-6">
             Our support team is ready to help you with any questions
           </p>

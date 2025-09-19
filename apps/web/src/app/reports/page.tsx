@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -41,9 +41,9 @@ export default function ReportsPage() {
       checkAccess()
       loadReportHistory()
     }
-  }, [user?.id])
+  }, [user?.id, checkAccess, loadReportHistory])
 
-  const checkAccess = async () => {
+  const checkAccess = useCallback(async () => {
     if (!user?.id) return
 
     try {
@@ -73,7 +73,7 @@ export default function ReportsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user?.id])
 
   const loadReportHistory = async () => {
     if (!user?.id) return

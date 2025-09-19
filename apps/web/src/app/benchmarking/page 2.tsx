@@ -54,7 +54,7 @@ export default function BenchmarkingPage() {
     if (user?.id) {
       checkAccess()
     }
-  }, [user?.id])
+  }, [user?.id, checkAccess])
 
   if (!user) {
     return (

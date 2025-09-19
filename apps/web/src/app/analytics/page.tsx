@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AnalyticsDashboard } from '@/components/analytics/dashboard/AnalyticsDashboard'
@@ -18,9 +18,9 @@ export default function AnalyticsPage() {
     if (user?.id) {
       checkAccess()
     }
-  }, [user?.id])
+  }, [user?.id, checkAccess])
 
-  const checkAccess = async () => {
+  const checkAccess = useCallback(async () => {
     if (!user?.id) return
 
     try {
@@ -49,7 +49,7 @@ export default function AnalyticsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user?.id])
 
   if (!user) {
     return (

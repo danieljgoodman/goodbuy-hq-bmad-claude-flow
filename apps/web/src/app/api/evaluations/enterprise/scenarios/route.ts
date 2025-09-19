@@ -142,7 +142,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    let result: any = {
+    const result: any = {
       scenarios: {},
       metadata: {
         projectionHorizon: scenarios.projectionHorizon,

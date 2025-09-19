@@ -178,7 +178,7 @@ export default function Home() {
                     <div className="text-center mb-8">
                       <h3 className="text-2xl font-bold text-foreground flex items-center justify-center gap-3">
                         <div className="w-3 h-3 bg-primary rounded-full animate-pulse"></div>
-                        What You'll Discover
+                        What You&apos;ll Discover
                         <div className="w-3 h-3 bg-primary rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
                       </h3>
                     </div>
@@ -188,7 +188,7 @@ export default function Home() {
                           <div className="w-3 h-3 bg-primary rounded-full"></div>
                         </div>
                         <div>
-                          <span className="font-semibold text-foreground text-lg">Your business's fair market value</span>
+                          <span className="font-semibold text-foreground text-lg">Your business&apos;s fair market value</span>
                           <p className="text-muted-foreground mt-1">Based on real market data and comparable sales</p>
                         </div>
                       </div>
@@ -591,7 +591,7 @@ export default function Home() {
               ].map((testimonial, index) => (
                 <div key={index} className="group bg-gradient-to-br from-card via-card to-secondary/30 rounded-3xl p-10 border border-border shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02]">
                   <div className="mb-8">
-                    <div className="text-primary text-4xl mb-4 font-serif opacity-60">"</div>
+                    <div className="text-primary text-4xl mb-4 font-serif opacity-60">&quot;</div>
                     <p className="text-foreground leading-relaxed font-medium text-lg">
                       {testimonial.quote}
                     </p>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -50,9 +50,9 @@ export default function GuidesPage() {
     if (user?.id) {
       loadGuides()
     }
-  }, [user?.id])
+  }, [user?.id, loadGuides])
 
-  const loadGuides = async () => {
+  const loadGuides = useCallback(async () => {
     if (!user?.id) return
 
     try {
@@ -72,7 +72,7 @@ export default function GuidesPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user?.id])
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty.toLowerCase()) {

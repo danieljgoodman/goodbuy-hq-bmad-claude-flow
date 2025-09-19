@@ -44,7 +44,7 @@ export default function MarketIntelligence() {
     if (user?.id) {
       checkAccess()
     }
-  }, [user?.id])
+  }, [user?.id, checkAccess])
 
   if (!user) {
     return (

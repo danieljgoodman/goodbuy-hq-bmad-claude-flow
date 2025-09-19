@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -52,9 +52,9 @@ export default function GuideDetailPage() {
     if (user?.id && params.guideId) {
       loadGuide()
     }
-  }, [user?.id, params.guideId])
+  }, [user?.id, params.guideId, loadGuide])
 
-  const loadGuide = async () => {
+  const loadGuide = useCallback(async () => {
     if (!user?.id || !params.guideId) return
 
     try {
@@ -80,7 +80,7 @@ export default function GuideDetailPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user?.id, params.guideId])
 
   const handleStepToggle = (stepId: string, completed: boolean) => {
     if (!guide) return
@@ -171,7 +171,7 @@ export default function GuideDetailPage() {
             <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">Guide not found</h3>
             <p className="text-gray-600">
-              The guide you're looking for doesn't exist or has been deleted.
+              The guide you&apos;re looking for doesn&apos;t exist or has been deleted.
             </p>
           </CardContent>
         </Card>

@@ -6,6 +6,9 @@
 import { authMiddleware } from '@clerk/nextjs'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { withSecurity } from '@/lib/security/middleware'
+import { ClerkTierIntegration } from '@/lib/auth/clerk-tier-integration'
+import type { SubscriptionTier } from '@/types/subscription'
 
 export default authMiddleware({
   // Public routes that don't require authentication
@@ -30,10 +33,21 @@ export default authMiddleware({
     '/static(.*)'
   ],
 
+  // Before auth hook for security middleware
+  async beforeAuth(request: NextRequest) {
+    // Apply security middleware to all requests
+    const securityResponse = await withSecurity(request);
+    if (securityResponse) {
+      return securityResponse; // Return early if security middleware blocks the request
+    }
+    return undefined; // Continue with normal auth flow
+  },
+
   // After auth hook for tier-based routing
   async afterAuth(auth, request: NextRequest) {
     const { userId, sessionClaims } = auth
     const pathname = request.nextUrl.pathname
+    const startTime = Date.now()
 
     // Redirect to sign-in if not authenticated on protected route
     if (!userId && !isPublicRoute(pathname)) {
@@ -47,9 +61,31 @@ export default authMiddleware({
       return NextResponse.next()
     }
 
-    // Get user tier from Clerk metadata
-    const userTier = (sessionClaims?.publicMetadata as any)?.subscriptionTier || 'free'
-    const subscriptionStatus = (sessionClaims?.publicMetadata as any)?.subscriptionStatus || 'active'
+    // Get enhanced user tier and permission context
+    let userTier: string = 'free'
+    let subscriptionStatus: string = 'active'
+    let permissionContext = null
+    let enrichedSession = null
+
+    try {
+      // Try to get enriched session data
+      enrichedSession = await ClerkTierIntegration.getEnrichedSession(userId)
+      permissionContext = await ClerkTierIntegration.getPermissionContext(userId)
+
+      if (enrichedSession) {
+        userTier = enrichedSession.tier.toLowerCase()
+        subscriptionStatus = enrichedSession.status.toLowerCase()
+      } else {
+        // Fallback to legacy metadata reading for backward compatibility
+        userTier = (sessionClaims?.publicMetadata as any)?.subscriptionTier || 'free'
+        subscriptionStatus = (sessionClaims?.publicMetadata as any)?.subscriptionStatus || 'active'
+      }
+    } catch (error) {
+      console.warn('Error getting enhanced session, falling back to legacy metadata:', error)
+      // Fallback to legacy metadata reading
+      userTier = (sessionClaims?.publicMetadata as any)?.subscriptionTier || 'free'
+      subscriptionStatus = (sessionClaims?.publicMetadata as any)?.subscriptionStatus || 'active'
+    }
 
     // Handle onboarding redirect for new users
     if (pathname !== '/onboarding' && !isOnboardingComplete(sessionClaims)) {
@@ -88,26 +124,98 @@ export default authMiddleware({
       return NextResponse.redirect(upgradeUrl)
     }
 
-    // Add tier information to headers for downstream use
+    // Add comprehensive tier and permission information to headers for downstream use
     const response = NextResponse.next()
+    const executionTime = Date.now() - startTime
+
+    // Basic authentication headers (backward compatibility)
     response.headers.set('x-user-id', userId)
     response.headers.set('x-user-tier', userTier)
     response.headers.set('x-subscription-status', subscriptionStatus)
 
-    // For API routes, add tier validation
+    // Enhanced permission context headers
+    if (permissionContext) {
+      response.headers.set('x-permission-context', JSON.stringify({
+        tier: permissionContext.tier,
+        features: permissionContext.features,
+        isAuthenticated: permissionContext.isAuthenticated,
+        sessionId: permissionContext.sessionId
+      }))
+      response.headers.set('x-user-features', JSON.stringify(permissionContext.features))
+      response.headers.set('x-tier-limits', JSON.stringify(permissionContext.limits))
+    }
+
+    // Performance and session metadata
+    if (enrichedSession) {
+      response.headers.set('x-session-enriched', 'true')
+      response.headers.set('x-is-trialing', enrichedSession.isTrialing.toString())
+      if (enrichedSession.trialEndsAt) {
+        response.headers.set('x-trial-ends-at', enrichedSession.trialEndsAt.toISOString())
+      }
+      if (enrichedSession.subscriptionEndsAt) {
+        response.headers.set('x-subscription-ends-at', enrichedSession.subscriptionEndsAt.toISOString())
+      }
+    }
+
+    // Performance monitoring
+    response.headers.set('x-middleware-execution-time', executionTime.toString())
+    response.headers.set('x-middleware-version', '2.0-enhanced')
+
+    // Enhanced API route validation with permission checking
     if (pathname.startsWith('/api/')) {
-      // Check API tier requirements
       const requiredTier = getApiRequiredTier(pathname)
+      const requiredFeature = getApiRequiredFeature(pathname)
+
+      // Check tier-based access
       if (requiredTier && !hasAccessToTier(userTier, requiredTier)) {
         return NextResponse.json(
           {
             error: 'Insufficient subscription tier',
             required: requiredTier,
             current: userTier,
-            upgrade_url: `/pricing?upgrade=${requiredTier}`
+            upgrade_url: `/pricing?upgrade=${requiredTier}`,
+            code: 'TIER_ACCESS_DENIED',
+            timestamp: new Date().toISOString()
           },
           { status: 403 }
         )
+      }
+
+      // Check feature-based access
+      if (requiredFeature && permissionContext) {
+        const hasFeatureAccess = permissionContext.features.includes(requiredFeature)
+        if (!hasFeatureAccess) {
+          return NextResponse.json(
+            {
+              error: 'Feature access denied',
+              required_feature: requiredFeature,
+              available_features: permissionContext.features,
+              current_tier: userTier,
+              upgrade_url: `/pricing?feature=${requiredFeature}`,
+              code: 'FEATURE_ACCESS_DENIED',
+              timestamp: new Date().toISOString()
+            },
+            { status: 403 }
+          )
+        }
+      }
+
+      // Rate limiting check for API routes
+      if (permissionContext) {
+        const rateLimitResult = await checkApiRateLimit(userId, pathname, permissionContext.limits)
+        if (!rateLimitResult.allowed) {
+          return NextResponse.json(
+            {
+              error: 'Rate limit exceeded',
+              limit: rateLimitResult.limit,
+              remaining: rateLimitResult.remaining,
+              reset_at: rateLimitResult.resetAt,
+              code: 'RATE_LIMIT_EXCEEDED',
+              timestamp: new Date().toISOString()
+            },
+            { status: 429 }
+          )
+        }
       }
     }
 
@@ -141,20 +249,10 @@ function isOnboardingComplete(sessionClaims: any): boolean {
 }
 
 /**
- * Get dashboard URL based on tier
+ * Get dashboard URL based on tier (backward compatible)
  */
 function getTierDashboardUrl(tier: string, baseUrl: string): URL | null {
-  const dashboardMap: Record<string, string> = {
-    'free': '/dashboard/basic',
-    'professional': '/dashboard/professional',
-    'enterprise': '/dashboard/enterprise'
-  }
-
-  const path = dashboardMap[tier]
-  if (path) {
-    return new URL(path, baseUrl)
-  }
-  return null
+  return getTierDashboardUrlEnhanced(tier, baseUrl)
 }
 
 /**
@@ -191,30 +289,137 @@ function isEnterpriseRoute(pathname: string): boolean {
 function getApiRequiredTier(pathname: string): string | null {
   if (pathname.startsWith('/api/evaluations/enterprise')) return 'enterprise'
   if (pathname.startsWith('/api/evaluations/professional')) return 'professional'
+  if (pathname.startsWith('/api/reports/enhanced')) return 'professional'
   if (pathname.startsWith('/api/reports/professional')) return 'professional'
+  if (pathname.startsWith('/api/reports/enterprise')) return 'enterprise'
   if (pathname.startsWith('/api/analytics/enterprise')) return 'enterprise'
+  if (pathname.startsWith('/api/analysis/tier-specific')) return 'free' // Tier-specific analysis available to all tiers
+  if (pathname.startsWith('/api/enterprise/')) return 'enterprise'
+  if (pathname.startsWith('/api/admin/')) return 'enterprise'
+  if (pathname.startsWith('/api/webhooks/stripe')) return null // Public webhook
   return null
 }
 
 /**
- * Check if user has access to required tier
+ * Get required feature for API route
+ */
+function getApiRequiredFeature(pathname: string): string | null {
+  if (pathname.startsWith('/api/evaluations/professional')) return 'professional_evaluation'
+  if (pathname.startsWith('/api/evaluations/enterprise')) return 'enterprise_evaluation'
+  if (pathname.startsWith('/api/reports/enhanced')) return 'pdf_reports'
+  if (pathname.startsWith('/api/reports/professional')) return 'pdf_reports'
+  if (pathname.startsWith('/api/reports/enterprise')) return 'enterprise_evaluation'
+  if (pathname.startsWith('/api/analytics/advanced')) return 'advanced_analytics'
+  if (pathname.startsWith('/api/analytics/enterprise')) return 'enterprise_evaluation'
+  if (pathname.startsWith('/api/ai/guides')) return 'ai_guides'
+  if (pathname.startsWith('/api/progress/tracking')) return 'progress_tracking'
+  if (pathname.startsWith('/api/export/')) return 'export_data'
+  if (pathname.startsWith('/api/benchmarks/')) return 'benchmarks'
+  if (pathname.startsWith('/api/multi-user/')) return 'multi_user'
+  if (pathname.startsWith('/api/enterprise/branding')) return 'custom_branding'
+  return null
+}
+
+/**
+ * Check API rate limits based on user tier
+ */
+async function checkApiRateLimit(
+  userId: string,
+  pathname: string,
+  limits: Record<string, number>
+): Promise<{ allowed: boolean; limit: number; remaining: number; resetAt: string }> {
+  // Implement rate limiting logic based on tier limits
+  // This is a simplified implementation - enhance based on specific needs
+
+  const defaultLimits = {
+    '/api/evaluations': limits.monthlyEvaluations || 10,
+    '/api/reports': limits.monthlyReports || 5,
+    '/api/analytics': limits.apiCalls || 100
+  }
+
+  // Find matching limit
+  let limit = 1000 // Default high limit
+  for (const [path, pathLimit] of Object.entries(defaultLimits)) {
+    if (pathname.startsWith(path)) {
+      limit = pathLimit
+      break
+    }
+  }
+
+  // For now, always allow (implement actual rate limiting as needed)
+  return {
+    allowed: true,
+    limit,
+    remaining: limit - 1,
+    resetAt: new Date(Date.now() + 60 * 60 * 1000).toISOString() // 1 hour from now
+  }
+}
+
+/**
+ * Check if user has access to required tier (enhanced with better mapping)
  */
 function hasAccessToTier(userTier: string, requiredTier: string): boolean {
   const tierHierarchy: Record<string, number> = {
     'free': 0,
+    'basic': 0,
     'professional': 1,
     'premium': 1, // Alias for professional
     'enterprise': 2
   }
 
-  const userLevel = tierHierarchy[userTier] ?? 0
-  const requiredLevel = tierHierarchy[requiredTier] ?? 0
+  const userLevel = tierHierarchy[userTier.toLowerCase()] ?? 0
+  const requiredLevel = tierHierarchy[requiredTier.toLowerCase()] ?? 0
 
   return userLevel >= requiredLevel
 }
 
 /**
- * Middleware configuration
+ * Check if user's subscription is in good standing
+ */
+function isSubscriptionActive(status: string): boolean {
+  const activeStatuses = ['active', 'trialing']
+  return activeStatuses.includes(status.toLowerCase())
+}
+
+/**
+ * Get dashboard route based on tier with fallback handling
+ */
+function getTierDashboardUrlEnhanced(tier: string, baseUrl: string): URL | null {
+  const dashboardMap: Record<string, string> = {
+    'free': '/dashboard/basic',
+    'basic': '/dashboard/basic',
+    'professional': '/dashboard/professional',
+    'enterprise': '/dashboard/enterprise'
+  }
+
+  const path = dashboardMap[tier.toLowerCase()] || '/dashboard/basic'
+  return new URL(path, baseUrl)
+}
+
+/**
+ * Session validation and integrity checking
+ */
+async function validateSessionIntegrity(userId: string): Promise<boolean> {
+  try {
+    const validation = await ClerkTierIntegration.validateSessionIntegrity(userId)
+    if (!validation.isValid) {
+      console.warn(`Session integrity issues for user ${userId}:`, validation.issues)
+      // Handle recommendations automatically where possible
+      for (const recommendation of validation.recommendations) {
+        if (recommendation.includes('Refresh session')) {
+          await ClerkTierIntegration.refreshUserSession(userId)
+        }
+      }
+    }
+    return validation.isValid
+  } catch (error) {
+    console.error('Session validation error:', error)
+    return false
+  }
+}
+
+/**
+ * Enhanced middleware configuration with performance optimizations
  */
 export const config = {
   matcher: [
@@ -224,7 +429,10 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - public folder
+     * - api/webhooks/stripe (public webhooks)
      */
-    '/((?!_next/static|_next/image|favicon.ico|public).*)',
+    '/((?!_next/static|_next/image|favicon.ico|public|api/webhooks/stripe).*)',
   ],
+  // Enable edge runtime for better performance
+  runtime: 'nodejs'
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -29,7 +29,7 @@ export default function ProgressTracking() {
   const [showFullGuide, setShowFullGuide] = useState(false)
   const [selectedGuide, setSelectedGuide] = useState<any>(null)
 
-  const checkAccess = async () => {
+  const checkAccess = useCallback(async () => {
     if (!user?.id) return
     
     try {
@@ -60,9 +60,9 @@ export default function ProgressTracking() {
       console.error('Error checking access:', error)
       setHasAccess(false)
     }
-  }
+  }, [user?.id])
 
-  const loadGuides = async () => {
+  const loadGuides = useCallback(async () => {
     if (!user?.id) return
     
     try {
@@ -82,7 +82,7 @@ export default function ProgressTracking() {
     } finally {
       setGuidesLoading(false)
     }
-  }
+  }, [user?.id])
 
   const loadEvaluations = async () => {
     if (!user?.id) return
@@ -203,7 +203,7 @@ export default function ProgressTracking() {
     if (user?.id) {
       checkAccess()
     }
-  }, [user?.id])
+  }, [user?.id, checkAccess, loadReportHistory])
 
   useEffect(() => {
     console.log('🔍 useEffect triggered, isClient:', isClient)

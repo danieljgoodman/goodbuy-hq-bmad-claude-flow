@@ -372,3 +372,4 @@ export async function detectSuspiciousActivity(
 
 // Export aliases for backward compatibility
 export { createAuditLog as createAuditLogEntry };
+export { createAuditLog as logAuditEvent };

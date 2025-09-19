@@ -1,5 +1,5 @@
 import puppeteer from 'puppeteer'
-import { ChartJSNodeCanvas } from 'chartjs-node-canvas'
+// Dynamic import will be handled at runtime
 import { Chart, ChartConfiguration } from 'chart.js/auto'
 import fs from 'fs/promises'
 import path from 'path'
@@ -46,17 +46,31 @@ export interface PDFReportData {
 }
 
 export class PDFGenerationService {
-  private static chartRenderer: ChartJSNodeCanvas | null = null
+  private static chartRenderer: any = null
+  private static initPromise: Promise<void> | null = null
 
-  private static getChartRenderer(): ChartJSNodeCanvas {
-    if (!this.chartRenderer) {
+  private static async getChartRenderer(): Promise<any> {
+    if (!this.initPromise) {
+      this.initPromise = this.initializeChartRenderer();
+    }
+    await this.initPromise;
+    return this.chartRenderer;
+  }
+
+  private static async initializeChartRenderer(): Promise<void> {
+    if (this.chartRenderer) return;
+    if (typeof window !== 'undefined') return;
+
+    try {
+      const { ChartJSNodeCanvas } = await import('chartjs-node-canvas');
       this.chartRenderer = new ChartJSNodeCanvas({
         width: 800,
         height: 400,
         backgroundColour: 'white'
       })
+    } catch (error) {
+      console.warn('ChartJSNodeCanvas not available - charts will not be generated');
     }
-    return this.chartRenderer
   }
 
   static async generateChart(chartData: ChartData): Promise<Buffer> {
@@ -140,7 +154,11 @@ export class PDFGenerationService {
       }
     }
 
-    return await this.getChartRenderer().renderToBuffer(configuration)
+    const renderer = await this.getChartRenderer();
+    if (!renderer) {
+      return Buffer.from('<!-- Chart generation not available -->', 'utf-8');
+    }
+    return await renderer.renderToBuffer(configuration)
   }
 
   static async generateHTML(reportData: PDFReportData): Promise<string> {

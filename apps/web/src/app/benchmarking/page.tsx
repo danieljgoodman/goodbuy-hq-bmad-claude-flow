@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -21,7 +21,7 @@ export default function BenchmarkingPage() {
   const { user } = useAuth()
   const [hasAccess, setHasAccess] = useState<boolean | null>(null)
 
-  const checkAccess = async () => {
+  const checkAccess = useCallback(async () => {
     if (!user?.id) return
     
     try {
@@ -47,14 +47,14 @@ export default function BenchmarkingPage() {
       console.error('Error checking access:', error)
       setHasAccess(false)
     }
-  }
+  }, [user?.id])
 
   // Check access on component mount
   useEffect(() => {
     if (user?.id) {
       checkAccess()
     }
-  }, [user?.id])
+  }, [user?.id, checkAccess])
 
   if (!user) {
     return (

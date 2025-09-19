@@ -160,7 +160,7 @@ export default function TestTiersPage() {
         <h3 className="font-semibold text-yellow-900 mb-2">📝 Testing Instructions</h3>
         <ol className="list-decimal list-inside space-y-1 text-sm text-yellow-800">
           <li>Click a tier button to select it</li>
-          <li>Click "Set Tier" to apply it to your account</li>
+          <li>Click &quot;Set Tier&quot; to apply it to your account</li>
           <li>The page will reload with your new tier</li>
           <li>Test accessing different dashboard pages</li>
           <li>Try accessing restricted features to see upgrade prompts</li>

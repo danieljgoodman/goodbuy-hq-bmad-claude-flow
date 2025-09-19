@@ -182,7 +182,7 @@ export default function EnterpriseQuestionnairePage() {
     } finally {
       setIsImporting(false)
     }
-  }, [user?.id, isImporting, progressHook])
+  }, [user?.id, isImporting, progressHook.importProfessionalData])
 
   // Load data on mount
   useEffect(() => {

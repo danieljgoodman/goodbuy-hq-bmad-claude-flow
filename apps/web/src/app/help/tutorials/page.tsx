@@ -38,7 +38,7 @@ export default function VideoTutorials() {
           <div className="grid md:grid-cols-2 gap-8 items-center">
             <div>
               <Badge className="mb-4">Featured Tutorial</Badge>
-              <h2 className="text-2xl font-bold mb-4">Complete Beginner's Guide to Business Valuation</h2>
+              <h2 className="text-2xl font-bold mb-4">Complete Beginner&apos;s Guide to Business Valuation</h2>
               <p className="text-muted-foreground mb-6">
                 Learn everything you need to know to create your first professional business valuation with GoodBuy HQ. This comprehensive tutorial covers all the basics.
               </p>

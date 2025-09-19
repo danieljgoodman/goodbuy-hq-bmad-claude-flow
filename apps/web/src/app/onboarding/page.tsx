@@ -282,7 +282,7 @@ export default function OnboardingPage() {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-foreground">Welcome to GoodBuy HQ!</h1>
           <p className="text-muted-foreground mt-2">
-            Let's get to know your business better
+            Let&apos;s get to know your business better
           </p>
         </div>
 

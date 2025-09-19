@@ -18,7 +18,7 @@ export default function AnalyticsPage() {
     if (user?.id) {
       checkAccess()
     }
-  }, [user?.id])
+  }, [user?.id, checkAccess])
 
   const checkAccess = async () => {
     if (!user?.id) return

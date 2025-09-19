@@ -132,7 +132,7 @@ export default function TestimonialSubmitPage() {
           </CardHeader>
           <CardContent className="text-center space-y-4">
             <p className="text-sm text-muted-foreground">
-              Your testimonial is now under review. We'll notify you once it's approved and published.
+              Your testimonial is now under review. We&apos;ll notify you once it&apos;s approved and published.
             </p>
             <div className="pt-4">
               <Button onClick={() => router.push('/dashboard')} className="w-full">
@@ -152,7 +152,7 @@ export default function TestimonialSubmitPage() {
           <CardHeader className="text-center">
             <CardTitle>No Success Story Yet</CardTitle>
             <CardDescription>
-              We'll reach out when you have significant improvements to share!
+              We&apos;ll reach out when you have significant improvements to share!
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center">
@@ -391,7 +391,7 @@ export default function TestimonialSubmitPage() {
                     <div className="bg-gray-50 p-4 rounded-lg border-t">
                       <h4 className="font-medium mb-2">Preview:</h4>
                       <div className="text-sm italic">
-                        "{formData.content || 'Your testimonial will appear here...'}"
+                        &quot;{formData.content || 'Your testimonial will appear here...'}&quot;
                       </div>
                       {formData.content && (
                         <div className="text-xs text-muted-foreground mt-2">

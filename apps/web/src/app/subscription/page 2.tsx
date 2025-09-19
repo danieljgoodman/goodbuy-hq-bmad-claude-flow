@@ -300,7 +300,7 @@ export default function SubscriptionPage() {
                 {/* Feature Comparison */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>What's Included</CardTitle>
+                    <CardTitle>What&apos;s Included</CardTitle>
                     <CardDescription>
                       Compare features across our different plans
                     </CardDescription>
@@ -348,7 +348,7 @@ export default function SubscriptionPage() {
                     <div>
                       <h3 className="font-semibold">No Active Subscription</h3>
                       <p className="text-muted-foreground">
-                        You don't have an active subscription yet. Choose a plan to get started.
+                        You don&apos;t have an active subscription yet. Choose a plan to get started.
                       </p>
                     </div>
                     <Button onClick={() => setActiveTab('plans')}>

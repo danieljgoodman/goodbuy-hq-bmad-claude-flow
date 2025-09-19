@@ -33,7 +33,7 @@ export default function NotificationsPage() {
       type: 'success',
       icon: CheckCircle,
       title: 'Valuation Complete',
-      message: 'Your business valuation report for "ABC Manufacturing" is ready for review.',
+      message: 'Your business valuation report for &quot;ABC Manufacturing&quot; is ready for review.',
       time: '2 hours ago',
       read: false
     },
@@ -87,7 +87,7 @@ export default function NotificationsPage() {
                 Email Notifications
               </CardTitle>
               <CardDescription>
-                Choose which email notifications you'd like to receive
+                Choose which email notifications you&apos;d like to receive
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">

@@ -362,7 +362,7 @@ export default function Home() {
                   </div>
                   
                   <p className="text-base text-muted-foreground leading-relaxed italic">
-                    "{testimonial.content}"
+                    &quot;{testimonial.content}&quot;
                   </p>
                   
                   <div className="flex items-center gap-3 pt-4 border-t border-border/30">
