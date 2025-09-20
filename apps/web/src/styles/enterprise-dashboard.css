@@ -98,7 +98,7 @@
 
 /* Strategic scenario styling */
 .scenario-matrix-container {
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  background: linear-gradient(135deg, var(--background) 0%, var(--muted) 100%);
   border-radius: 16px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
@@ -202,15 +202,15 @@
 }
 
 .risk-assessment-card {
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  border: 1px solid #f59e0b;
+  background: linear-gradient(135deg, var(--warning-light) 0%, var(--warning) 100%);
+  border: 1px solid var(--warning);
   border-radius: 12px;
   padding: 16px;
 }
 
 .mitigation-card {
-  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-  border: 1px solid #10b981;
+  background: linear-gradient(135deg, var(--success-light) 0%, var(--success) 100%);
+  border: 1px solid var(--success);
   border-radius: 12px;
   padding: 16px;
 }
@@ -247,7 +247,7 @@
 
 /* Monte Carlo simulation styling */
 .monte-carlo-container {
-  background: linear-gradient(135deg, #fefefe 0%, #f9fafb 100%);
+  background: linear-gradient(135deg, var(--background) 0%, var(--gray-100) 100%);
   border: 1px solid var(--enterprise-border);
   border-radius: 12px;
   padding: 20px;
@@ -299,7 +299,7 @@
 }
 
 .enterprise-table th {
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  background: linear-gradient(135deg, var(--background) 0%, var(--muted) 100%);
   color: var(--tier-enterprise);
   font-weight: 600;
   padding: 16px;
@@ -357,7 +357,7 @@
 .boardroom-mode .enterprise-dashboard {
   max-width: none;
   padding: calc(2rem * var(--presentation-spacing));
-  background: linear-gradient(135deg, #fafcff 0%, #f0f4f8 100%);
+  background: linear-gradient(135deg, var(--background) 0%, var(--gray-100) 100%);
   min-height: 100vh;
 }
 
@@ -463,7 +463,7 @@
 /* Professional Export Formatting */
 .export-mode {
   background: white !important;
-  color: #000 !important;
+  color: var(--foreground) !important;
   font-family: 'Times New Roman', serif;
   line-height: 1.6;
 }
@@ -703,7 +703,7 @@
 }
 
 .c-suite-mode .enterprise-dashboard {
-  background: linear-gradient(135deg, #fefefe 0%, #f8fafc 50%, #f1f5f9 100%);
+  background: linear-gradient(135deg, var(--background) 0%, var(--gray-50) 50%, var(--gray-100) 100%);
   position: relative;
 }
 
@@ -1086,10 +1086,10 @@
 
 @media (prefers-contrast: high) {
   :root {
-    --tier-enterprise: #000000;
-    --enterprise-border: #000000;
-    --enterprise-bg-light: #ffffff;
-    --boardroom-charcoal: #000000;
+    --tier-enterprise: var(--foreground);
+    --enterprise-border: var(--border);
+    --enterprise-bg-light: var(--background);
+    --boardroom-charcoal: var(--foreground);
   }
 
   .scenario-card,

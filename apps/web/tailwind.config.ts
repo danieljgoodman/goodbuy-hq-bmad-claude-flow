@@ -49,12 +49,50 @@ const config: Config = {
           "4": "var(--chart-4)",
           "5": "var(--chart-5)",
         },
-        // Semantic chart colors for consistent business metrics
-        success: "var(--chart-1)", // Green for positive metrics
-        warning: "var(--chart-2)", // Orange/amber for caution
-        info: "var(--primary)",    // Primary blue for information
-        danger: "var(--destructive)", // Red for negative/risk
-        neutral: "var(--muted-foreground)", // Gray for neutral data
+        // Semantic colors for consistent business metrics
+        success: {
+          DEFAULT: "var(--success)",
+          light: "var(--success-light)",
+          dark: "var(--success-dark)",
+        },
+        warning: {
+          DEFAULT: "var(--warning)",
+          light: "var(--warning-light)",
+          dark: "var(--warning-dark)",
+        },
+        error: {
+          DEFAULT: "var(--error)",
+          light: "var(--error-light)",
+          dark: "var(--error-dark)",
+        },
+        info: {
+          DEFAULT: "var(--info)",
+          light: "var(--info-light)",
+          dark: "var(--info-dark)",
+        },
+        danger: "var(--error)",
+        neutral: "var(--muted-foreground)",
+        // Status colors
+        status: {
+          excellent: "var(--status-excellent)",
+          good: "var(--status-good)",
+          moderate: "var(--status-moderate)",
+          caution: "var(--status-caution)",
+          critical: "var(--status-critical)",
+        },
+        // Gray scale
+        gray: {
+          50: "var(--gray-50)",
+          100: "var(--gray-100)",
+          200: "var(--gray-200)",
+          300: "var(--gray-300)",
+          400: "var(--gray-400)",
+          500: "var(--gray-500)",
+          600: "var(--gray-600)",
+          700: "var(--gray-700)",
+          800: "var(--gray-800)",
+          900: "var(--gray-900)",
+        },
         sidebar: {
           DEFAULT: "var(--sidebar)",
           foreground: "var(--sidebar-foreground)",
