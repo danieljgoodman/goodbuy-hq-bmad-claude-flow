@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { currentUser } from '@clerk/nextjs';
+import { currentUser } from '@clerk/nextjs/server';
 import { rateLimit } from '@/lib/utils/rate-limit';
 import { validateAdminPermissions, getUserTierInfo } from '@/lib/admin/tier-admin-controls';
 import { AdminPermissionError } from '@/types/admin-controls';
@@ -10,13 +10,13 @@ const limiter = rateLimit({
   uniqueTokenPerInterval: 500,
 });
 
-// GET /api/admin/users/[userId]/tier-info - Get detailed tier information for a user
+// GET /api/admin/users/[id]/tier-info - Get detailed tier information for a user
 export async function GET(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: { id: string } }
 ): Promise<NextResponse> {
   try {
-    const { userId } = params;
+    const userId = params.id;
 
     if (!userId) {
       return NextResponse.json(

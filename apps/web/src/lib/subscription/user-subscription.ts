@@ -4,7 +4,7 @@
  */
 
 import { UserTier } from '@/lib/access-control/permission-matrix';
-import { auth } from '@clerk/nextjs';
+import { auth } from '@clerk/nextjs/server';
 
 export interface UserSubscriptionDetails {
   userId: string;

@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs';
+import { auth } from '@clerk/nextjs/server';
 import { getUserSubscriptionDetails, UserSubscriptionDetails } from '@/lib/subscription/user-subscription';
 import { checkPermission, trackUsage, UsageContext } from '@/lib/access-control/tier-access-control';
 import { TierPermissions, UserTier } from '@/lib/access-control/permission-matrix';

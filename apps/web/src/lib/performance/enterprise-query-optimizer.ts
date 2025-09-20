@@ -7,17 +7,10 @@ import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { type EnterpriseScenarioModel } from '@/types/enterprise-evaluation';
 
-// Initialize Redis for caching (if available)
-let redis: any = null;
-if (process.env.REDIS_URL && typeof window === 'undefined') {
-  try {
-    const { Redis } = require('ioredis');
-    redis = new Redis(process.env.REDIS_URL);
-  } catch {
-    // Redis not available, will use database only
-    console.log('Redis not available, using database-only mode');
-  }
-}
+import { getRedisClient, cache } from '@/lib/redis/client';
+
+// Get Redis client (will be null if not available)
+const redis = typeof window === 'undefined' ? getRedisClient() : null;
 
 // Cache configuration
 const CACHE_TTL = 300; // 5 minutes for complex calculations

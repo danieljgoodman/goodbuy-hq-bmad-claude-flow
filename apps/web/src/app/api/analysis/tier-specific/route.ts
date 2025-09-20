@@ -11,7 +11,7 @@ import { currentUser } from '@clerk/nextjs/server';
 import { z } from 'zod';
 import { Anthropic } from '@anthropic-ai/sdk';
 import { headers } from 'next/headers';
-import Redis from 'ioredis';
+import { cache, isRedisConnected } from '@/lib/redis/client';
 import crypto from 'crypto';
 
 // Import validation schemas and utilities
@@ -24,8 +24,7 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY!,
 });
 
-// Initialize Redis for rate limiting and caching
-const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
+// Redis is initialized in the client module with proper error handling
 
 // Request validation schema
 const AnalysisRequestSchema = z.object({
@@ -171,14 +170,16 @@ async function checkRateLimit(userId: string, tier: string): Promise<void> {
   const limits = RATE_LIMITS[tier as keyof typeof RATE_LIMITS];
   const key = `rate_limit:analysis:${userId}`;
 
-  const current = await redis.incr(key);
+  const currentStr = await cache.get(key) || '0';
+  const current = parseInt(currentStr) + 1;
+  await cache.set(key, current.toString());
 
   if (current === 1) {
-    await redis.expire(key, limits.window);
+    await cache.set(key, current.toString(), limits.window);
   }
 
   if (current > limits.requests) {
-    const ttl = await redis.ttl(key);
+    const ttl = 60; // Default TTL when Redis is not available
     throw new Error(`Rate limit exceeded. Try again in ${Math.ceil(ttl / 60)} minutes.`);
   }
 }
@@ -627,7 +628,7 @@ export async function POST(request: NextRequest) {
     const results = await generateAIAnalysis(validatedRequest, tier, userId);
 
     // Cache results
-    await redis.setex(
+    await cache.set(
       `analysis_results:${analysisId}`,
       7 * 24 * 60 * 60, // 7 days
       JSON.stringify(results)
@@ -741,7 +742,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Retrieve cached results
-    const cachedResults = await redis.get(`analysis_results:${analysisId}`);
+    const cachedResults = await cache.get(`analysis_results:${analysisId}`);
 
     if (!cachedResults) {
       return NextResponse.json({
@@ -783,7 +784,7 @@ async function processAnalysisAsync(
     const results = await generateAIAnalysis(request, tier, userId);
 
     // Cache results
-    await redis.setex(
+    await cache.set(
       `analysis_results:${analysisId}`,
       7 * 24 * 60 * 60, // 7 days
       JSON.stringify(results)

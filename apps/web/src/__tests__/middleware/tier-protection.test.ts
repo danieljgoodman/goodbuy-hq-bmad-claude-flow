@@ -29,7 +29,7 @@ jest.mock('../../lib/access-control/tier-access-control', () => ({
   trackUsage: jest.fn()
 }));
 
-import { auth } from '@clerk/nextjs';
+import { auth } from '@clerk/nextjs/server';
 import { getUserSubscriptionDetails } from '../../lib/subscription/user-subscription';
 import { createAuditLog } from '../../lib/audit/enterprise-audit-log';
 import { checkPermission, trackUsage } from '../../lib/access-control/tier-access-control';

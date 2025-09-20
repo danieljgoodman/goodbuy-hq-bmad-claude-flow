@@ -1,4 +1,4 @@
-import { currentUser } from '@clerk/nextjs';
+import { currentUser } from '@clerk/nextjs/server';
 // Supabase client - to be replaced with your database
 // import { createClient } from '@supabase/supabase-js';
 import {

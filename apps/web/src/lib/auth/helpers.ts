@@ -4,7 +4,7 @@
  * and authentication edge cases handling
  */
 
-import { auth, currentUser } from '@clerk/nextjs'
+import { auth, currentUser } from '@clerk/nextjs/server'
 import { cache } from 'react'
 import {
   ClerkTierIntegration,
