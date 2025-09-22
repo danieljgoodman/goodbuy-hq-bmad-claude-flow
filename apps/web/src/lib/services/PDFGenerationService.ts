@@ -1,6 +1,5 @@
-import puppeteer from 'puppeteer'
-// Dynamic import will be handled at runtime
-import { Chart, ChartConfiguration } from 'chart.js/auto'
+// Dynamic imports will be handled at runtime
+import type { Chart, ChartConfiguration } from 'chart.js/auto'
 import fs from 'fs/promises'
 import path from 'path'
 
@@ -757,8 +756,10 @@ export class PDFGenerationService {
 
   static async generatePDF(reportData: PDFReportData): Promise<Buffer> {
     const html = await this.generateHTML(reportData)
-    
-    const browser = await puppeteer.launch({
+
+    // Dynamically import puppeteer only when needed
+    const puppeteer = await import('puppeteer')
+    const browser = await puppeteer.default.launch({
       headless: 'new',
       args: ['--no-sandbox', '--disable-setuid-sandbox']
     })

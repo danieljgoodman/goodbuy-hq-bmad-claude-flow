@@ -6,7 +6,6 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import * as THREE from 'three';
 import * as d3 from 'd3';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -59,6 +58,16 @@ export function SurfacePlot3D({
   const [zoom, setZoom] = useState([50]);
   const [opacity, setOpacity] = useState([0.8]);
   const [selectedPoint, setSelectedPoint] = useState<SurfacePlotData | null>(null);
+  const [THREE, setTHREE] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Dynamically load Three.js only when component mounts
+  useEffect(() => {
+    import('three').then((module) => {
+      setTHREE(module);
+      setIsLoading(false);
+    });
+  }, []);
 
   // Create color scale function
   const getColorScale = (scale: string) => {
@@ -78,7 +87,7 @@ export function SurfacePlot3D({
 
   // Initialize Three.js scene
   const initializeScene = () => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || !THREE) return;
 
     const width = containerRef.current.clientWidth;
     const height = Math.min(600, width * 0.6);
@@ -427,8 +436,26 @@ export function SurfacePlot3D({
   }, []);
 
   useEffect(() => {
-    createSurface();
-  }, [data, showWireframe, colorScale]);
+    if (THREE) {
+      createSurface();
+    }
+  }, [data, showWireframe, colorScale, THREE]);
+
+  if (isLoading) {
+    return (
+      <Card className={`w-full ${className}`} data-testid={testId}>
+        <CardHeader>
+          <CardTitle>3D Surface Plot - Multi-Variable Optimization</CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center justify-center h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+            <p className="text-sm text-muted-foreground">Loading 3D visualization...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className={`w-full ${className}`} data-testid={testId}>
