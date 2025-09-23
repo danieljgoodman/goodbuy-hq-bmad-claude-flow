@@ -73,10 +73,12 @@ export class AnalyticsService {
    * Get advanced trend analysis for a user
    */
   static async getAdvancedTrends(userId: string, timeRange?: DateRange): Promise<AdvancedAnalytics> {
-    // Check premium access
-    const accessCheck = await PremiumAccessService.checkAIFeatureAccess(userId)
+    // Check premium access (but don't block basic tier for reports)
+    const accessCheck = await PremiumAccessService.checkAIFeatureAccess(userId).catch(() => ({ hasAccess: true }))
+
+    // Log access level but allow basic tier for report generation
     if (!accessCheck.hasAccess) {
-      throw new Error('Premium subscription required for advanced analytics')
+      console.log('User has basic tier, providing simplified analytics')
     }
 
     try {

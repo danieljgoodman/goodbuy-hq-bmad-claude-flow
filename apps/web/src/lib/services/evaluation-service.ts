@@ -51,12 +51,18 @@ export class EvaluationService {
       }
 
       const data = await response.json()
+      console.log('🔍 EvaluationService.getUserEvaluations - Response structure:', Object.keys(data))
 
-      // Ensure we always return an array
-      if (Array.isArray(data)) {
+      // Handle tier-aware response format { data: [...], tierInfo: {...} }
+      if (data && typeof data === 'object' && Array.isArray(data.data)) {
+        console.log('✅ Found evaluations in data.data:', data.data.length)
+        return data.data
+      } else if (Array.isArray(data)) {
+        console.log('✅ Found evaluations as array:', data.length)
         return data
       } else if (data && typeof data === 'object' && Array.isArray(data.evaluations)) {
         // Handle case where API returns { evaluations: [...] }
+        console.log('✅ Found evaluations in data.evaluations:', data.evaluations.length)
         return data.evaluations
       } else {
         console.warn('Unexpected response format from getUserEvaluations:', data)
@@ -70,6 +76,10 @@ export class EvaluationService {
 
   static async updateEvaluation(id: string, updates: Partial<Evaluation>): Promise<Evaluation> {
     try {
+      console.log('📝 EvaluationService.updateEvaluation - Updating evaluation:', id)
+      console.log('📝 Updates being sent:', Object.keys(updates))
+      console.log('📝 Status in updates:', updates.status)
+
       const response = await fetch(`${this.baseUrl}/${id}`, {
         method: 'PATCH',
         headers: {
@@ -79,10 +89,14 @@ export class EvaluationService {
       })
 
       if (!response.ok) {
+        const errorText = await response.text()
+        console.error('❌ Update failed with status:', response.status, 'error:', errorText)
         throw new Error(`Failed to update evaluation: ${response.statusText}`)
       }
 
-      return response.json()
+      const result = await response.json()
+      console.log('✅ Update successful, evaluation status now:', result.status)
+      return result
     } catch (error) {
       console.error('EvaluationService.updateEvaluation error:', error)
       throw error

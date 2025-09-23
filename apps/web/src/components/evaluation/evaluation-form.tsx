@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { useEvaluationStore } from '@/stores/evaluation-store'
 import { useUser } from '@clerk/nextjs'
-import { getCurrentUserId } from '@/lib/user-utils'
+import { getCurrentUserId, setClerkUserId } from '@/lib/user-utils'
 import BusinessBasicsStep from './steps/business-basics-step'
 import EnhancedBusinessBasicsStep from './steps/enhanced-business-basics-step'
 import FinancialMetricsStep from './steps/financial-metrics-step'
@@ -74,6 +74,14 @@ export default function EvaluationForm({ initialData }: EvaluationFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const effectiveUser = isSignedIn ? user : null
+
+  // Store the Clerk user ID for consistency
+  useEffect(() => {
+    if (user?.id) {
+      console.log('🆔 EvaluationForm: Storing Clerk user ID:', user.id)
+      setClerkUserId(user.id)
+    }
+  }, [user])
 
   // Helper function to aggregate extracted financial data
   const aggregateExtractedData = (extractedDocs: any[]) => {
@@ -301,7 +309,12 @@ export default function EvaluationForm({ initialData }: EvaluationFormProps) {
     // Load any saved progress (only on initial mount)
     if (!currentEvaluation && (!initialData || initialData.length === 0)) {
       console.log('📋 Loading saved evaluations...')
-      loadEvaluations()
+      // Only load evaluations if we have a Clerk user ID
+      if (user?.id) {
+        loadEvaluations(false, user.id)
+      } else {
+        console.log('⚠️ Skipping loadEvaluations - no Clerk user ID available')
+      }
     }
   }, [effectiveUser, currentEvaluation, setCurrentEvaluation, loadEvaluations, initialData, setCurrentStep, hasInitialized, isSubmitting])
 

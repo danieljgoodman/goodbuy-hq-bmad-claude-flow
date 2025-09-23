@@ -1,6 +1,60 @@
 // Real Claude API integration - NO FALLBACKS
 // Uses server-side API endpoint to protect API key
 
+// Server-side function that directly calls Anthropic API
+async function callClaudeAPIServer(
+  prompt: string,
+  businessData: any,
+  requestType: 'multi-methodology-valuation' | 'enhanced-health-analysis' | 'basic-health-analysis' | 'executive-summary'
+): Promise<string> {
+  const apiKey = process.env.CLAUDE_API_KEY
+  if (!apiKey) {
+    throw new Error('Claude API key not configured')
+  }
+
+  // Build the system message and user message based on request type
+  let systemMessage = "You are an AI business analyst assistant providing professional analysis."
+  let userMessage = prompt
+
+  if (businessData) {
+    userMessage = `${prompt}\n\nBusiness Data: ${JSON.stringify(businessData, null, 2)}`
+  }
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model: 'claude-3-haiku-20240307',
+      max_tokens: 4000,
+      temperature: 0.2,
+      system: systemMessage,
+      messages: [
+        {
+          role: 'user',
+          content: userMessage
+        }
+      ]
+    })
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    throw new Error(`Anthropic API request failed: ${response.statusText} - ${errorText}`)
+  }
+
+  const result = await response.json()
+
+  if (result.content && result.content[0] && result.content[0].text) {
+    return result.content[0].text
+  }
+
+  throw new Error('Unexpected response format from Anthropic API')
+}
+
 export async function callClaudeAPI(prompt: string, businessData?: any): Promise<string> {
   try {
     // Determine the request type based on the prompt content
@@ -14,7 +68,15 @@ export async function callClaudeAPI(prompt: string, businessData?: any): Promise
       requestType = 'executive-summary'
     }
 
-    // Make request to our server-side API endpoint
+    // Check if we're running on the server side
+    const isServer = typeof window === 'undefined'
+
+    // For server-side calls, use direct Anthropic API
+    if (isServer) {
+      return await callClaudeAPIServer(prompt, businessData, requestType)
+    }
+
+    // For client-side calls, use the API endpoint
     const response = await fetch('/api/claude', {
       method: 'POST',
       headers: {

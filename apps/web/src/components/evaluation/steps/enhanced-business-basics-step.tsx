@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react'
 import { z } from 'zod'
 import { useEvaluationStore } from '@/stores/evaluation-store'
 import { useAuthStore } from '@/stores/auth-store'
+import { useUser } from '@clerk/nextjs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -147,10 +148,15 @@ export default function EnhancedBusinessBasicsStep() {
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [showEbitdaSection, setShowEbitdaSection] = useState(false)
 
-  // Load evaluations on mount
+  // Get Clerk user for user ID
+  const { user: clerkUser } = useUser()
+
+  // Load evaluations on mount with Clerk user ID
   useEffect(() => {
-    loadEvaluations()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    if (clerkUser?.id) {
+      loadEvaluations(false, clerkUser.id)
+    }
+  }, [clerkUser?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load existing data once when it becomes available
   useEffect(() => {

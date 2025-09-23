@@ -855,13 +855,95 @@
         "Distributors"
       ]
     },
-    "valuations": {},
-    "healthScore": null,
-    "confidenceScore": null,
-    "opportunities": [],
-    "status": "processing",
+    "valuations": {
+      "assetBased": {
+        "value": 1721090,
+        "confidence": 80,
+        "methodology": "Net asset value approach",
+        "factors": [
+          "Total assets",
+          "Total liabilities",
+          "Asset quality"
+        ]
+      },
+      "incomeBased": {
+        "value": 9149880,
+        "confidence": 75,
+        "methodology": "Earnings multiple approach",
+        "multiple": 5,
+        "factors": [
+          "Net profit",
+          "Earnings consistency",
+          "Growth prospects"
+        ]
+      },
+      "marketBased": {
+        "value": 7558813.5,
+        "confidence": 70,
+        "methodology": "Revenue multiple approach",
+        "comparables": [],
+        "factors": [
+          "Revenue multiple",
+          "Industry comparables",
+          "Market conditions"
+        ]
+      },
+      "weighted": {
+        "value": 6443923.05,
+        "confidence": 85,
+        "methodology": "Weighted average of all methodologies",
+        "weightings": {
+          "assetBased": 0.3,
+          "incomeBased": 0.4,
+          "marketBased": 0.3
+        }
+      },
+      "industryAdjustments": [],
+      "valuationRange": {
+        "low": 5155138.44,
+        "high": 7732707.659999999,
+        "mostLikely": 6443923.05
+      },
+      "methodology": "AI-powered multi-methodology valuation using asset, income, and market approaches"
+    },
+    "healthScore": 85,
+    "confidenceScore": 80,
+    "opportunities": [
+      {
+        "id": "revenue-growth",
+        "category": "strategic",
+        "title": "Revenue Expansion Strategy",
+        "description": "Implement targeted growth strategies to expand market reach and increase revenue streams.",
+        "impactEstimate": {
+          "dollarAmount": 1259802,
+          "percentageIncrease": 25,
+          "confidence": 70,
+          "roiEstimate": 3.2,
+          "timeline": "12 months"
+        },
+        "difficulty": "medium",
+        "timeframe": "6-12 months",
+        "priority": 1,
+        "requiredResources": [
+          "Marketing budget",
+          "Sales team expansion",
+          "Product development"
+        ],
+        "specificAnalysis": "Based on current market position and financial metrics, expansion could yield significant returns.",
+        "selectionRationale": "High impact opportunity with reasonable implementation complexity.",
+        "riskFactors": [
+          "Market competition",
+          "Execution challenges"
+        ],
+        "prerequisites": [
+          "Market analysis",
+          "Resource allocation"
+        ]
+      }
+    ],
+    "status": "completed",
     "createdAt": "2025-09-23T02:33:21.857Z",
-    "updatedAt": "2025-09-23T02:33:21.857Z"
+    "updatedAt": "2025-09-23T22:45:48.940Z"
   },
   "dcefd321-8807-4960-810c-f08a44a092d8": {
     "id": "dcefd321-8807-4960-810c-f08a44a092d8",
@@ -893,13 +975,95 @@
         "Online/E-commerce"
       ]
     },
-    "valuations": {},
-    "healthScore": null,
-    "confidenceScore": null,
-    "opportunities": [],
-    "status": "processing",
+    "valuations": {
+      "assetBased": {
+        "value": 613500,
+        "confidence": 80,
+        "methodology": "Net asset value approach",
+        "factors": [
+          "Total assets",
+          "Total liabilities",
+          "Asset quality"
+        ]
+      },
+      "incomeBased": {
+        "value": 4594995,
+        "confidence": 75,
+        "methodology": "Earnings multiple approach",
+        "multiple": 5,
+        "factors": [
+          "Net profit",
+          "Earnings consistency",
+          "Growth prospects"
+        ]
+      },
+      "marketBased": {
+        "value": 4964103,
+        "confidence": 70,
+        "methodology": "Revenue multiple approach",
+        "comparables": [],
+        "factors": [
+          "Revenue multiple",
+          "Industry comparables",
+          "Market conditions"
+        ]
+      },
+      "weighted": {
+        "value": 3511278.9,
+        "confidence": 85,
+        "methodology": "Weighted average of all methodologies",
+        "weightings": {
+          "assetBased": 0.3,
+          "incomeBased": 0.4,
+          "marketBased": 0.3
+        }
+      },
+      "industryAdjustments": [],
+      "valuationRange": {
+        "low": 2809023.12,
+        "high": 4213534.68,
+        "mostLikely": 3511278.9
+      },
+      "methodology": "AI-powered multi-methodology valuation using asset, income, and market approaches"
+    },
+    "healthScore": 90,
+    "confidenceScore": 80,
+    "opportunities": [
+      {
+        "id": "revenue-growth",
+        "category": "strategic",
+        "title": "Revenue Expansion Strategy",
+        "description": "Implement targeted growth strategies to expand market reach and increase revenue streams.",
+        "impactEstimate": {
+          "dollarAmount": 827351,
+          "percentageIncrease": 25,
+          "confidence": 70,
+          "roiEstimate": 3.2,
+          "timeline": "12 months"
+        },
+        "difficulty": "medium",
+        "timeframe": "6-12 months",
+        "priority": 1,
+        "requiredResources": [
+          "Marketing budget",
+          "Sales team expansion",
+          "Product development"
+        ],
+        "specificAnalysis": "Based on current market position and financial metrics, expansion could yield significant returns.",
+        "selectionRationale": "High impact opportunity with reasonable implementation complexity.",
+        "riskFactors": [
+          "Market competition",
+          "Execution challenges"
+        ],
+        "prerequisites": [
+          "Market analysis",
+          "Resource allocation"
+        ]
+      }
+    ],
+    "status": "completed",
     "createdAt": "2025-09-23T02:41:21.782Z",
-    "updatedAt": "2025-09-23T02:41:21.782Z"
+    "updatedAt": "2025-09-23T22:45:48.956Z"
   },
   "2456bd24-46fb-44e4-985f-1e06b6ed5ad8": {
     "id": "2456bd24-46fb-44e4-985f-1e06b6ed5ad8",
@@ -932,13 +1096,95 @@
         "Referrals/Word of Mouth"
       ]
     },
-    "valuations": {},
-    "healthScore": null,
-    "confidenceScore": null,
-    "opportunities": [],
-    "status": "processing",
+    "valuations": {
+      "assetBased": {
+        "value": 780800,
+        "confidence": 80,
+        "methodology": "Net asset value approach",
+        "factors": [
+          "Total assets",
+          "Total liabilities",
+          "Asset quality"
+        ]
+      },
+      "incomeBased": {
+        "value": 9444950,
+        "confidence": 75,
+        "methodology": "Earnings multiple approach",
+        "multiple": 5,
+        "factors": [
+          "Net profit",
+          "Earnings consistency",
+          "Growth prospects"
+        ]
+      },
+      "marketBased": {
+        "value": 7851786,
+        "confidence": 70,
+        "methodology": "Revenue multiple approach",
+        "comparables": [],
+        "factors": [
+          "Revenue multiple",
+          "Industry comparables",
+          "Market conditions"
+        ]
+      },
+      "weighted": {
+        "value": 6367755.8,
+        "confidence": 85,
+        "methodology": "Weighted average of all methodologies",
+        "weightings": {
+          "assetBased": 0.3,
+          "incomeBased": 0.4,
+          "marketBased": 0.3
+        }
+      },
+      "industryAdjustments": [],
+      "valuationRange": {
+        "low": 5094204.640000001,
+        "high": 7641306.959999999,
+        "mostLikely": 6367755.8
+      },
+      "methodology": "AI-powered multi-methodology valuation using asset, income, and market approaches"
+    },
+    "healthScore": 92,
+    "confidenceScore": 80,
+    "opportunities": [
+      {
+        "id": "revenue-growth",
+        "category": "strategic",
+        "title": "Revenue Expansion Strategy",
+        "description": "Implement targeted growth strategies to expand market reach and increase revenue streams.",
+        "impactEstimate": {
+          "dollarAmount": 1308631,
+          "percentageIncrease": 25,
+          "confidence": 70,
+          "roiEstimate": 3.2,
+          "timeline": "12 months"
+        },
+        "difficulty": "medium",
+        "timeframe": "6-12 months",
+        "priority": 1,
+        "requiredResources": [
+          "Marketing budget",
+          "Sales team expansion",
+          "Product development"
+        ],
+        "specificAnalysis": "Based on current market position and financial metrics, expansion could yield significant returns.",
+        "selectionRationale": "High impact opportunity with reasonable implementation complexity.",
+        "riskFactors": [
+          "Market competition",
+          "Execution challenges"
+        ],
+        "prerequisites": [
+          "Market analysis",
+          "Resource allocation"
+        ]
+      }
+    ],
+    "status": "completed",
     "createdAt": "2025-09-23T02:50:30.011Z",
-    "updatedAt": "2025-09-23T02:50:30.011Z"
+    "updatedAt": "2025-09-23T22:45:48.956Z"
   },
   "570417cc-af81-47cb-9b4b-378556d245eb": {
     "id": "570417cc-af81-47cb-9b4b-378556d245eb",
@@ -969,13 +1215,95 @@
         "Digital Marketing"
       ]
     },
-    "valuations": {},
-    "healthScore": null,
-    "confidenceScore": null,
-    "opportunities": [],
-    "status": "processing",
+    "valuations": {
+      "assetBased": {
+        "value": 780590,
+        "confidence": 80,
+        "methodology": "Net asset value approach",
+        "factors": [
+          "Total assets",
+          "Total liabilities",
+          "Asset quality"
+        ]
+      },
+      "incomeBased": {
+        "value": 7164270,
+        "confidence": 75,
+        "methodology": "Earnings multiple approach",
+        "multiple": 5,
+        "factors": [
+          "Net profit",
+          "Earnings consistency",
+          "Growth prospects"
+        ]
+      },
+      "marketBased": {
+        "value": 6796428,
+        "confidence": 70,
+        "methodology": "Revenue multiple approach",
+        "comparables": [],
+        "factors": [
+          "Revenue multiple",
+          "Industry comparables",
+          "Market conditions"
+        ]
+      },
+      "weighted": {
+        "value": 5138813.4,
+        "confidence": 85,
+        "methodology": "Weighted average of all methodologies",
+        "weightings": {
+          "assetBased": 0.3,
+          "incomeBased": 0.4,
+          "marketBased": 0.3
+        }
+      },
+      "industryAdjustments": [],
+      "valuationRange": {
+        "low": 4111050.7200000007,
+        "high": 6166576.08,
+        "mostLikely": 5138813.4
+      },
+      "methodology": "AI-powered multi-methodology valuation using asset, income, and market approaches"
+    },
+    "healthScore": 85,
+    "confidenceScore": 80,
+    "opportunities": [
+      {
+        "id": "revenue-growth",
+        "category": "strategic",
+        "title": "Revenue Expansion Strategy",
+        "description": "Implement targeted growth strategies to expand market reach and increase revenue streams.",
+        "impactEstimate": {
+          "dollarAmount": 1132738,
+          "percentageIncrease": 25,
+          "confidence": 70,
+          "roiEstimate": 3.2,
+          "timeline": "12 months"
+        },
+        "difficulty": "medium",
+        "timeframe": "6-12 months",
+        "priority": 1,
+        "requiredResources": [
+          "Marketing budget",
+          "Sales team expansion",
+          "Product development"
+        ],
+        "specificAnalysis": "Based on current market position and financial metrics, expansion could yield significant returns.",
+        "selectionRationale": "High impact opportunity with reasonable implementation complexity.",
+        "riskFactors": [
+          "Market competition",
+          "Execution challenges"
+        ],
+        "prerequisites": [
+          "Market analysis",
+          "Resource allocation"
+        ]
+      }
+    ],
+    "status": "completed",
     "createdAt": "2025-09-23T02:59:38.245Z",
-    "updatedAt": "2025-09-23T02:59:38.245Z"
+    "updatedAt": "2025-09-23T22:45:48.957Z"
   },
   "2c839097-0da1-42ed-a6c2-a9acf03c8ae8": {
     "id": "2c839097-0da1-42ed-a6c2-a9acf03c8ae8",
@@ -1009,12 +1337,214 @@
         "Digital Marketing"
       ]
     },
-    "valuations": {},
-    "healthScore": null,
-    "confidenceScore": null,
-    "opportunities": [],
-    "status": "processing",
+    "valuations": {
+      "assetBased": {
+        "value": 2791801,
+        "confidence": 80,
+        "methodology": "Net asset value approach",
+        "factors": [
+          "Total assets",
+          "Total liabilities",
+          "Asset quality"
+        ]
+      },
+      "incomeBased": {
+        "value": 5794800,
+        "confidence": 75,
+        "methodology": "Earnings multiple approach",
+        "multiple": 5,
+        "factors": [
+          "Net profit",
+          "Earnings consistency",
+          "Growth prospects"
+        ]
+      },
+      "marketBased": {
+        "value": 6589639.5,
+        "confidence": 70,
+        "methodology": "Revenue multiple approach",
+        "comparables": [],
+        "factors": [
+          "Revenue multiple",
+          "Industry comparables",
+          "Market conditions"
+        ]
+      },
+      "weighted": {
+        "value": 5132352.149999999,
+        "confidence": 85,
+        "methodology": "Weighted average of all methodologies",
+        "weightings": {
+          "assetBased": 0.3,
+          "incomeBased": 0.4,
+          "marketBased": 0.3
+        }
+      },
+      "industryAdjustments": [],
+      "valuationRange": {
+        "low": 4105881.7199999997,
+        "high": 6158822.579999999,
+        "mostLikely": 5132352.149999999
+      },
+      "methodology": "AI-powered multi-methodology valuation using asset, income, and market approaches"
+    },
+    "healthScore": 100,
+    "confidenceScore": 80,
+    "opportunities": [
+      {
+        "id": "revenue-growth",
+        "category": "strategic",
+        "title": "Revenue Expansion Strategy",
+        "description": "Implement targeted growth strategies to expand market reach and increase revenue streams.",
+        "impactEstimate": {
+          "dollarAmount": 1098273,
+          "percentageIncrease": 25,
+          "confidence": 70,
+          "roiEstimate": 3.2,
+          "timeline": "12 months"
+        },
+        "difficulty": "medium",
+        "timeframe": "6-12 months",
+        "priority": 1,
+        "requiredResources": [
+          "Marketing budget",
+          "Sales team expansion",
+          "Product development"
+        ],
+        "specificAnalysis": "Based on current market position and financial metrics, expansion could yield significant returns.",
+        "selectionRationale": "High impact opportunity with reasonable implementation complexity.",
+        "riskFactors": [
+          "Market competition",
+          "Execution challenges"
+        ],
+        "prerequisites": [
+          "Market analysis",
+          "Resource allocation"
+        ]
+      }
+    ],
+    "status": "completed",
     "createdAt": "2025-09-23T03:08:33.763Z",
-    "updatedAt": "2025-09-23T03:08:33.763Z"
+    "updatedAt": "2025-09-23T22:45:48.957Z"
+  },
+  "817318b2-00e1-4d98-90c1-508a5b654f9f": {
+    "id": "817318b2-00e1-4d98-90c1-508a5b654f9f",
+    "userId": "user_3351ZNYxCyuJatqTi2yEPkz7qXo",
+    "businessData": {
+      "businessType": "Sole Proprietorship",
+      "industryFocus": "Technology",
+      "yearsInBusiness": 12,
+      "businessModel": "B2B (Business to Business)",
+      "revenueModel": "Recurring Subscription",
+      "annualRevenue": 3452134,
+      "monthlyRecurring": 341231,
+      "expenses": 2341233,
+      "cashFlow": 132412,
+      "assets": 1341414,
+      "liabilities": 434332,
+      "customerCount": 133,
+      "marketPosition": "Unknown",
+      "grossMargin": 0,
+      "employeeCount": 12,
+      "competitiveAdvantages": [
+        "Exclusive Partnerships",
+        "Proprietary Technology",
+        "Skilled Team/Expertise"
+      ],
+      "primaryChannels": [
+        "Retail Partners",
+        "Direct Sales Team",
+        "Other"
+      ]
+    },
+    "valuations": {
+      "assetBased": {
+        "value": 907082,
+        "confidence": 80,
+        "methodology": "Net asset value approach",
+        "factors": [
+          "Total assets",
+          "Total liabilities",
+          "Asset quality"
+        ]
+      },
+      "incomeBased": {
+        "value": 5554505,
+        "confidence": 75,
+        "methodology": "Earnings multiple approach",
+        "multiple": 5,
+        "factors": [
+          "Net profit",
+          "Earnings consistency",
+          "Growth prospects"
+        ]
+      },
+      "marketBased": {
+        "value": 5178201,
+        "confidence": 70,
+        "methodology": "Revenue multiple approach",
+        "comparables": [],
+        "factors": [
+          "Revenue multiple",
+          "Industry comparables",
+          "Market conditions"
+        ]
+      },
+      "weighted": {
+        "value": 4047386.9000000004,
+        "confidence": 85,
+        "methodology": "Weighted average of all methodologies",
+        "weightings": {
+          "assetBased": 0.3,
+          "incomeBased": 0.4,
+          "marketBased": 0.3
+        }
+      },
+      "industryAdjustments": [],
+      "valuationRange": {
+        "low": 3237909.5200000005,
+        "high": 4856864.28,
+        "mostLikely": 4047386.9000000004
+      },
+      "methodology": "AI-powered multi-methodology valuation using asset, income, and market approaches"
+    },
+    "healthScore": 85,
+    "confidenceScore": 80,
+    "opportunities": [
+      {
+        "id": "revenue-growth",
+        "category": "strategic",
+        "title": "Revenue Expansion Strategy",
+        "description": "Implement targeted growth strategies to expand market reach and increase revenue streams.",
+        "impactEstimate": {
+          "dollarAmount": 863034,
+          "percentageIncrease": 25,
+          "confidence": 70,
+          "roiEstimate": 3.2,
+          "timeline": "12 months"
+        },
+        "difficulty": "medium",
+        "timeframe": "6-12 months",
+        "priority": 1,
+        "requiredResources": [
+          "Marketing budget",
+          "Sales team expansion",
+          "Product development"
+        ],
+        "specificAnalysis": "Based on current market position and financial metrics, expansion could yield significant returns.",
+        "selectionRationale": "High impact opportunity with reasonable implementation complexity.",
+        "riskFactors": [
+          "Market competition",
+          "Execution challenges"
+        ],
+        "prerequisites": [
+          "Market analysis",
+          "Resource allocation"
+        ]
+      }
+    ],
+    "status": "completed",
+    "createdAt": "2025-09-23T03:24:06.216Z",
+    "updatedAt": "2025-09-23T22:45:48.957Z"
   }
 }

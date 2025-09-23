@@ -21,8 +21,8 @@ interface EvaluationState {
   updateBusinessData: (data: Partial<BusinessEvaluation['businessData']>) => void
   saveProgress: () => Promise<void>
   saveEvaluation: (evaluation: BusinessEvaluation) => Promise<void>
-  submitEvaluation: () => Promise<BusinessEvaluation>
-  loadEvaluations: (force?: boolean) => Promise<void>
+  submitEvaluation: (clerkUserId?: string) => Promise<BusinessEvaluation>
+  loadEvaluations: (force?: boolean, clerkUserId?: string) => Promise<void>
   setCurrentStep: (step: number) => void
   reset: () => void
   
@@ -32,7 +32,7 @@ interface EvaluationState {
   setProcessingDocuments: (isProcessing: boolean) => void
   
   // Epic 2: Enhanced Analysis Actions
-  performEnhancedAnalysis: () => Promise<BusinessEvaluation>
+  performEnhancedAnalysis: (clerkUserId?: string) => Promise<BusinessEvaluation>
   updateDocumentExtractedData: (data: ExtractedFinancialData) => void
 }
 
@@ -195,22 +195,23 @@ export const useEvaluationStore = create<EvaluationState>()(
         const { currentEvaluation } = get()
         if (!currentEvaluation?.businessData) throw new Error('No evaluation data to submit')
 
+        // CRITICAL: Clerk user ID is required
+        if (!clerkUserId) {
+          console.error('❌ CRITICAL: No Clerk user ID provided to submitEvaluation')
+          throw new Error('User authentication required to submit evaluation')
+        }
+
         set({ isLoading: true })
         try {
           // Import services dynamically to avoid SSR issues
           const { ClaudeService } = await import('@/lib/services/claude-service')
           const { EvaluationService } = await import('@/lib/services/evaluation-service')
-          
-          // Create evaluation in database first
-          // Use Clerk user ID if provided, otherwise fall back
-          const userId = clerkUserId || currentEvaluation.userId || getCurrentUserId()
-          console.log('🔍 SUBMIT EVALUATION DEBUG:')
-          console.log('  - Clerk user ID provided:', clerkUserId)
-          console.log('  - currentEvaluation.userId:', currentEvaluation.userId)
-          console.log('  - currentEvaluation.businessData keys:', currentEvaluation.businessData ? Object.keys(currentEvaluation.businessData) : 'null')
-          console.log('  - getCurrentUserId():', getCurrentUserId())
-          console.log('  - Final userId to use:', userId)
-          console.log('  - User ID consistency check:', currentEvaluation.userId === userId ? '✅ Match' : '⚠️ Different')
+
+          // ALWAYS use the provided Clerk user ID
+          const userId = clerkUserId
+          console.log('🔍 SUBMIT EVALUATION:')
+          console.log('  - Using Clerk user ID:', userId)
+          console.log('  - Business data keys:', currentEvaluation.businessData ? Object.keys(currentEvaluation.businessData) : 'null')
 
           // Use the determined user ID
           const processingEvaluation = await EvaluationService.createEvaluation(
@@ -245,7 +246,9 @@ export const useEvaluationStore = create<EvaluationState>()(
 
           // Run AI analysis
           try {
+            console.log('🤖 Starting AI analysis for evaluation:', processingEvaluation.id)
             const analysis = await ClaudeService.analyzeBusinessHealth(currentEvaluation.businessData)
+            console.log('🤖 AI analysis completed successfully:', analysis)
             
             // Calculate basic valuations
             const revenue = currentEvaluation.businessData.annualRevenue
@@ -421,35 +424,45 @@ export const useEvaluationStore = create<EvaluationState>()(
       },
 
       loadEvaluations: async (force = false, clerkUserId?: string) => {
-        console.log('📥 LOAD EVALUATIONS CALLED - Force:', force)
+        console.log('📥 LOAD EVALUATIONS CALLED - Force:', force, 'ClerkUserId:', clerkUserId)
         const { hasLoadedEvaluations, isLoading, evaluations: currentEvaluations, currentEvaluation } = get()
         console.log('📥 Current state - hasLoaded:', hasLoadedEvaluations, 'isLoading:', isLoading, 'currentCount:', currentEvaluations.length)
-        
+
+        // If no Clerk user ID provided, we can't load evaluations
+        if (!clerkUserId) {
+          console.warn('⚠️ No Clerk user ID provided to loadEvaluations - skipping')
+          // Don't mark as loaded, so it can be retried when user ID is available
+          set({ isLoading: false })
+          return
+        }
+
         // Prevent multiple simultaneous calls unless forced
         if (!force && (hasLoadedEvaluations || isLoading)) {
           console.log('📥 SKIPPING load - already loaded or loading')
           return
         }
-        
+
         set({ isLoading: true })
         try {
           // Load evaluations from database
           const { EvaluationService } = await import('@/lib/services/evaluation-service')
           console.log('📥 Fetching evaluations from database...')
-          
+
           let evaluations: any[] = []
           try {
-            // Use Clerk user ID if provided, otherwise fall back
-            const userId = clerkUserId || getCurrentUserId()
-            console.log('📥 Fetching evaluations for userId:', userId)
-            console.log('📥 Clerk user ID provided:', clerkUserId)
-            console.log('📥 User ID from getCurrentUserId():', getCurrentUserId())
-            console.log('📥 Final userId used:', userId)
+            // ALWAYS use the provided Clerk user ID
+            const userId = clerkUserId
+            console.log('📥 Loading evaluations for Clerk user:', userId)
+            console.log('📥 NO FALLBACK - using exact Clerk ID:', userId)
             
             const result = await EvaluationService.getUserEvaluations(userId)
+            console.log('📥 Raw result from EvaluationService:', result)
             // Ensure evaluations is always an array
             evaluations = Array.isArray(result) ? result : []
             console.log('📥✅ SUCCESS: Loaded', evaluations.length, 'evaluations from database')
+            if (evaluations.length > 0) {
+              console.log('📥 First evaluation details:', evaluations[0])
+            }
 
             // If no evaluations found, try to migrate existing ones
             if (evaluations.length === 0) {
@@ -504,13 +517,21 @@ export const useEvaluationStore = create<EvaluationState>()(
           }
           
           console.log('📥 Setting state with', evaluations.length, 'evaluations')
-          set({ 
-            evaluations, 
-            currentEvaluation: draftEvaluation, 
-            hasLoadedEvaluations: true 
+          console.log('📥 Evaluations being set in store:', evaluations.map((e: any) => ({
+            id: e.id,
+            status: e.status,
+            healthScore: e.healthScore,
+            hasValuations: !!e.valuations
+          })))
+          set({
+            evaluations,
+            currentEvaluation: draftEvaluation,
+            hasLoadedEvaluations: true
           })
-          
-          console.log('📥✅ LOAD COMPLETE - State updated')
+
+          // Verify what was actually set
+          const newState = get()
+          console.log('📥✅ LOAD COMPLETE - State updated, store now has', newState.evaluations.length, 'evaluations')
         } catch (error) {
           console.error('📥❌ Failed to load evaluations:', error)
           set({ hasLoadedEvaluations: true })
@@ -605,19 +626,25 @@ export const useEvaluationStore = create<EvaluationState>()(
       },
 
       // Epic 2: Enhanced Analysis Action
-      performEnhancedAnalysis: async () => {
+      performEnhancedAnalysis: async (clerkUserId?: string) => {
         const { currentEvaluation, uploadedDocuments } = get()
         if (!currentEvaluation?.businessData) throw new Error('No evaluation data to analyze')
+
+        // CRITICAL: Clerk user ID is required
+        if (!clerkUserId) {
+          console.error('❌ CRITICAL: No Clerk user ID provided to performEnhancedAnalysis')
+          throw new Error('User authentication required to perform analysis')
+        }
 
         set({ isLoading: true })
         try {
           // Import Epic 2 services dynamically
           const { ClaudeService } = await import('@/lib/services/claude-service')
-          
+
           // Start with processing status
           const processingEvaluation: BusinessEvaluation = {
             id: crypto.randomUUID(),
-            userId: getCurrentUserId(),
+            userId: clerkUserId,
             businessData: currentEvaluation.businessData,
             uploadedDocuments, // Include the uploaded documents
             // Epic 2: Enhanced multi-methodology valuations

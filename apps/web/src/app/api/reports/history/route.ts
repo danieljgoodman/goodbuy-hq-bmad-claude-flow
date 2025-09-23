@@ -1,9 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { readdir, stat } from 'fs/promises'
 import path from 'path'
+import { auth } from '@clerk/nextjs/server'
 
 export async function GET(request: NextRequest) {
   try {
+    // Get the current user ID from Clerk
+    const { userId } = await auth()
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
     const reportsDir = path.join(process.cwd(), 'public', 'uploads', 'reports')
 
     try {
@@ -15,10 +26,18 @@ export async function GET(request: NextRequest) {
           const filePath = path.join(reportsDir, file)
           const stats = await stat(filePath)
 
-          // Extract metadata from filename (assuming format: report_userId_timestamp.pdf)
-          const filenameParts = file.replace('.pdf', '').split('_')
-          const userId = filenameParts.length > 1 ? filenameParts[1] : 'unknown'
-          const timestamp = filenameParts.length > 2 ? filenameParts[2] : Date.now().toString()
+          // Extract metadata from filename
+          // Handle both formats: report_userId_timestamp.pdf and report_user_clerkId_timestamp.pdf
+          const fileNameWithoutExt = file.replace('.pdf', '')
+
+          // Check if this report belongs to the current user
+          if (!fileNameWithoutExt.includes(userId)) {
+            continue
+          }
+
+          // Extract timestamp from the end of the filename
+          const parts = fileNameWithoutExt.split('_')
+          const timestamp = parts[parts.length - 1] || Date.now().toString()
 
           reportHistory.push({
             id: file.replace('.pdf', ''),

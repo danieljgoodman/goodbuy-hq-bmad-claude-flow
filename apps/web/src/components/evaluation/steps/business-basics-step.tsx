@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react'
 import { z } from 'zod'
 import { useEvaluationStore } from '@/stores/evaluation-store'
 import { useAuthStore } from '@/stores/auth-store'
+import { useUser } from '@clerk/nextjs'
 
 const businessBasicsSchema = z.object({
   businessType: z.string().min(1, 'Please select a business type'),
@@ -62,10 +63,15 @@ export default function BusinessBasicsStep() {
   
   const [errors, setErrors] = useState<Partial<Record<keyof BusinessBasics, string>>>({})
 
-  // Load evaluations on mount
+  // Get Clerk user for user ID
+  const { user: clerkUser } = useUser()
+
+  // Load evaluations on mount with Clerk user ID
   useEffect(() => {
-    loadEvaluations()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    if (clerkUser?.id) {
+      loadEvaluations(false, clerkUser.id)
+    }
+  }, [clerkUser?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load existing data once when it becomes available
   useEffect(() => {

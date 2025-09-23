@@ -5,6 +5,7 @@ import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { useEvaluationStore } from '@/stores/evaluation-store'
 import { EvaluationService } from '@/lib/services/evaluation-service';
+import { setClerkUserId } from '@/lib/user-utils';  // Import to store Clerk user ID
 // Removed ProtectedRoute - Clerk middleware handles authentication
 import DashboardLayout from '@/components/dashboard/dashboard-layout';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -242,12 +243,31 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (user && user.id) {
-      console.log('📊 Dashboard loading evaluations for Clerk user:', user.id);
+      console.log('📊 Dashboard: Clerk user authenticated with ID:', user.id);
+
+      // Store the Clerk user ID for consistent use across the app
+      setClerkUserId(user.id);
+
+      // CRITICAL: Always pass Clerk user ID, never fall back to getCurrentUserId()
+      console.log('📊 Dashboard: Loading evaluations for Clerk user:', user.id);
       loadEvaluations(true, user.id).catch(error => {
         console.error('Failed to load evaluations:', error)
       });
     }
   }, [user, loadEvaluations]);
+
+  // Log evaluations when they change
+  useEffect(() => {
+    console.log('📊 Dashboard: Evaluations updated:', evaluations.length, 'evaluations');
+    if (evaluations.length > 0) {
+      console.log('📊 Dashboard: First evaluation:', evaluations[0]);
+      console.log('📊 Dashboard: Evaluations status breakdown:', {
+        completed: evaluations.filter(e => e.status === 'completed').length,
+        processing: evaluations.filter(e => e.status === 'processing').length,
+        failed: evaluations.filter(e => e.status === 'failed').length
+      });
+    }
+  }, [evaluations]);
 
   if (!isLoaded || evaluationsLoading) {
     return (
@@ -284,7 +304,10 @@ export default function DashboardPage() {
             filters={filters}
             comparison={comparison}
             isLoading={evaluationsLoading}
-            onRefresh={() => loadEvaluations(true, user?.id)}
+            onRefresh={() => {
+              console.log('🔄 Dashboard refresh: Using Clerk user ID:', user?.id);
+              loadEvaluations(true, user?.id);
+            }}
             onCreateEvaluation={() => router.push(getQuestionnaireUrl())}
             onViewEvaluation={(id) => router.push(`/evaluation/${id}`)}
             onDeleteEvaluation={handleDeleteEvaluation}

@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoodBuy HQ - Site Map & User Flow Visualization</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #667eea;
+            transition: all 0.3s;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .tab:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .diagram-container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            min-height: 600px;
+            overflow: auto;
+        }
+
+        .diagram {
+            display: none;
+        }
+
+        .diagram.active {
+            display: block;
+        }
+
+        .mermaid {
+            text-align: center;
+            margin: 0 auto;
+        }
+
+        .legend {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .legend h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .legend-item {
+            display: inline-flex;
+            align-items: center;
+            margin: 5px 15px 5px 0;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            margin-right: 8px;
+            border: 2px solid #ddd;
+        }
+
+        .info-box {
+            background: #f0f7ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .info-box h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .info-box ul {
+            margin-left: 20px;
+            color: #555;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+            .diagram-container {
+                padding: 15px;
+            }
+            .tab {
+                padding: 10px 16px;
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 GoodBuy HQ - Site Architecture</h1>
+            <p>Interactive Site Map and User Flow Visualization</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showDiagram('sitemap')">📊 Site Map</button>
+            <button class="tab" onclick="showDiagram('userflow')">🔄 User Flow</button>
+            <button class="tab" onclick="showDiagram('authflow')">🔐 Authentication</button>
+            <button class="tab" onclick="showDiagram('dataflow')">📈 Data Flow</button>
+            <button class="tab" onclick="showDiagram('conversion')">💰 Conversion Funnel</button>
+        </div>
+
+        <div class="diagram-container">
+            <!-- Site Map Diagram -->
+            <div id="sitemap" class="diagram active">
+                <div class="mermaid">
+                    graph TD
+                        Home[🏠 Landing Page<br/>'/']
+
+                        Home --> Auth[🔐 Authentication]
+                        Auth --> SignIn[Sign In<br/>'/sign-in']
+                        Auth --> SignUp[Sign Up<br/>'/sign-up']
+                        Auth --> ForgotPW[Reset Password<br/>'/auth/reset-password']
+
+                        Home --> Public[📄 Public Pages]
+                        Public --> Pricing[💰 Pricing<br/>'/pricing']
+                        Public --> About[ℹ️ About<br/>'/about']
+                        Public --> Contact[📧 Contact<br/>'/contact']
+
+                        Home --> Dashboard[📊 Dashboard<br/>'/dashboard']
+
+                        Dashboard --> Business[💼 Business Tools]
+                        Business --> Evaluation[📝 Evaluation<br/>'/evaluation']
+                        Business --> MarketIntel[📈 Market Intelligence<br/>'/market-intelligence']
+                        Business --> Benchmarking[📊 Benchmarking<br/>'/benchmarking']
+                        Business --> Reports[📑 Reports<br/>'/reports']
+                        Business --> Analytics[📊 Analytics<br/>'/analytics']
+                        Business --> Progress[📈 Progress<br/>'/progress']
+
+                        Dashboard --> Onboard[🚀 Onboarding]
+                        Onboard --> OnboardStart[Start<br/>'/onboarding']
+                        Onboard --> Manual[✍️ Manual Entry<br/>'/onboarding/manual']
+                        Onboard --> Upload[📤 Document Upload<br/>'/onboarding/document-upload']
+
+                        Dashboard --> Account[👤 Account]
+                        Account --> Profile[Profile<br/>'/account/profile']
+                        Account --> Notif[🔔 Notifications<br/>'/account/notifications']
+                        Account --> Billing[💳 Billing<br/>'/billing']
+                        Account --> Sub[💎 Subscription<br/>'/subscription']
+
+                        Dashboard --> Help[❓ Help Center]
+                        Help --> KB[📚 Knowledge Base<br/>'/help/knowledge-base']
+                        Help --> Tutorials[🎓 Tutorials<br/>'/help/tutorials']
+                        Help --> Community[👥 Community<br/>'/help/community']
+                        Help --> Support[🎧 Support<br/>'/support']
+                        Help --> Guides[📖 Guides<br/>'/guides']
+
+                        Dashboard --> Admin[🛡️ Admin<br/>'/admin']
+                        Admin --> Users[User Management]
+                        Admin --> Metrics[System Metrics]
+                        Admin --> AdminReports[Admin Reports]
+
+                        style Home fill:#e1f5fe
+                        style Dashboard fill:#e8f5e9
+                        style Admin fill:#fce4ec
+                        style Auth fill:#fff3e0
+                </div>
+
+                <div class="legend">
+                    <h3>Page Access Levels</h3>
+                    <div class="legend-item">
+                        <span class="legend-color" style="background: #e1f5fe;"></span>
+                        <span>Public Pages - No authentication required</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color" style="background: #fff3e0;"></span>
+                        <span>Authentication Pages - Login/Signup</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color" style="background: #e8f5e9;"></span>
+                        <span>Protected Pages - Requires authentication</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color" style="background: #fce4ec;"></span>
+                        <span>Admin Pages - Requires admin role</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Flow Diagram -->
+            <div id="userflow" class="diagram">
+                <div class="mermaid">
+                    graph LR
+                        Start([🌟 User Lands on Site])
+                        Start --> Browse{Browse Site}
+
+                        Browse --> ReadContent[Read Features<br/>& Benefits]
+                        ReadContent --> Interested{Interested?}
+
+                        Interested -->|No| Leave([Exit Site])
+                        Interested -->|Yes| SignUpFlow[Click Sign Up]
+
+                        SignUpFlow --> CreateAccount[Create Account]
+                        CreateAccount --> VerifyEmail[Verify Email]
+                        VerifyEmail --> SetupProfile[Setup Profile]
+
+                        SetupProfile --> OnboardChoice{Choose<br/>Onboarding}
+                        OnboardChoice --> ManualOnboard[Manual Entry]
+                        OnboardChoice --> UploadOnboard[Document Upload]
+
+                        ManualOnboard --> CompleteOnboard[Complete<br/>Onboarding]
+                        UploadOnboard --> CompleteOnboard
+
+                        CompleteOnboard --> MainDashboard[Access Dashboard]
+
+                        MainDashboard --> UseFeatures{Use Features}
+                        UseFeatures --> StartEval[Start Evaluation]
+                        UseFeatures --> ViewReports[View Reports]
+                        UseFeatures --> MarketResearch[Market Intelligence]
+                        UseFeatures --> TrackProgress[Track Progress]
+
+                        StartEval --> CompleteEval[Complete Evaluation]
+                        CompleteEval --> GetResults[Get Results]
+                        GetResults --> ActionPlan[Create Action Plan]
+
+                        ActionPlan --> Upgrade{Need More<br/>Features?}
+                        Upgrade -->|Yes| UpgradePlan[Upgrade Subscription]
+                        Upgrade -->|No| ContinueUse[Continue Using]
+
+                        UpgradePlan --> Premium([Premium User])
+                        ContinueUse --> Regular([Regular User])
+
+                        style Start fill:#f9f,stroke:#333,stroke-width:4px
+                        style Premium fill:#9f9,stroke:#333,stroke-width:4px
+                        style Regular fill:#9ff,stroke:#333,stroke-width:4px
+                </div>
+
+                <div class="info-box">
+                    <h4>Key User Journey Stages</h4>
+                    <ul>
+                        <li><strong>Discovery:</strong> User explores the site and features</li>
+                        <li><strong>Activation:</strong> User creates account and completes onboarding</li>
+                        <li><strong>Engagement:</strong> User actively uses core features</li>
+                        <li><strong>Retention:</strong> User continues using and sees value</li>
+                        <li><strong>Revenue:</strong> User upgrades to premium features</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Authentication Flow -->
+            <div id="authflow" class="diagram">
+                <div class="mermaid">
+                    sequenceDiagram
+                        participant User
+                        participant Frontend
+                        participant Clerk
+                        participant Middleware
+                        participant API
+                        participant Database
+
+                        User->>Frontend: Access Protected Route
+                        Frontend->>Clerk: Check Auth Status
+
+                        alt Not Authenticated
+                            Clerk-->>Frontend: No Session
+                            Frontend->>User: Redirect to /sign-in
+                            User->>Frontend: Enter Credentials
+                            Frontend->>Clerk: Authenticate
+                            Clerk->>Database: Verify User
+                            Database-->>Clerk: User Data
+                            Clerk-->>Frontend: Session Token
+                            Frontend->>User: Redirect to Dashboard
+                        else Authenticated
+                            Clerk-->>Frontend: Valid Session
+                            Frontend->>Middleware: Request with Token
+                            Middleware->>Middleware: Verify Permissions
+                            Middleware->>API: Forward Request
+                            API->>Database: Query Data
+                            Database-->>API: Return Data
+                            API-->>Frontend: Response
+                            Frontend-->>User: Display Content
+                        end
+
+                        User->>Frontend: Logout
+                        Frontend->>Clerk: End Session
+                        Clerk-->>Frontend: Session Cleared
+                        Frontend->>User: Redirect to Home
+                </div>
+
+                <div class="info-box">
+                    <h4>Authentication Features</h4>
+                    <ul>
+                        <li>Secure session management with Clerk</li>
+                        <li>Social login options (Google, GitHub)</li>
+                        <li>Email verification required</li>
+                        <li>Password reset functionality</li>
+                        <li>Role-based access control</li>
+                        <li>Protected API endpoints</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Data Flow Diagram -->
+            <div id="dataflow" class="diagram">
+                <div class="mermaid">
+                    graph TB
+                        subgraph User Interface
+                            UI[React Frontend]
+                            Forms[Form Components]
+                            Charts[Data Visualizations]
+                        end
+
+                        subgraph State Management
+                            Clerk[Clerk Auth State]
+                            Zustand[Zustand Stores]
+                            Local[Local Storage]
+                        end
+
+                        subgraph API Layer
+                            NextAPI[Next.js API Routes]
+                            Middleware[Auth Middleware]
+                            Validation[Data Validation]
+                        end
+
+                        subgraph External Services
+                            ClerkAPI[Clerk API]
+                            Claude[Claude AI API]
+                            Stripe[Stripe Payments]
+                        end
+
+                        subgraph Data Layer
+                            Supabase[Supabase DB]
+                            Redis[Redis Cache]
+                            Storage[File Storage]
+                        end
+
+                        UI --> Zustand
+                        Forms --> Validation
+                        Charts --> Zustand
+
+                        Zustand --> NextAPI
+                        Clerk --> Middleware
+
+                        NextAPI --> Middleware
+                        Middleware --> Validation
+                        Validation --> Supabase
+
+                        NextAPI --> ClerkAPI
+                        NextAPI --> Claude
+                        NextAPI --> Stripe
+
+                        Supabase --> Redis
+                        Supabase --> Storage
+
+                        style UI fill:#e3f2fd
+                        style Supabase fill:#e8f5e9
+                        style ClerkAPI fill:#fff3e0
+                </div>
+
+                <div class="info-box">
+                    <h4>Data Flow Architecture</h4>
+                    <ul>
+                        <li><strong>Frontend:</strong> React with Next.js for SSR/SSG</li>
+                        <li><strong>State:</strong> Zustand for client state, Clerk for auth</li>
+                        <li><strong>API:</strong> Next.js API routes with middleware</li>
+                        <li><strong>Database:</strong> Supabase PostgreSQL</li>
+                        <li><strong>Caching:</strong> Redis for performance</li>
+                        <li><strong>External:</strong> Clerk auth, Claude AI, Stripe payments</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Conversion Funnel -->
+            <div id="conversion" class="diagram">
+                <div class="mermaid">
+                    graph TD
+                        subgraph Visitor Stage
+                            V[100% Website Visitors<br/>10,000 users]
+                            V --> L[40% Land on Homepage<br/>4,000 users]
+                        end
+
+                        subgraph Interest Stage
+                            L --> E[25% Explore Features<br/>1,000 users]
+                            E --> P[20% View Pricing<br/>200 users]
+                        end
+
+                        subgraph Sign Up Stage
+                            P --> S[15% Start Sign Up<br/>30 users]
+                            S --> C[10% Complete Sign Up<br/>20 users]
+                            C --> V2[8% Verify Email<br/>16 users]
+                        end
+
+                        subgraph Onboarding Stage
+                            V2 --> O[6% Complete Onboarding<br/>12 users]
+                            O --> F[5% First Evaluation<br/>10 users]
+                        end
+
+                        subgraph Engagement Stage
+                            F --> A[4% Active Users<br/>8 users]
+                            A --> R[3% Regular Users<br/>6 users]
+                        end
+
+                        subgraph Revenue Stage
+                            R --> T[2% Trial Premium<br/>4 users]
+                            T --> PR[1.5% Paid Subscribers<br/>3 users]
+                        end
+
+                        subgraph Referral Stage
+                            PR --> REF[0.5% Refer Others<br/>1 user]
+                        end
+
+                        style V fill:#e1f5fe
+                        style A fill:#e8f5e9
+                        style PR fill:#c8e6c9
+                        style REF fill:#81c784
+                </div>
+
+                <div class="info-box">
+                    <h4>Conversion Optimization Points</h4>
+                    <ul>
+                        <li>🎯 <strong>Homepage:</strong> Clear value proposition and CTAs</li>
+                        <li>🎯 <strong>Sign Up:</strong> Simplify form, add social login</li>
+                        <li>🎯 <strong>Onboarding:</strong> Progressive disclosure, quick wins</li>
+                        <li>🎯 <strong>Activation:</strong> Guide to first success moment</li>
+                        <li>🎯 <strong>Retention:</strong> Regular value delivery, engagement emails</li>
+                        <li>🎯 <strong>Revenue:</strong> Clear upgrade benefits, trial offers</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#667eea',
+                primaryTextColor: '#fff',
+                primaryBorderColor: '#7c3aed',
+                lineColor: '#5a67d8',
+                secondaryColor: '#f3e5f5',
+                tertiaryColor: '#e8f5e9',
+                background: '#ffffff',
+                mainBkg: '#667eea',
+                secondBkg: '#f3e5f5',
+                tertiaryBkg: '#e8f5e9'
+            }
+        });
+
+        // Tab switching function
+        function showDiagram(diagramId) {
+            // Update active tab
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Update active diagram
+            document.querySelectorAll('.diagram').forEach(diagram => {
+                diagram.classList.remove('active');
+            });
+            document.getElementById(diagramId).classList.add('active');
+
+            // Re-render Mermaid diagrams
+            mermaid.init();
+        }
+    </script>
+</body>
+</html>

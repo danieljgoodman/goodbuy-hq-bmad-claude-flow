@@ -1,7 +1,10 @@
 import fs from 'fs'
 import path from 'path'
 
-const STORAGE_FILE = path.join(process.cwd(), '.tmp-evaluations.json')
+// Ensure we always use the correct path relative to the apps/web directory
+const STORAGE_FILE = process.cwd().endsWith('apps/web')
+  ? path.join(process.cwd(), '.tmp-evaluations.json')
+  : path.join(process.cwd(), 'apps/web', '.tmp-evaluations.json')
 
 interface StoredEvaluation {
   id: string

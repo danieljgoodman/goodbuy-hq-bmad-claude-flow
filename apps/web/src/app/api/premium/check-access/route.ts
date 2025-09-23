@@ -1,6 +1,6 @@
 import { UserTierService } from '@/lib/services/user-tier-service'
 import { PremiumAccessService } from '@/lib/services/PremiumAccessService'
-import { TierValidationMiddleware } from '@/middleware/tier-validation'
+import { TierValidationMiddleware } from '@/lib/middleware/tier-validation'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import type { SubscriptionTier } from '@/types/subscription'

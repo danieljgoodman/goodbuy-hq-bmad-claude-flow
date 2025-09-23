@@ -1,126 +1,106 @@
 /**
  * User utility functions for consistent user ID management
- * Updated to use Clerk authentication
+ * IMPORTANT: This file should NOT be used when Clerk user is available
+ * Always prefer passing the Clerk user ID directly from useUser() hook
  */
 
 // Cache the Clerk user ID for the session
 let _cachedUserId: string | null = null
 
-// Function to get current user ID from Clerk
+// Function to get current user ID - DEPRECATED for Clerk usage
 function getClerkUserId(): string | null {
-  if (typeof window === 'undefined') return null
+  // This function is DEPRECATED
+  // Always use the Clerk user ID from useUser() hook instead
+  console.warn('⚠️ getClerkUserId is deprecated. Use Clerk useUser() hook instead.')
 
-  try {
-    // Check for Clerk user data in sessionStorage or localStorage
-    // Clerk stores user data in __clerk_db_jwt key
-    const clerkKeys = [
-      '__clerk_db_jwt',
-      '__clerk_client_jwt',
-      'clerk-db-jwt',
-      '__session'
-    ]
-
-    for (const key of clerkKeys) {
-      const data = sessionStorage.getItem(key) || localStorage.getItem(key)
-      if (data) {
-        try {
-          // Try to decode JWT to get user ID
-          const parts = data.split('.')
-          if (parts.length === 3) {
-            const payload = JSON.parse(atob(parts[1]))
-            if (payload.sub) {
-              console.log('🆔 Found Clerk user ID from JWT:', payload.sub)
-              return payload.sub
-            }
-          }
-        } catch (e) {
-          // Not a JWT, continue
-        }
-      }
-    }
-
-    // Also check for Clerk user object in localStorage
-    const userDataKeys = Object.keys(localStorage).filter(key =>
-      key.includes('clerk') || key.includes('user')
-    )
-
-    for (const key of userDataKeys) {
-      try {
-        const data = localStorage.getItem(key)
-        if (data) {
-          const parsed = JSON.parse(data)
-          // Look for Clerk user ID patterns
-          if (parsed.userId && parsed.userId.startsWith('user_')) {
-            console.log('🆔 Found Clerk user ID from storage:', parsed.userId)
-            return parsed.userId
-          }
-          if (parsed.id && parsed.id.startsWith('user_')) {
-            console.log('🆔 Found Clerk user ID from storage:', parsed.id)
-            return parsed.id
-          }
-        }
-      } catch (e) {
-        // Continue to next key
-      }
-    }
-  } catch (error) {
-    console.log('🆔 ERROR getting Clerk user ID:', error)
-  }
-  return null
-}
-
-export function getCurrentUserId(): string {
-  // PRIORITY 1: Try to get Clerk user ID
-  const clerkUserId = getClerkUserId()
-
-  if (clerkUserId) {
-    console.log('🆔 Using Clerk user ID:', clerkUserId)
-    _cachedUserId = clerkUserId
-
-    // Store for consistency
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('goodbuy-user-id', clerkUserId)
-    }
-    return clerkUserId
-  }
-
-  // PRIORITY 2: Use cached ID if available
-  if (_cachedUserId) {
-    console.log('🆔 Using cached user ID:', _cachedUserId)
+  // Return cached ID if available
+  if (_cachedUserId && _cachedUserId.startsWith('user_')) {
     return _cachedUserId
   }
 
-  // PRIORITY 3: Check localStorage for stored ID
+  // Check localStorage for a Clerk user ID
   if (typeof window !== 'undefined') {
-    const stored = localStorage.getItem('goodbuy-user-id')
-    if (stored) {
-      _cachedUserId = stored
-      console.log('🆔 Using stored user ID from localStorage:', stored)
+    const stored = localStorage.getItem('clerk-user-id')
+    if (stored && stored.startsWith('user_')) {
       return stored
     }
   }
 
-  // PRIORITY 4: Generate new ID as last resort
-  const newUserId = crypto.randomUUID()
+  return null
+}
 
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('goodbuy-user-id', newUserId)
+export function getCurrentUserId(): string {
+  // WARNING: This function should only be used as a last resort
+  // Always prefer passing the Clerk user ID directly from components
+  console.warn('⚠️ getCurrentUserId called - should use Clerk user ID from useUser() hook instead')
+
+  // PRIORITY 1: Use cached Clerk ID if available
+  if (_cachedUserId && _cachedUserId.startsWith('user_')) {
+    console.log('🆔 Using cached Clerk user ID:', _cachedUserId)
+    return _cachedUserId
   }
 
-  _cachedUserId = newUserId
-  console.log('🆔 Generated NEW user ID:', newUserId)
-  return newUserId
+  // PRIORITY 2: Check localStorage for Clerk user ID
+  if (typeof window !== 'undefined') {
+    const clerkId = localStorage.getItem('clerk-user-id')
+    if (clerkId && clerkId.startsWith('user_')) {
+      _cachedUserId = clerkId
+      console.log('🆔 Using stored Clerk user ID:', clerkId)
+      return clerkId
+    }
+
+    // Check legacy goodbuy-user-id for migration
+    const legacyId = localStorage.getItem('goodbuy-user-id')
+    if (legacyId && legacyId.startsWith('user_')) {
+      // Migrate to new key
+      localStorage.setItem('clerk-user-id', legacyId)
+      localStorage.removeItem('goodbuy-user-id')
+      _cachedUserId = legacyId
+      console.log('🆔 Migrated legacy Clerk user ID:', legacyId)
+      return legacyId
+    }
+  }
+
+  // PRIORITY 3: Return a placeholder that will be replaced by Clerk
+  // This should never be used for actual storage
+  const placeholder = 'pending-clerk-auth'
+  console.error('❌ No Clerk user ID available - using placeholder:', placeholder)
+  return placeholder
 }
 
 export function clearUserId(): void {
   _cachedUserId = null
   if (typeof window !== 'undefined') {
-    localStorage.removeItem('goodbuy-user-id')
+    localStorage.removeItem('clerk-user-id')
+    localStorage.removeItem('goodbuy-user-id') // Clean up legacy
   }
 }
 
+// Store Clerk user ID for consistency
+export function setClerkUserId(clerkUserId: string): void {
+  if (!clerkUserId || !clerkUserId.startsWith('user_')) {
+    console.error('❌ Invalid Clerk user ID:', clerkUserId)
+    return
+  }
+
+  _cachedUserId = clerkUserId
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('clerk-user-id', clerkUserId)
+    // Remove any legacy IDs
+    const legacyId = localStorage.getItem('goodbuy-user-id')
+    if (legacyId && !legacyId.startsWith('user_')) {
+      localStorage.removeItem('goodbuy-user-id')
+    }
+  }
+  console.log('✅ Stored Clerk user ID:', clerkUserId)
+}
+
 // Initialize user ID on app start (for server-side consistency)
-export function initializeUserId(): string {
+export function initializeUserId(clerkUserId?: string): string {
+  if (clerkUserId && clerkUserId.startsWith('user_')) {
+    setClerkUserId(clerkUserId)
+    return clerkUserId
+  }
   return getCurrentUserId()
 }
 
@@ -128,14 +108,21 @@ export function initializeUserId(): string {
 export function debugUserIdStatus(): void {
   console.log('🔍 USER ID DEBUG STATUS:')
   console.log('  - Cached User ID:', _cachedUserId)
-  
+
   if (typeof window !== 'undefined') {
-    const stored = localStorage.getItem('goodbuy-user-id')
-    console.log('  - localStorage User ID:', stored)
+    const clerkStored = localStorage.getItem('clerk-user-id')
+    const legacyStored = localStorage.getItem('goodbuy-user-id')
+    console.log('  - Clerk User ID in localStorage:', clerkStored)
+    console.log('  - Legacy User ID in localStorage:', legacyStored)
     console.log('  - getCurrentUserId():', getCurrentUserId())
-    
-    // Check if they match
-    if (_cachedUserId && stored && _cachedUserId === stored) {
+
+    // Check for issues
+    if (legacyStored && !legacyStored.startsWith('user_')) {
+      console.log('  ⚠️ Legacy non-Clerk ID found:', legacyStored)
+      console.log('  📝 Action needed: Clear browser storage or log in again')
+    }
+
+    if (_cachedUserId && clerkStored && _cachedUserId === clerkStored) {
       console.log('  ✅ User ID consistency: GOOD')
     } else {
       console.log('  ⚠️ User ID consistency: MISMATCH')
@@ -147,15 +134,16 @@ export function debugUserIdStatus(): void {
 
 // Force set a specific user ID (for debugging/testing)
 export function setUserId(userId: string): void {
-  _cachedUserId = userId
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('goodbuy-user-id', userId)
+  console.warn('⚠️ setUserId is deprecated. Use setClerkUserId instead.')
+  if (userId.startsWith('user_')) {
+    setClerkUserId(userId)
+  } else {
+    console.error('❌ Cannot set non-Clerk user ID:', userId)
   }
-  console.log('🔧 Force set user ID to:', userId)
 }
 
 // Clear all cached user data to force refresh
 export function refreshUserIdFromAuth(): void {
   _cachedUserId = null
-  console.log('🔄 Cleared cached user ID - will refresh from auth store on next call')
+  console.log('🔄 Cleared cached user ID - will refresh from Clerk on next call')
 }
