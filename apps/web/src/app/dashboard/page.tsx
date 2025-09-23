@@ -149,7 +149,23 @@ export default function DashboardPage() {
   const { isLoaded, user } = useUser();
   const router = useRouter();
   const { evaluations, loadEvaluations, isLoading: evaluationsLoading } = useEvaluationStore();
-  
+
+  // Function to determine the correct questionnaire URL based on subscription tier
+  const getQuestionnaireUrl = () => {
+    // Get subscription tier from user's public metadata (this matches what's set by the Stripe webhook)
+    const subscriptionTier = (user?.publicMetadata as any)?.subscriptionTier || 'free';
+
+    // Route to appropriate questionnaire based on tier
+    if (subscriptionTier === 'enterprise' || subscriptionTier === 'ENTERPRISE') {
+      return '/questionnaire/enterprise';
+    } else if (subscriptionTier === 'premium' || subscriptionTier === 'professional' || subscriptionTier === 'PROFESSIONAL') {
+      return '/questionnaire/professional';
+    } else {
+      // Basic/free tier users go to the onboarding flow
+      return '/onboarding/manual';
+    }
+  };
+
   // Dashboard state
   const [filters, setFilters] = useState<DashboardFilters>({
     dateRange: {
@@ -210,7 +226,7 @@ export default function DashboardPage() {
     try {
       await EvaluationService.deleteEvaluation(evaluationId);
       // Reload evaluations to reflect the deletion
-      await loadEvaluations(true);
+      await loadEvaluations(true, user?.id);
     } catch (error) {
       console.error('Failed to delete evaluation:', error);
       throw error; // Re-throw to let the component handle the error state
@@ -225,8 +241,9 @@ export default function DashboardPage() {
   }, [isLoaded, user, router]);
 
   useEffect(() => {
-    if (user) {
-      loadEvaluations(true).catch(error => {
+    if (user && user.id) {
+      console.log('📊 Dashboard loading evaluations for Clerk user:', user.id);
+      loadEvaluations(true, user.id).catch(error => {
         console.error('Failed to load evaluations:', error)
       });
     }
@@ -267,8 +284,8 @@ export default function DashboardPage() {
             filters={filters}
             comparison={comparison}
             isLoading={evaluationsLoading}
-            onRefresh={() => loadEvaluations(true)}
-            onCreateEvaluation={() => router.push('/onboarding')}
+            onRefresh={() => loadEvaluations(true, user?.id)}
+            onCreateEvaluation={() => router.push(getQuestionnaireUrl())}
             onViewEvaluation={(id) => router.push(`/evaluation/${id}`)}
             onDeleteEvaluation={handleDeleteEvaluation}
             onFiltersChange={handleFiltersChange}

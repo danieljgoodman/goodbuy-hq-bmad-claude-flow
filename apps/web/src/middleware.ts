@@ -13,6 +13,7 @@ const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)',
   '/sign-up(.*)',
   '/api/webhooks(.*)',
+  '/api/claude',
   '/api/health',
   '/pricing',
   '/about',
@@ -34,7 +35,7 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
   }
 
   // Protect private routes
-  const { userId } = await auth()
+  const { userId, sessionClaims } = await auth()
 
   if (!userId) {
     // Redirect to sign-in if not authenticated on protected route
@@ -49,10 +50,24 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
   // Add user ID header for downstream use
   response.headers.set('x-user-id', userId)
 
-  // Handle tier-based routing (simplified for now)
+  // Handle tier-based routing for dashboard
   if (pathname === '/dashboard') {
-    // Default to basic dashboard for all users
-    return NextResponse.redirect(new URL('/dashboard/basic', req.url))
+    try {
+      // Get subscription tier from session claims (this is where Clerk stores public metadata)
+      // The webhook stores these as 'premium' or 'enterprise' (lowercase)
+      const subscriptionTier = (sessionClaims?.publicMetadata as any)?.subscriptionTier as string || 'free'
+
+      // Redirect based on tier (matching the values from Stripe webhook)
+      if (subscriptionTier === 'enterprise' || subscriptionTier === 'ENTERPRISE') {
+        return NextResponse.redirect(new URL('/dashboard/enterprise', req.url))
+      } else if (subscriptionTier === 'premium' || subscriptionTier === 'professional' || subscriptionTier === 'PROFESSIONAL') {
+        return NextResponse.redirect(new URL('/dashboard/professional', req.url))
+      }
+      // For free/basic tier or unknown, keep them on /dashboard which shows the basic dashboard
+    } catch (error) {
+      console.error('Error determining user tier:', error)
+      // On error, continue to regular dashboard
+    }
   }
 
   return response

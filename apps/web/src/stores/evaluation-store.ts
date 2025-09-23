@@ -191,7 +191,7 @@ export const useEvaluationStore = create<EvaluationState>()(
         }
       },
 
-      submitEvaluation: async () => {
+      submitEvaluation: async (clerkUserId?: string) => {
         const { currentEvaluation } = get()
         if (!currentEvaluation?.businessData) throw new Error('No evaluation data to submit')
 
@@ -202,15 +202,17 @@ export const useEvaluationStore = create<EvaluationState>()(
           const { EvaluationService } = await import('@/lib/services/evaluation-service')
           
           // Create evaluation in database first
-          const userId = getCurrentUserId()
+          // Use Clerk user ID if provided, otherwise fall back
+          const userId = clerkUserId || currentEvaluation.userId || getCurrentUserId()
           console.log('🔍 SUBMIT EVALUATION DEBUG:')
+          console.log('  - Clerk user ID provided:', clerkUserId)
           console.log('  - currentEvaluation.userId:', currentEvaluation.userId)
           console.log('  - currentEvaluation.businessData keys:', currentEvaluation.businessData ? Object.keys(currentEvaluation.businessData) : 'null')
-          console.log('  - getCurrentUserId():', userId)
-          console.log('  - Final userId to use (ALWAYS getCurrentUserId()):', userId)
+          console.log('  - getCurrentUserId():', getCurrentUserId())
+          console.log('  - Final userId to use:', userId)
           console.log('  - User ID consistency check:', currentEvaluation.userId === userId ? '✅ Match' : '⚠️ Different')
-          
-          // ALWAYS use current user ID - ignore any old stored userId
+
+          // Use the determined user ID
           const processingEvaluation = await EvaluationService.createEvaluation(
             {
               // Basic required properties
@@ -418,7 +420,7 @@ export const useEvaluationStore = create<EvaluationState>()(
         }
       },
 
-      loadEvaluations: async (force = false) => {
+      loadEvaluations: async (force = false, clerkUserId?: string) => {
         console.log('📥 LOAD EVALUATIONS CALLED - Force:', force)
         const { hasLoadedEvaluations, isLoading, evaluations: currentEvaluations, currentEvaluation } = get()
         console.log('📥 Current state - hasLoaded:', hasLoadedEvaluations, 'isLoading:', isLoading, 'currentCount:', currentEvaluations.length)
@@ -437,11 +439,12 @@ export const useEvaluationStore = create<EvaluationState>()(
           
           let evaluations: any[] = []
           try {
-            // Use consistent user ID to get evaluations
-            const userId = getCurrentUserId()
+            // Use Clerk user ID if provided, otherwise fall back
+            const userId = clerkUserId || getCurrentUserId()
             console.log('📥 Fetching evaluations for userId:', userId)
+            console.log('📥 Clerk user ID provided:', clerkUserId)
             console.log('📥 User ID from getCurrentUserId():', getCurrentUserId())
-            console.log('📥 User IDs match:', userId === getCurrentUserId())
+            console.log('📥 Final userId used:', userId)
             
             const result = await EvaluationService.getUserEvaluations(userId)
             // Ensure evaluations is always an array

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { evaluationStorage } from '@/lib/evaluation-storage'
 import { BusinessEvaluationRepository } from '@/lib/repositories/BusinessEvaluationRepository'
-import { TierValidationMiddleware } from '@/middleware/tier-validation'
+import { TierValidationMiddleware } from '@/lib/middleware/tier-validation'
 import type { BusinessData } from '@/types/evaluation'
 
 export async function POST(request: NextRequest) {

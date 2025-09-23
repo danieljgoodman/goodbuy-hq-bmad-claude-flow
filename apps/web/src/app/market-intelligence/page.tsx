@@ -1,52 +1,68 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useUser } from '@clerk/nextjs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Crown, TrendingUp, BarChart3, Target, AlertCircle } from 'lucide-react'
-import { useAuth } from '@/lib/hooks/useAuth'
 import Link from 'next/link'
 
 export default function MarketIntelligence() {
-  const { user } = useAuth()
+  const { isLoaded, isSignedIn, user } = useUser()
   const [hasAccess, setHasAccess] = useState<boolean | null>(null)
 
-  const checkAccess = async () => {
-    if (!user?.id) return
-    
-    try {
-      const response = await fetch('/api/premium/check-access', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: user.id,
-          featureType: 'analytics',
-          requiredTier: 'ENTERPRISE'
+  useEffect(() => {
+    const checkAccess = async () => {
+      if (!user?.id) return
+
+      try {
+        const response = await fetch('/api/premium/check-access', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            featureType: 'analytics',
+            requiredTier: 'ENTERPRISE'
+          })
         })
-      })
-      
-      if (response.ok) {
-        const result = await response.json()
-        setHasAccess(result.hasAccess)
-      } else {
+
+        if (response.ok) {
+          const result = await response.json()
+          setHasAccess(result.hasAccess)
+        } else {
+          setHasAccess(false)
+        }
+      } catch (error) {
+        console.error('Error checking access:', error)
         setHasAccess(false)
       }
-    } catch (error) {
-      console.error('Error checking access:', error)
-      setHasAccess(false)
     }
-  }
 
-  useEffect(() => {
-    if (user?.id) {
+    if (isLoaded && isSignedIn && user?.id) {
       checkAccess()
     }
-  }, [user?.id, checkAccess])
+  }, [isLoaded, isSignedIn, user?.id])
 
-  if (!user) {
+  if (!isLoaded) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardContent className="py-12 text-center">
+            <div className="animate-pulse">
+              <div className="h-12 w-12 bg-gray-200 rounded-full mx-auto mb-4" />
+              <div className="h-6 bg-gray-200 rounded w-48 mx-auto mb-2" />
+              <div className="h-4 bg-gray-200 rounded w-64 mx-auto" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (!isSignedIn || !user) {
     return (
       <div className="container mx-auto px-4 py-8">
         <Card>

@@ -134,12 +134,12 @@ export class ClaudeService {
 
   // Epic 2: Document Intelligence Methods
   static async extractFinancialData(documentContent: string, fileType: 'pdf' | 'excel' | 'image'): Promise<ExtractedFinancialData> {
-    const prompt = this.createDocumentExtractionPrompt(documentContent, fileType)
+    const prompt = ClaudeService.createDocumentExtractionPrompt(documentContent, fileType)
     
     try {
-      const response = await fetch(this.getBaseUrl(), {
+      const response = await fetch(ClaudeService.getBaseUrl(), {
         method: 'POST',
-        headers: this.headers,
+        headers: ClaudeService.headers,
         body: JSON.stringify({
           type: 'document-extraction',
           documentContent,
@@ -157,13 +157,13 @@ export class ClaudeService {
       }
       const analysisText = result.analysisText
       
-      return this.parseDocumentExtractionResponse(analysisText)
+      return ClaudeService.parseDocumentExtractionResponse(analysisText)
     } catch (error) {
       console.error('Document extraction error:', error)
       console.log('🤖 Falling back to mock data for demo purposes')
       
       // Return mock data for demo when Claude API is not available
-      return this.createMockExtractedData(documentContent, fileType)
+      return ClaudeService.createMockExtractedData(documentContent, fileType)
     }
   }
 
@@ -233,12 +233,12 @@ export class ClaudeService {
 
   // Epic 2: Multi-Methodology Valuation Engine
   static async performMultiMethodologyValuation(businessData: Partial<BusinessData> & { annualRevenue: number; expenses: number; assets: number; liabilities: number }): Promise<MultiMethodologyValuation> {
-    const prompt = this.createValuationPrompt(businessData)
+    const prompt = ClaudeService.createValuationPrompt(businessData)
     
     try {
-      const response = await fetch(this.getBaseUrl(), {
+      const response = await fetch(ClaudeService.getBaseUrl(), {
         method: 'POST',
-        headers: this.headers,
+        headers: ClaudeService.headers,
         body: JSON.stringify({
           type: 'multi-methodology-valuation',
           businessData
@@ -255,16 +255,16 @@ export class ClaudeService {
       }
       const analysisText = result.analysisText
       
-      return this.parseValuationResponse(analysisText, businessData)
+      return ClaudeService.parseValuationResponse(analysisText, businessData)
     } catch (error) {
       console.error('Multi-methodology valuation error:', error)
-      return this.generateFallbackValuation(businessData)
+      return ClaudeService.generateFallbackValuation(businessData)
     }
   }
 
   // Epic 2: Enhanced Health Analysis
   static async analyzeEnhancedBusinessHealth(businessData: Partial<BusinessData> & { annualRevenue: number; expenses: number; assets: number; liabilities: number }): Promise<EnhancedHealthAnalysis> {
-    const prompt = this.createEnhancedAnalysisPrompt(businessData)
+    const prompt = ClaudeService.createEnhancedAnalysisPrompt(businessData)
     
     try {
       // Use direct handler when running server-side
@@ -279,12 +279,12 @@ export class ClaudeService {
         }
         const analysisText = result.analysisText
         
-        return this.parseEnhancedAnalysisResponse(analysisText, businessData)
+        return ClaudeService.parseEnhancedAnalysisResponse(analysisText, businessData)
       } else {
         // Client-side uses fetch
-        const response = await fetch(this.getBaseUrl(), {
+        const response = await fetch(ClaudeService.getBaseUrl(), {
           method: 'POST',
-          headers: this.headers,
+          headers: ClaudeService.headers,
           body: JSON.stringify({
             type: 'enhanced-health-analysis',
             businessData
@@ -301,21 +301,21 @@ export class ClaudeService {
         }
         const analysisText = result.analysisText
         
-        return this.parseEnhancedAnalysisResponse(analysisText, businessData)
+        return ClaudeService.parseEnhancedAnalysisResponse(analysisText, businessData)
       }
     } catch (error) {
       console.error('Enhanced health analysis error:', error)
-      return this.generateFallbackEnhancedAnalysis(businessData)
+      return ClaudeService.generateFallbackEnhancedAnalysis(businessData)
     }
   }
 
   static async analyzeBusinessHealth(businessData: Partial<BusinessData> & { annualRevenue: number; expenses: number; assets: number; liabilities: number }): Promise<HealthAnalysis> {
-    const prompt = this.createAnalysisPrompt(businessData)
+    const prompt = ClaudeService.createAnalysisPrompt(businessData)
     
     try {
-      const response = await fetch(this.getBaseUrl(), {
+      const response = await fetch(ClaudeService.getBaseUrl(), {
         method: 'POST',
-        headers: this.headers,
+        headers: ClaudeService.headers,
         body: JSON.stringify({
           type: 'basic-health-analysis',
           businessData
@@ -332,12 +332,12 @@ export class ClaudeService {
       }
       const analysisText = result.analysisText
       
-      return this.parseAnalysisResponse(analysisText, businessData)
+      return ClaudeService.parseAnalysisResponse(analysisText, businessData)
     } catch (error) {
       console.error('Claude API error:', error)
       
       // Fallback to rule-based analysis if API fails
-      return this.generateFallbackAnalysis(businessData)
+      return ClaudeService.generateFallbackAnalysis(businessData)
     }
   }
 
@@ -417,7 +417,7 @@ Format your response as structured analysis, not JSON.
     )
 
     // Generate improvement opportunities
-    const opportunities = this.generateImprovementOpportunities(data, {
+    const opportunities = ClaudeService.generateImprovementOpportunities(data, {
       financial: financialScore,
       operational: operationalScore,
       market: marketScore,
@@ -1010,7 +1010,7 @@ Provide specific scores, detailed reasoning, and actionable recommendations for 
           }
         ]
       },
-      topOpportunities: this.generateEnhancedOpportunities(data, {
+      topOpportunities: ClaudeService.generateEnhancedOpportunities(data, {
         financial: financialDimension.score,
         operational: operationalDimension.score,
         market: marketDimension.score,

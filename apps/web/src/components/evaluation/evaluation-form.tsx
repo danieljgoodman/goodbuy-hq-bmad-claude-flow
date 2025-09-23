@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useEvaluationStore } from '@/stores/evaluation-store'
-import { useAuthStore } from '@/stores/auth-store'
+import { useUser } from '@clerk/nextjs'
 import { getCurrentUserId } from '@/lib/user-utils'
 import BusinessBasicsStep from './steps/business-basics-step'
 import EnhancedBusinessBasicsStep from './steps/enhanced-business-basics-step'
@@ -37,7 +37,7 @@ interface EvaluationFormProps {
 
 export default function EvaluationForm({ initialData }: EvaluationFormProps) {
   const router = useRouter()
-  const { user } = useAuthStore()
+  const { user, isLoaded, isSignedIn } = useUser()
   
   // Feature flag checks - moved inside component to ensure fresh read
   const USE_EPIC2 = process.env.NEXT_PUBLIC_EPIC2_ENABLED === 'true'
@@ -73,7 +73,7 @@ export default function EvaluationForm({ initialData }: EvaluationFormProps) {
   
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const effectiveUser = user
+  const effectiveUser = isSignedIn ? user : null
 
   // Helper function to aggregate extracted financial data
   const aggregateExtractedData = (extractedDocs: any[]) => {
@@ -211,12 +211,13 @@ export default function EvaluationForm({ initialData }: EvaluationFormProps) {
   const [hasInitialized, setHasInitialized] = useState(false)
 
   useEffect(() => {
-    if (!effectiveUser || hasInitialized) return
+    // Don't run this effect during submission
+    if (!effectiveUser || hasInitialized || isSubmitting) return
 
     console.log('🔍 EvaluationForm useEffect triggered')
     console.log('  - Initial data prop received:', initialData?.length || 0, 'documents')
     console.log('  - Current evaluation exists:', !!currentEvaluation)
-    console.log('  - Effective user ID:', effectiveUser.id)
+    console.log('  - Effective user ID:', effectiveUser?.id)
     
     // If we have document data, we want to use it regardless of existing evaluation
     if (initialData && initialData.length > 0) {
@@ -242,7 +243,7 @@ export default function EvaluationForm({ initialData }: EvaluationFormProps) {
       console.log('  - Business Type:', businessData.businessType)
       
       setCurrentEvaluation({
-        userId: effectiveUser.id,
+        userId: user?.id || effectiveUser?.id || '',
         businessData,
         status: 'processing',
         createdAt: new Date(),
@@ -266,7 +267,7 @@ export default function EvaluationForm({ initialData }: EvaluationFormProps) {
       console.log('🚀 No document data - creating default evaluation with zero values')
       
       setCurrentEvaluation({
-        userId: effectiveUser.id,
+        userId: user?.id || effectiveUser?.id || '',
         businessData: {
           businessType: '',
           industryFocus: '',
@@ -302,7 +303,7 @@ export default function EvaluationForm({ initialData }: EvaluationFormProps) {
       console.log('📋 Loading saved evaluations...')
       loadEvaluations()
     }
-  }, [effectiveUser, currentEvaluation, setCurrentEvaluation, loadEvaluations, initialData, setCurrentStep, hasInitialized])
+  }, [effectiveUser, currentEvaluation, setCurrentEvaluation, loadEvaluations, initialData, setCurrentStep, hasInitialized, isSubmitting])
 
   const getCurrentStepComponent = () => {
     const step = steps.find(s => s.id === currentStep)
@@ -322,7 +323,7 @@ export default function EvaluationForm({ initialData }: EvaluationFormProps) {
   }
 
   const handlePrevious = () => {
-    if (currentStep > 1) {
+    if (currentStep > 1 && !isSubmitting) {
       setCurrentStep(currentStep - 1)
     }
   }
@@ -332,24 +333,28 @@ export default function EvaluationForm({ initialData }: EvaluationFormProps) {
     console.log('🚀 Current evaluation data:', currentEvaluation)
     console.log('🚀 User info:', user)
     console.log('🚀 Feature flag USE_EPIC2:', USE_EPIC2)
-    
+    console.log('🚀 Setting isSubmitting to true...')
+
     // Validate required data
     if (!currentEvaluation?.businessData?.annualRevenue) {
       alert('Please complete all required fields before submitting.')
       return
     }
-    
+
     setIsSubmitting(true)
+    console.log('🚀 isSubmitting has been set to true')
     try {
       let evaluation
       
       if (USE_EPIC2) {
         console.log('🚀 Using Epic 2 - Calling performEnhancedAnalysis()...')
-        evaluation = await performEnhancedAnalysis()
+        console.log('🚀 Passing Clerk user ID:', user?.id)
+        evaluation = await performEnhancedAnalysis(user?.id)
         console.log('🚀✅ Epic 2 evaluation completed:', evaluation.id, 'Status:', evaluation.status)
       } else {
         console.log('🚀 Using Epic 1 - Calling submitEvaluation()...')
-        evaluation = await submitEvaluation()
+        console.log('🚀 Passing Clerk user ID:', user?.id)
+        evaluation = await submitEvaluation(user?.id)
         console.log('🚀✅ Epic 1 evaluation completed:', evaluation.id, 'Status:', evaluation.status)
       }
       
@@ -368,7 +373,19 @@ export default function EvaluationForm({ initialData }: EvaluationFormProps) {
   const currentStepInfo = steps.find(s => s.id === currentStep)
   const progress = (currentStep / totalSteps) * 100
 
-  if (!effectiveUser) {
+  if (!isLoaded) {
+    return (
+      <Card className="w-full max-w-2xl mx-auto">
+        <CardContent className="p-6">
+          <p className="text-center text-muted-foreground">
+            Loading...
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (!isSignedIn || !effectiveUser) {
     return (
       <Card className="w-full max-w-2xl mx-auto">
         <CardContent className="p-6">
@@ -447,7 +464,7 @@ export default function EvaluationForm({ initialData }: EvaluationFormProps) {
             <Button
               variant="outline"
               onClick={handlePrevious}
-              disabled={currentStep === 1}
+              disabled={currentStep === 1 || isSubmitting}
             >
               Previous
             </Button>
@@ -460,10 +477,22 @@ export default function EvaluationForm({ initialData }: EvaluationFormProps) {
               <Button
                 onClick={handleSubmit}
                 disabled={isSubmitting || isLoading}
-                className="min-w-[160px] bg-primary text-primary-foreground hover:bg-primary/90"
+                className="min-w-[200px] bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
                 size="lg"
               >
-                {isSubmitting ? 'Analyzing Business...' : 'Submit & View Results'}
+                <span className="flex items-center justify-center gap-2">
+                  {isSubmitting ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5 text-primary-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span>Analyzing Business...</span>
+                    </>
+                  ) : (
+                    'Submit & View Results'
+                  )}
+                </span>
               </Button>
             ) : (
               <Button

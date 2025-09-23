@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { config } from '@/lib/config'
 
 interface ClaudeRequest {
   type: 'multi-methodology-valuation' | 'enhanced-health-analysis' | 'basic-health-analysis' | 'document-extraction' | 'executive-summary'
@@ -10,14 +9,28 @@ interface ClaudeRequest {
 }
 
 const CLAUDE_BASE_URL = 'https://api.anthropic.com/v1'
-const CLAUDE_HEADERS = {
-  'Content-Type': 'application/json',
-  'x-api-key': config.claude.apiKey,
-  'anthropic-version': '2023-06-01',
+
+export async function GET(req: NextRequest) {
+  console.log('🔥 Claude API GET endpoint hit!')
+  return NextResponse.json({ status: 'ok', message: 'Claude API endpoint is working' })
 }
 
 export async function POST(req: NextRequest) {
+  console.log('🔥 Claude API POST endpoint hit!')
   try {
+    // Check for API key
+    const apiKey = process.env.CLAUDE_API_KEY
+    if (!apiKey) {
+      console.error('Claude API key not configured')
+      return NextResponse.json({ error: 'Claude API key not configured' }, { status: 500 })
+    }
+
+    const CLAUDE_HEADERS = {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+    }
+
     const body: ClaudeRequest = await req.json()
     const { type, businessData, documentContent, fileType, summaryContext } = body
 
@@ -55,7 +68,7 @@ export async function POST(req: NextRequest) {
       method: 'POST',
       headers: CLAUDE_HEADERS,
       body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022', // Latest available model
+        model: 'claude-3-haiku-20240307', // Use Haiku model which is more available
         max_tokens: maxTokens,
         messages: [
           {

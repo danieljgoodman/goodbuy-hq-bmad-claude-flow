@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -10,26 +10,93 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator'
 import { Avatar, AvatarContent, AvatarFallback } from '@/components/ui/avatar'
 import { User, Building, Mail, Phone, MapPin, Camera, Save, AlertCircle } from 'lucide-react'
-import { useAuthStore } from '@/stores/auth-store'
+import { useUser } from '@clerk/nextjs'
 
 export default function ProfilePage() {
-  const { user } = useAuthStore()
+  const { user, isLoaded } = useUser()
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState({
-    firstName: user?.firstName || '',
-    lastName: user?.lastName || '',
-    email: user?.email || '',
+    firstName: '',
+    lastName: '',
+    email: '',
     phone: '',
-    businessName: user?.businessName || '',
+    businessName: '',
     industry: '',
     businessSize: '',
     location: '',
     bio: ''
   })
 
-  const handleSave = () => {
-    // TODO: Implement profile update logic
-    setIsEditing(false)
+  // Update form data when user data loads
+  useEffect(() => {
+    if (isLoaded && user) {
+      // Check both publicMetadata and unsafeMetadata for data
+      const publicMeta = user.publicMetadata || {}
+      const unsafeMeta = user.unsafeMetadata || {}
+
+      setFormData({
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.primaryEmailAddress?.emailAddress || '',
+        phone: publicMeta.phone as string || publicMeta.businessPhone as string || unsafeMeta.businessPhone as string || '',
+        businessName: publicMeta.businessName as string || unsafeMeta.businessName as string || '',
+        industry: publicMeta.industry as string || unsafeMeta.industry as string || '',
+        businessSize: publicMeta.businessSize as string || unsafeMeta.employeeCountRange as string || '',
+        location: publicMeta.location as string ||
+          (unsafeMeta.businessAddress ? `${unsafeMeta.businessAddress.city}, ${unsafeMeta.businessAddress.state}` : '') || '',
+        bio: publicMeta.bio as string || publicMeta.businessDescription as string || ''
+      })
+    }
+  }, [isLoaded, user])
+
+  const handleSave = async () => {
+    if (!user) return
+
+    try {
+      // Update user profile through API route
+      const response = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          phone: formData.phone,
+          businessName: formData.businessName,
+          industry: formData.industry,
+          businessSize: formData.businessSize,
+          location: formData.location,
+          bio: formData.bio
+        })
+      })
+
+      if (response.ok) {
+        // Reload user data to reflect changes
+        await user.reload()
+        setIsEditing(false)
+      } else {
+        console.error('Failed to update profile')
+      }
+    } catch (error) {
+      console.error('Failed to update profile:', error)
+    }
+  }
+
+  // Show loading state while user data is loading
+  if (!isLoaded) {
+    return (
+      <div className="container mx-auto px-4 py-12 max-w-4xl">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
+          <div className="space-y-4">
+            <div className="h-48 bg-gray-200 rounded"></div>
+            <div className="h-48 bg-gray-200 rounded"></div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -62,14 +129,14 @@ export default function ProfilePage() {
             <CardContent className="p-6 text-center">
               <Avatar className="h-32 w-32 mx-auto mb-4">
                 <AvatarFallback className="text-2xl">
-                  {user?.firstName?.[0]}{user?.lastName?.[0] || user?.email?.[0]?.toUpperCase()}
+                  {formData.firstName?.[0]?.toUpperCase() || ''}{formData.lastName?.[0]?.toUpperCase() || formData.email?.[0]?.toUpperCase() || 'U'}
                 </AvatarFallback>
               </Avatar>
               <h3 className="font-semibold text-lg mb-1">
-                {user?.firstName} {user?.lastName}
+                {formData.firstName || formData.lastName ? `${formData.firstName} ${formData.lastName}`.trim() : 'User'}
               </h3>
               <p className="text-muted-foreground text-sm mb-4">
-                {user?.businessName || user?.email}
+                {formData.businessName || formData.email}
               </p>
               {isEditing && (
                 <Button variant="outline" size="sm">
@@ -160,7 +227,11 @@ export default function ProfilePage() {
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="industry">Industry</Label>
-                  <Select disabled={!isEditing}>
+                  <Select
+                    value={formData.industry}
+                    onValueChange={(value) => setFormData({...formData, industry: value})}
+                    disabled={!isEditing}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select industry" />
                     </SelectTrigger>
@@ -178,7 +249,11 @@ export default function ProfilePage() {
                 
                 <div>
                   <Label htmlFor="businessSize">Business Size</Label>
-                  <Select disabled={!isEditing}>
+                  <Select
+                    value={formData.businessSize}
+                    onValueChange={(value) => setFormData({...formData, businessSize: value})}
+                    disabled={!isEditing}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select size" />
                     </SelectTrigger>
@@ -236,11 +311,11 @@ export default function ProfilePage() {
                 </div>
                 <div className="text-right">
                   <p className="font-medium">
-                    {user?.subscriptionTier === 'enterprise' ? 'Enterprise Plan' : 
-                     user?.subscriptionTier === 'premium' ? 'Premium Plan' : 
+                    {user?.publicMetadata?.subscriptionTier === 'enterprise' ? 'Enterprise Plan' :
+                     user?.publicMetadata?.subscriptionTier === 'premium' ? 'Premium Plan' :
                      'Free Plan'}
                   </p>
-                  {user?.subscriptionTier === 'free' && (
+                  {(!user?.publicMetadata?.subscriptionTier || user?.publicMetadata?.subscriptionTier === 'free') && (
                     <Button variant="link" size="sm" className="p-0">
                       Upgrade to Pro
                     </Button>

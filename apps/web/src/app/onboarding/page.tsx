@@ -247,6 +247,20 @@ export default function OnboardingPage() {
     try {
       // Update user metadata with business information
       await user.update({
+        publicMetadata: {
+          ...user.publicMetadata,
+          businessName: formData.businessName,
+          industry: formData.industry,
+          businessSize: formData.employeeCountRange,
+          location: `${formData.businessAddress.city}, ${formData.businessAddress.state}`,
+          phone: formData.businessPhone,
+          role: formData.role,
+          revenueRange: formData.revenueRange,
+          businessModel: formData.businessModel,
+          websiteUrl: formData.websiteUrl,
+          onboardingCompleted: true,
+          onboardingCompletedAt: new Date().toISOString(),
+        },
         unsafeMetadata: {
           ...user.unsafeMetadata,
           ...formData,

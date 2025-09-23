@@ -1,25 +1,26 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
+import { useUser } from '@clerk/nextjs'
 import ProtectedRoute from '@/components/auth/protected-route'
 import ValuationResults from '@/components/evaluation/valuation-results'
 import HealthScore from '@/components/evaluation/health-score'
 import OpportunitiesList from '@/components/evaluation/opportunities-list'
 import { UnifiedResultsDashboard } from '@/components/evaluation/unified-results-dashboard'
 import { useEvaluationStore } from '@/stores/evaluation-store'
-import { useAuthStore } from '@/stores/auth-store'
 import { PremiumAccessService } from '@/lib/services/PremiumAccessService'
 import type { BusinessEvaluation } from '@/types'
 
 export default function EvaluationResultsPage() {
   const params = useParams()
+  const router = useRouter()
   const evaluationId = params.id as string
-  
+
   // Force component refresh timestamp: 2025-09-08-7:33pm
   console.log('🔄 EvaluationResultsPage loaded with NEW save logic - v2.1')
   const { evaluations, loadEvaluations, saveEvaluation } = useEvaluationStore()
-  const { user } = useAuthStore()
+  const { user } = useUser()
   const userId = user?.id
   const [evaluation, setEvaluation] = useState<BusinessEvaluation | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -42,11 +43,21 @@ export default function EvaluationResultsPage() {
 
   // Save evaluation and navigate to dashboard
   const handleSaveAndReturn = async () => {
-    if (!evaluation || !userId) return
-    
+    if (!evaluation) {
+      console.log('⚠️ No evaluation to save, navigating to dashboard...')
+      router.push('/dashboard')
+      return
+    }
+
+    if (!userId) {
+      console.log('⚠️ No userId available, navigating to dashboard...')
+      router.push('/dashboard')
+      return
+    }
+
     console.log('🚀 SAVE BUTTON CLICKED - New save logic v2 activated!')
     console.log('📊 Evaluation to save:', { id: evaluation.id, status: evaluation.status, userId })
-    
+
     setIsSaving(true)
     try {
       await saveEvaluation({
@@ -55,14 +66,14 @@ export default function EvaluationResultsPage() {
         createdAt: evaluation.createdAt || new Date(),
         updatedAt: new Date()
       })
-      
+
       console.log('✅ Save successful, navigating to dashboard...')
       // Navigate to dashboard after successful save
-      window.location.href = '/dashboard'
+      router.push('/dashboard')
     } catch (error) {
       console.error('❌ Save failed:', error)
       // Still navigate on error - evaluation data is already processed
-      window.location.href = '/dashboard'
+      router.push('/dashboard')
     } finally {
       setIsSaving(false)
     }

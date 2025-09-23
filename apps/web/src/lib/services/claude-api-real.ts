@@ -1,49 +1,43 @@
 // Real Claude API integration - NO FALLBACKS
-import Anthropic from '@anthropic-ai/sdk'
-
-// Initialize Claude client with API key
-const anthropic = new Anthropic({
-  apiKey: process.env.CLAUDE_API_KEY || '',
-})
+// Uses server-side API endpoint to protect API key
 
 export async function callClaudeAPI(prompt: string, businessData?: any): Promise<string> {
-  if (!process.env.CLAUDE_API_KEY) {
-    throw new Error('Claude API key not configured')
-  }
-
   try {
-    // Create a structured prompt with the business data
-    const systemPrompt = `You are a professional business analyst and valuation expert. 
-    Analyze the provided business data and generate insights based on actual metrics.
-    Be specific, data-driven, and provide actionable recommendations.
-    Use the actual numbers provided to calculate ratios, percentages, and trends.`
+    // Determine the request type based on the prompt content
+    let requestType: 'multi-methodology-valuation' | 'enhanced-health-analysis' | 'basic-health-analysis' | 'executive-summary' = 'basic-health-analysis'
 
-    const userPrompt = `${prompt}
-    
-    Business Data:
-    ${JSON.stringify(businessData, null, 2)}`
-
-    // Make the actual API call to Claude
-    const response = await anthropic.messages.create({
-      model: 'claude-3-haiku-20240307',
-      max_tokens: 2000,
-      temperature: 0.7,
-      system: systemPrompt,
-      messages: [
-        {
-          role: 'user',
-          content: userPrompt
-        }
-      ]
-    })
-
-    // Extract the text from the response
-    const content = response.content[0]
-    if (content.type === 'text') {
-      return content.text
+    if (prompt.includes('valuation')) {
+      requestType = 'multi-methodology-valuation'
+    } else if (prompt.includes('enhanced') || prompt.includes('comprehensive')) {
+      requestType = 'enhanced-health-analysis'
+    } else if (prompt.includes('executive') || prompt.includes('summary')) {
+      requestType = 'executive-summary'
     }
 
-    throw new Error('Unexpected response format from Claude API')
+    // Make request to our server-side API endpoint
+    const response = await fetch('/api/claude', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        type: requestType,
+        businessData,
+        summaryContext: prompt
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error(`API request failed: ${response.statusText}`)
+    }
+
+    const result = await response.json()
+
+    if (result.success && result.analysisText) {
+      return result.analysisText
+    }
+
+    throw new Error(result.error || 'Unexpected response format from API')
   } catch (error: any) {
     console.error('Claude API call failed:', error)
     

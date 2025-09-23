@@ -1,92 +1,112 @@
 /**
  * User utility functions for consistent user ID management
+ * Updated to use Clerk authentication
  */
 
-// For now, generate a consistent user ID that persists across sessions
-// In a real app, this would come from authentication
+// Cache the Clerk user ID for the session
 let _cachedUserId: string | null = null
 
-// Function to get current user from auth store (avoid circular dependency)
-function getAuthStoreUser() {
+// Function to get current user ID from Clerk
+function getClerkUserId(): string | null {
   if (typeof window === 'undefined') return null
-  
+
   try {
-    // Try multiple possible keys that Zustand might use
-    const possibleKeys = ['auth-store', 'zustand-auth-store', 'authStore']
-    let authState = null
-    let foundKey = null
-    
-    console.log('🆔 DEBUG: Checking localStorage keys:', Object.keys(localStorage))
-    
-    for (const key of possibleKeys) {
-      const data = localStorage.getItem(key)
+    // Check for Clerk user data in sessionStorage or localStorage
+    // Clerk stores user data in __clerk_db_jwt key
+    const clerkKeys = [
+      '__clerk_db_jwt',
+      '__clerk_client_jwt',
+      'clerk-db-jwt',
+      '__session'
+    ]
+
+    for (const key of clerkKeys) {
+      const data = sessionStorage.getItem(key) || localStorage.getItem(key)
       if (data) {
-        authState = data
-        foundKey = key
-        break
+        try {
+          // Try to decode JWT to get user ID
+          const parts = data.split('.')
+          if (parts.length === 3) {
+            const payload = JSON.parse(atob(parts[1]))
+            if (payload.sub) {
+              console.log('🆔 Found Clerk user ID from JWT:', payload.sub)
+              return payload.sub
+            }
+          }
+        } catch (e) {
+          // Not a JWT, continue
+        }
       }
     }
-    
-    console.log('🆔 DEBUG: Found auth data with key:', foundKey)
-    
-    if (authState) {
-      const parsed = JSON.parse(authState)
-      console.log('🆔 DEBUG: Auth store structure:', {
-        keys: Object.keys(parsed),
-        hasState: !!parsed.state,
-        hasUser: !!parsed.state?.user,
-        userId: parsed.state?.user?.id,
-        userEmail: parsed.state?.user?.email
-      })
-      console.log('🆔 Using auth store user:', parsed.state?.user?.id || 'no user')
-      return parsed.state?.user || null
+
+    // Also check for Clerk user object in localStorage
+    const userDataKeys = Object.keys(localStorage).filter(key =>
+      key.includes('clerk') || key.includes('user')
+    )
+
+    for (const key of userDataKeys) {
+      try {
+        const data = localStorage.getItem(key)
+        if (data) {
+          const parsed = JSON.parse(data)
+          // Look for Clerk user ID patterns
+          if (parsed.userId && parsed.userId.startsWith('user_')) {
+            console.log('🆔 Found Clerk user ID from storage:', parsed.userId)
+            return parsed.userId
+          }
+          if (parsed.id && parsed.id.startsWith('user_')) {
+            console.log('🆔 Found Clerk user ID from storage:', parsed.id)
+            return parsed.id
+          }
+        }
+      } catch (e) {
+        // Continue to next key
+      }
     }
   } catch (error) {
-    console.log('🆔 ERROR parsing auth store:', error)
+    console.log('🆔 ERROR getting Clerk user ID:', error)
   }
   return null
 }
 
 export function getCurrentUserId(): string {
-  // FORCE CLEAR: Always clear cached data on each call to ensure fresh auth check
-  _cachedUserId = null
-  
-  // PRIORITY 1: ALWAYS use auth store if available
-  const authUser = getAuthStoreUser()
-  
-  if (authUser?.id) {
-    console.log('🆔 FORCE USING auth store user ID:', authUser.id)
-    _cachedUserId = authUser.id
-    
-    // FORCE CLEAR stale localStorage
+  // PRIORITY 1: Try to get Clerk user ID
+  const clerkUserId = getClerkUserId()
+
+  if (clerkUserId) {
+    console.log('🆔 Using Clerk user ID:', clerkUserId)
+    _cachedUserId = clerkUserId
+
+    // Store for consistency
     if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('goodbuy-user-id')
-      if (stored && stored !== authUser.id) {
-        console.log('🆔 FORCE CLEARING stale localStorage:', stored, '→', authUser.id)
-      }
-      localStorage.removeItem('goodbuy-user-id') // Always clear
-      localStorage.setItem('goodbuy-user-id', authUser.id)
+      localStorage.setItem('goodbuy-user-id', clerkUserId)
     }
-    return authUser.id
+    return clerkUserId
   }
 
-  // PRIORITY 2: Only fallback to localStorage if NO auth user
+  // PRIORITY 2: Use cached ID if available
+  if (_cachedUserId) {
+    console.log('🆔 Using cached user ID:', _cachedUserId)
+    return _cachedUserId
+  }
+
+  // PRIORITY 3: Check localStorage for stored ID
   if (typeof window !== 'undefined') {
     const stored = localStorage.getItem('goodbuy-user-id')
     if (stored) {
       _cachedUserId = stored
-      console.log('🆔 FALLBACK: Using stored user ID from localStorage:', stored)
+      console.log('🆔 Using stored user ID from localStorage:', stored)
       return stored
     }
   }
 
-  // PRIORITY 3: Generate new if nothing exists
+  // PRIORITY 4: Generate new ID as last resort
   const newUserId = crypto.randomUUID()
-  
+
   if (typeof window !== 'undefined') {
     localStorage.setItem('goodbuy-user-id', newUserId)
   }
-  
+
   _cachedUserId = newUserId
   console.log('🆔 Generated NEW user ID:', newUserId)
   return newUserId

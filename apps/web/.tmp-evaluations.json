@@ -824,5 +824,197 @@
     "status": "completed",
     "createdAt": "2025-09-12T01:30:27.755Z",
     "updatedAt": "2025-09-12T01:30:32.762Z"
+  },
+  "bf61f783-89d7-4d40-a913-838f71f2d888": {
+    "id": "bf61f783-89d7-4d40-a913-838f71f2d888",
+    "userId": "user_3351ZNYxCyuJatqTi2yEPkz7qXo",
+    "businessData": {
+      "businessType": "Sole Proprietorship",
+      "industryFocus": "Technology",
+      "yearsInBusiness": 12,
+      "businessModel": "B2B (Business to Business)",
+      "revenueModel": "Freemium",
+      "annualRevenue": 5039209,
+      "monthlyRecurring": 343033,
+      "expenses": 3209233,
+      "cashFlow": 0,
+      "assets": 2930392,
+      "liabilities": 1209302,
+      "customerCount": 12,
+      "marketPosition": "Market Leader",
+      "grossMargin": 40,
+      "employeeCount": 3,
+      "competitiveAdvantages": [
+        "Cost Leadership",
+        "Proprietary Technology",
+        "Location/Distribution"
+      ],
+      "primaryChannels": [
+        "Direct Sales Team",
+        "Social Media",
+        "Distributors"
+      ]
+    },
+    "valuations": {},
+    "healthScore": null,
+    "confidenceScore": null,
+    "opportunities": [],
+    "status": "processing",
+    "createdAt": "2025-09-23T02:33:21.857Z",
+    "updatedAt": "2025-09-23T02:33:21.857Z"
+  },
+  "dcefd321-8807-4960-810c-f08a44a092d8": {
+    "id": "dcefd321-8807-4960-810c-f08a44a092d8",
+    "userId": "user_3351ZNYxCyuJatqTi2yEPkz7qXo",
+    "businessData": {
+      "businessType": "Sole Proprietorship",
+      "industryFocus": "Technology",
+      "yearsInBusiness": 12,
+      "businessModel": "B2B (Business to Business)",
+      "revenueModel": "Recurring Subscription",
+      "annualRevenue": 3309402,
+      "monthlyRecurring": 349031,
+      "expenses": 2390403,
+      "cashFlow": 39093,
+      "assets": 1203803,
+      "liabilities": 590303,
+      "customerCount": 233,
+      "marketPosition": "Growing Player",
+      "grossMargin": 33,
+      "employeeCount": 2,
+      "competitiveAdvantages": [
+        "Cost Leadership",
+        "Location/Distribution",
+        "Network Effects"
+      ],
+      "primaryChannels": [
+        "Retail Partners",
+        "Direct Sales Team",
+        "Online/E-commerce"
+      ]
+    },
+    "valuations": {},
+    "healthScore": null,
+    "confidenceScore": null,
+    "opportunities": [],
+    "status": "processing",
+    "createdAt": "2025-09-23T02:41:21.782Z",
+    "updatedAt": "2025-09-23T02:41:21.782Z"
+  },
+  "2456bd24-46fb-44e4-985f-1e06b6ed5ad8": {
+    "id": "2456bd24-46fb-44e4-985f-1e06b6ed5ad8",
+    "userId": "user_3351ZNYxCyuJatqTi2yEPkz7qXo",
+    "businessData": {
+      "businessType": "Sole Proprietorship",
+      "industryFocus": "Technology",
+      "yearsInBusiness": 12,
+      "businessModel": "B2B (Business to Business)",
+      "revenueModel": "Recurring Subscription",
+      "annualRevenue": 5234524,
+      "monthlyRecurring": 424522,
+      "expenses": 3345534,
+      "cashFlow": 453245,
+      "assets": 1234134,
+      "liabilities": 453334,
+      "customerCount": 432,
+      "marketPosition": "Strong Competitor",
+      "grossMargin": 42,
+      "employeeCount": 13,
+      "competitiveAdvantages": [
+        "Proprietary Technology",
+        "Cost Leadership",
+        "Network Effects"
+      ],
+      "primaryChannels": [
+        "Online/E-commerce",
+        "Direct Sales Team",
+        "Retail Partners",
+        "Referrals/Word of Mouth"
+      ]
+    },
+    "valuations": {},
+    "healthScore": null,
+    "confidenceScore": null,
+    "opportunities": [],
+    "status": "processing",
+    "createdAt": "2025-09-23T02:50:30.011Z",
+    "updatedAt": "2025-09-23T02:50:30.011Z"
+  },
+  "570417cc-af81-47cb-9b4b-378556d245eb": {
+    "id": "570417cc-af81-47cb-9b4b-378556d245eb",
+    "userId": "user_3351ZNYxCyuJatqTi2yEPkz7qXo",
+    "businessData": {
+      "businessType": "Sole Proprietorship",
+      "industryFocus": "Technology",
+      "yearsInBusiness": 12,
+      "businessModel": "B2B (Business to Business)",
+      "revenueModel": "Recurring Subscription",
+      "annualRevenue": 4530952,
+      "monthlyRecurring": 123343,
+      "expenses": 3098098,
+      "cashFlow": 132412,
+      "assets": 1324124,
+      "liabilities": 543534,
+      "customerCount": 234,
+      "marketPosition": "Unknown",
+      "grossMargin": 39,
+      "employeeCount": 2,
+      "competitiveAdvantages": [
+        "Cost Leadership",
+        "Proprietary Technology",
+        "Location/Distribution"
+      ],
+      "primaryChannels": [
+        "Direct Sales Team",
+        "Digital Marketing"
+      ]
+    },
+    "valuations": {},
+    "healthScore": null,
+    "confidenceScore": null,
+    "opportunities": [],
+    "status": "processing",
+    "createdAt": "2025-09-23T02:59:38.245Z",
+    "updatedAt": "2025-09-23T02:59:38.245Z"
+  },
+  "2c839097-0da1-42ed-a6c2-a9acf03c8ae8": {
+    "id": "2c839097-0da1-42ed-a6c2-a9acf03c8ae8",
+    "userId": "user_3351ZNYxCyuJatqTi2yEPkz7qXo",
+    "businessData": {
+      "businessType": "Sole Proprietorship",
+      "industryFocus": "Technology",
+      "yearsInBusiness": 12,
+      "businessModel": "B2B (Business to Business)",
+      "revenueModel": "Recurring Subscription",
+      "annualRevenue": 4393093,
+      "monthlyRecurring": 234134,
+      "expenses": 3234133,
+      "cashFlow": 134132,
+      "assets": 3124213,
+      "liabilities": 332412,
+      "customerCount": 2341,
+      "marketPosition": "Market Leader",
+      "grossMargin": 33,
+      "employeeCount": 12,
+      "competitiveAdvantages": [
+        "Regulatory Advantages",
+        "Cost Leadership",
+        "Proprietary Technology",
+        "First-Mover Advantage",
+        "Network Effects"
+      ],
+      "primaryChannels": [
+        "Referrals/Word of Mouth",
+        "Trade Shows/Events",
+        "Digital Marketing"
+      ]
+    },
+    "valuations": {},
+    "healthScore": null,
+    "confidenceScore": null,
+    "opportunities": [],
+    "status": "processing",
+    "createdAt": "2025-09-23T03:08:33.763Z",
+    "updatedAt": "2025-09-23T03:08:33.763Z"
   }
 }

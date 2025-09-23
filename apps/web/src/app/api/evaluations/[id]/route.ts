@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { evaluationStorage } from '@/lib/evaluation-storage'
 import { BusinessEvaluationRepository } from '@/lib/repositories/BusinessEvaluationRepository'
-import { TierValidationMiddleware } from '@/middleware/tier-validation'
+import { TierValidationMiddleware } from '@/lib/middleware/tier-validation'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 
@@ -82,30 +82,57 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    // Validate user tier for evaluation updates
+    // Allow basic tier users to update evaluations
     const tierResult = await TierValidationMiddleware.validateTier(request, {
-      requiredTier: 'PREMIUM',
+      requiredTier: 'BASIC',
       featureType: 'analytics',
-      fallbackToBasic: false // Require subscription for updates
+      fallbackToBasic: true // Allow basic tier to update
     })
-
-    if (!tierResult.hasAccess) {
-      return TierValidationMiddleware.createAccessDeniedResponse(
-        tierResult.accessCheck,
-        'Subscription required to update evaluations'
-      )
-    }
 
     const updates = await request.json()
     console.log('🔄 PATCH evaluation:', params.id, 'with updates:', Object.keys(updates), 'userTier:', tierResult.userTier)
-    
+
+    // First check if the evaluation exists
+    let existingEvaluation = evaluationStorage.get(params.id)
+
+    if (!existingEvaluation) {
+      console.log('⚠️ Evaluation not found in storage, checking if it needs to be created')
+
+      // If the update contains full evaluation data, treat it as a create-or-update operation
+      if (updates.businessData && updates.userId) {
+        console.log('🆕 Creating new evaluation from PATCH request')
+        const newEvaluation = {
+          id: params.id,
+          userId: updates.userId,
+          businessData: updates.businessData,
+          valuations: updates.valuations || {},
+          healthScore: updates.healthScore || null,
+          confidenceScore: updates.confidenceScore || null,
+          opportunities: updates.opportunities || [],
+          status: updates.status || 'processing',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }
+        evaluationStorage.store(newEvaluation)
+        existingEvaluation = newEvaluation
+        console.log('✅ Created new evaluation:', params.id)
+      } else {
+        console.log('❌ Evaluation not found and insufficient data to create:', params.id)
+        return NextResponse.json(
+          { error: 'Evaluation not found' },
+          { status: 404 }
+        )
+      }
+    }
+
+    // Now update the evaluation
     const updatedEvaluation = evaluationStorage.update(params.id, updates)
-    
+
     if (!updatedEvaluation) {
-      console.log('❌ Evaluation not found for update:', params.id)
+      console.log('❌ Failed to update evaluation:', params.id)
       return NextResponse.json(
-        { error: 'Evaluation not found' }, 
-        { status: 404 }
+        { error: 'Failed to update evaluation' },
+        { status: 500 }
       )
     }
     

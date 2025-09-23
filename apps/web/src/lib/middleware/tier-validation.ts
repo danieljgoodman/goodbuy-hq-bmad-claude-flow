@@ -263,6 +263,39 @@ class TierValidationMiddleware {
   }
 
   /**
+   * Audit log for Enterprise tier data access
+   */
+  static async logEnterpriseDataAccess(
+    evaluationId: string,
+    userId: string,
+    action: 'view' | 'create' | 'update' | 'save' | 'export',
+    request: NextRequest,
+    additionalData?: any
+  ): Promise<void> {
+    try {
+      // For now, use the same audit table as professional
+      // In production, this could be a separate enterprise-specific audit table
+      await prisma.professionalDataAudit.create({
+        data: {
+          businessEvaluationId: evaluationId,
+          userId,
+          changeType: action === 'view' ? 'admin_access' : action === 'export' ? 'data_export' : 'updated',
+          previousData: null,
+          newData: additionalData || null,
+          changedFields: ['enterprise', action],
+          userAgent: request.headers.get('user-agent'),
+          ipAddress: this.getClientIpAddress(request),
+          sessionId: this.getSessionId(request),
+          requestId: request.headers.get('x-request-id') || crypto.randomUUID(),
+        }
+      })
+    } catch (error) {
+      console.error('Failed to log enterprise data access:', error)
+      // Don't throw - logging failure shouldn't break the main flow
+    }
+  }
+
+  /**
    * Gets user with subscription information
    */
   private static async getUserWithSubscription(userId: string): Promise<UserWithSubscription> {
