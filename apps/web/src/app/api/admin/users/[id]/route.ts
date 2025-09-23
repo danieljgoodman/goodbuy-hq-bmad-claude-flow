@@ -1,110 +1,132 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { auth } from '@clerk/nextjs/server'
+import { createClerkClient } from '@clerk/nextjs/server'
+import { UserRole } from '@prisma/client'
 
-// Admin middleware for role validation
-async function validateAdminAccess(session: any) {
-  if (!session?.user?.id) {
+const clerkClient = createClerkClient({
+  secretKey: process.env.CLERK_SECRET_KEY
+})
+
+// Admin middleware for role validation with Clerk
+async function validateAdminAccess() {
+  const { userId } = await auth()
+
+  if (!userId) {
     return { error: 'Unauthorized', status: 401 }
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { userRole: true }
-  })
+  // Get user from Clerk
+  const clerkUser = await clerkClient.users.getUser(userId)
+  // Check publicMetadata for role (as shown in your Clerk dashboard)
+  const role = clerkUser.publicMetadata?.role as string || 'user'
 
-  if (!user || (user.userRole !== 'admin' && user.userRole !== 'super_admin')) {
+  if (role !== 'admin' && role !== 'super_admin') {
     return { error: 'Admin access required', status: 403 }
   }
 
-  return { user: session.user, userRole: user.userRole }
+  return { userId, userRole: role as UserRole }
 }
 
-// Update user profile
+// Update user tier and role
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
+  const params = await props.params;
   try {
-    console.log('🔧 DEBUG MODE: Admin user update API called for user:', params.id)
-    
-    // COMPLETELY BYPASS AUTH FOR NOW
-    // const session = await getServerSession(authOptions)
-    // const validation = await validateAdminAccess(session)
-    // if ('error' in validation) {
-    //   return NextResponse.json(
-    //     { error: validation.error }, 
-    //     { status: validation.status }
-    //   )
-    // }
+    // Validate admin access
+    const validation = await validateAdminAccess()
+    if ('error' in validation) {
+      return NextResponse.json(
+        { error: validation.error },
+        { status: validation.status }
+      )
+    }
 
     const body = await request.json()
     const { subscriptionTier, userRole } = body
 
-    console.log('📝 Updating user profile:', { userId: params.id, subscriptionTier, userRole })
+    // Get current user to preserve existing metadata
+    const currentUser = await clerkClient.users.getUser(params.id)
+    const currentMetadata = currentUser.publicMetadata || {}
 
-    // Update user profile using raw SQL with proper UUID casting
-    const updateQuery = `
-      UPDATE public.user_profiles 
-      SET 
-        subscription_tier = $1,
-        user_role = $2,
-        updated_at = NOW()
-      WHERE user_id = $3::uuid
-      RETURNING *
-    `
+    // Only update the fields that were actually sent in the request
+    const updates: any = { ...currentMetadata }
 
-    const result = await prisma.$queryRawUnsafe(
-      updateQuery, 
-      subscriptionTier, 
-      userRole, 
-      params.id
-    )
-
-    const updatedProfile = (result as any[])[0]
-
-    if (!updatedProfile) {
-      // If no profile exists, create one
-      const createQuery = `
-        INSERT INTO public.user_profiles (user_id, subscription_tier, user_role)
-        VALUES ($1::uuid, $2, $3)
-        RETURNING *
-      `
-      
-      const createResult = await prisma.$queryRawUnsafe(
-        createQuery,
-        params.id,
-        subscriptionTier,
-        userRole
-      )
-      
-      const createdProfile = (createResult as any[])[0]
-      console.log('✅ Created new user profile:', createdProfile)
-      
-      return NextResponse.json({
-        user: {
-          id: params.id,
-          subscriptionTier: createdProfile.subscription_tier,
-          userRole: createdProfile.user_role
-        }
-      })
+    if (subscriptionTier !== undefined) {
+      updates.tier = subscriptionTier
     }
 
-    console.log('✅ Updated user profile successfully')
+    if (userRole !== undefined) {
+      updates.role = userRole
+    }
 
-    return NextResponse.json({
-      user: {
-        id: params.id,
-        subscriptionTier: updatedProfile.subscription_tier,
-        userRole: updatedProfile.user_role
-      }
+    // Update user in Clerk (only updating changed fields)
+    const updatedUser = await clerkClient.users.updateUserMetadata(params.id, {
+      publicMetadata: updates
     })
 
+    // Transform Clerk user to match frontend format
+    const transformedUser = {
+      id: updatedUser.id,
+      email: updatedUser.emailAddresses[0]?.emailAddress || '',
+      businessName: updatedUser.publicMetadata?.businessName as string || '',
+      industry: updatedUser.publicMetadata?.industry as string || '',
+      subscriptionTier: subscriptionTier || 'FREE',
+      userRole: userRole || 'user',
+      createdAt: new Date(updatedUser.createdAt).toISOString(),
+      lastLoginAt: updatedUser.lastSignInAt ? new Date(updatedUser.lastSignInAt).toISOString() : null
+    }
+
+    return NextResponse.json({ user: transformedUser })
   } catch (error) {
     console.error('Failed to update user:', error)
     return NextResponse.json(
       { error: 'Failed to update user' },
+      { status: 500 }
+    )
+  }
+}
+
+// Get user details
+export async function GET(
+  request: NextRequest,
+  props: { params: Promise<{ id: string }> }
+) {
+  const params = await props.params;
+  try {
+    // Validate admin access
+    const validation = await validateAdminAccess()
+    if ('error' in validation) {
+      return NextResponse.json(
+        { error: validation.error },
+        { status: validation.status }
+      )
+    }
+
+    // Get user from Clerk
+    const user = await clerkClient.users.getUser(params.id)
+
+    // Transform Clerk user to match frontend format
+    const transformedUser = {
+      id: user.id,
+      email: user.emailAddresses[0]?.emailAddress || '',
+      businessName: user.publicMetadata?.businessName as string || '',
+      industry: user.publicMetadata?.industry as string || '',
+      subscriptionTier: (user.publicMetadata?.tier as string || user.publicMetadata?.subscriptionTier as string) || 'FREE',
+      userRole: user.publicMetadata?.role as string || 'user',
+      createdAt: new Date(user.createdAt).toISOString(),
+      lastLoginAt: user.lastSignInAt ? new Date(user.lastSignInAt).toISOString() : null,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      imageUrl: user.imageUrl
+    }
+
+    return NextResponse.json(transformedUser)
+  } catch (error) {
+    console.error('Failed to get user:', error)
+    return NextResponse.json(
+      { error: 'Failed to get user' },
       { status: 500 }
     )
   }

@@ -1,52 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { auth } from '@clerk/nextjs/server'
+import { createClerkClient } from '@clerk/nextjs/server'
 
-// Admin middleware for role validation
-async function validateAdminAccess(session: any) {
-  if (!session?.user?.id) {
+const clerkClient = createClerkClient({
+  secretKey: process.env.CLERK_SECRET_KEY
+})
+
+// Admin middleware for role validation with Clerk
+async function validateAdminAccess() {
+  const { userId } = await auth()
+
+  if (!userId) {
     return { error: 'Unauthorized', status: 401 }
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { userRole: true }
-  })
-
-  if (!user || (user.userRole !== 'admin' && user.userRole !== 'super_admin')) {
-    return { error: 'Admin access required', status: 403 }
-  }
-
-  return { adminUser: session.user, userRole: user.userRole }
-}
-
-// Log admin action for audit trail
-async function logAdminAction(adminUserId: string, action: string) {
   try {
-    await prisma.userAdminAction.create({
-      data: {
-        adminUserId,
-        targetUserId: adminUserId, // Self-reference for export actions
-        action,
-        oldValues: null,
-        newValues: null
-      }
-    })
+    // Get user from Clerk
+    const clerkUser = await clerkClient.users.getUser(userId)
+    // Check publicMetadata for role (as shown in your Clerk dashboard)
+    const role = clerkUser.publicMetadata?.role as string || 'user'
+
+    if (role !== 'admin' && role !== 'super_admin') {
+      return { error: 'Admin access required', status: 403 }
+    }
+
+    return { userId, userRole: role }
   } catch (error) {
-    console.error('Failed to log admin action:', error)
+    console.error('Error validating admin access:', error)
+    return { error: 'Failed to validate admin access', status: 500 }
   }
 }
 
-// Export user data as CSV
+
+// Export users as CSV or JSON
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    const validation = await validateAdminAccess(session)
-    
+    // Validate admin access
+    const validation = await validateAdminAccess()
     if ('error' in validation) {
       return NextResponse.json(
-        { error: validation.error }, 
+        { error: validation.error },
         { status: validation.status }
       )
     }
@@ -54,43 +47,27 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const format = searchParams.get('format') || 'csv'
 
-    if (format !== 'csv' && format !== 'json') {
-      return NextResponse.json(
-        { error: 'Invalid format. Supported formats: csv, json' },
-        { status: 400 }
-      )
-    }
-
-    // Get all users with evaluation counts
-    const users = await prisma.user.findMany({
-      select: {
-        id: true,
-        email: true,
-        businessName: true,
-        industry: true,
-        subscriptionTier: true,
-        userRole: true,
-        createdAt: true,
-        lastLoginAt: true,
-        _count: {
-          select: {
-            evaluations: true
-          }
-        }
-      },
-      orderBy: { createdAt: 'desc' }
+    // Get all Clerk users
+    const clerkUsers = await clerkClient.users.getUserList({
+      limit: 500
     })
 
-    // Log export action
-    await logAdminAction(validation.adminUser.id, `User data export (${format}, ${users.length} users)`)
+    // Transform Clerk users
+    const users = clerkUsers.data.map(user => ({
+      id: user.id,
+      email: user.emailAddresses[0]?.emailAddress || '',
+      businessName: user.publicMetadata?.businessName || '',
+      industry: user.publicMetadata?.industry || '',
+      subscriptionTier: user.publicMetadata?.tier || user.publicMetadata?.subscriptionTier || 'FREE',
+      userRole: user.publicMetadata?.role || 'user',
+      createdAt: new Date(user.createdAt).toISOString(),
+      lastLoginAt: user.lastSignInAt ? new Date(user.lastSignInAt).toISOString() : '',
+      firstName: user.firstName || '',
+      lastName: user.lastName || ''
+    }))
 
     if (format === 'json') {
-      return NextResponse.json({ 
-        users,
-        exportedAt: new Date().toISOString(),
-        exportedBy: validation.adminUser.id,
-        totalUsers: users.length
-      })
+      return NextResponse.json({ users, total: users.length })
     }
 
     // Generate CSV
@@ -101,9 +78,10 @@ export async function GET(request: NextRequest) {
       'Industry',
       'Subscription Tier',
       'User Role',
-      'Join Date',
+      'Created At',
       'Last Login',
-      'Evaluations Count'
+      'First Name',
+      'Last Name'
     ]
 
     const csvRows = [
@@ -115,17 +93,16 @@ export async function GET(request: NextRequest) {
         `"${user.industry}"`,
         user.subscriptionTier,
         user.userRole,
-        user.createdAt.toISOString().split('T')[0],
-        user.lastLoginAt ? user.lastLoginAt.toISOString().split('T')[0] : 'Never',
-        user._count.evaluations
+        user.createdAt,
+        user.lastLoginAt,
+        `"${user.firstName}"`,
+        `"${user.lastName}"`
       ].join(','))
     ]
 
-    const csvContent = csvRows.join('\n')
+    const csv = csvRows.join('\n')
 
-    console.log(`✅ Admin ${validation.adminUser.id} exported ${users.length} users as ${format}`)
-
-    return new Response(csvContent, {
+    return new NextResponse(csv, {
       headers: {
         'Content-Type': 'text/csv',
         'Content-Disposition': `attachment; filename="users-export-${new Date().toISOString().split('T')[0]}.csv"`

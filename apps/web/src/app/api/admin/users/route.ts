@@ -1,40 +1,66 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { auth } from '@clerk/nextjs/server'
+import { createClerkClient } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
 import { UserRole } from '@prisma/client'
 
-// Admin middleware for role validation
-async function validateAdminAccess(session: any) {
-  if (!session?.user?.id) {
+const clerkClient = createClerkClient({
+  secretKey: process.env.CLERK_SECRET_KEY
+})
+
+// Admin middleware for role validation with Clerk
+async function validateAdminAccess() {
+  const { userId } = await auth()
+
+  console.log('🔐 Admin validation - userId:', userId)
+
+  if (!userId) {
     return { error: 'Unauthorized', status: 401 }
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { role: true }
-  })
+  try {
+    // Get user from Clerk
+    const clerkUser = await clerkClient.users.getUser(userId)
 
-  if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) {
-    return { error: 'Admin access required', status: 403 }
+    // Debug: Log the metadata
+    console.log('👤 User metadata:', {
+      publicMetadata: clerkUser.publicMetadata,
+      privateMetadata: clerkUser.privateMetadata,
+      email: clerkUser.emailAddresses[0]?.emailAddress
+    })
+
+    // Check publicMetadata for role (as shown in your Clerk dashboard)
+    const role = clerkUser.publicMetadata?.role as string || 'user'
+
+    console.log('🎭 User role:', role)
+
+    if (role !== 'admin' && role !== 'super_admin') {
+      console.log('❌ Access denied - role is not admin or super_admin')
+      return { error: 'Admin access required', status: 403 }
+    }
+
+    console.log('✅ Admin access granted')
+    return { userId, userRole: role as UserRole }
+  } catch (error) {
+    console.error('Error validating admin access:', error)
+    return { error: 'Failed to validate admin access', status: 500 }
   }
-
-  return { user: session.user, userRole: user.role }
 }
 
 // Get paginated user list with search and filters
 export async function GET(request: NextRequest) {
   try {
-    // TEMPORARY: Bypass authentication to see users in development
-    console.log('🚧 DEVELOPMENT MODE: Bypassing authentication checks')
-    // const session = await getServerSession(authOptions)
-    // const validation = await validateAdminAccess(session)
-    // if ('error' in validation) {
-    //   return NextResponse.json(
-    //     { error: validation.error }, 
-    //     { status: validation.status }
-    //   )
-    // }
+    console.log('📋 Admin users API called')
+
+    // Validate admin access with Clerk
+    const validation = await validateAdminAccess()
+    if ('error' in validation) {
+      console.log('🚫 Validation failed:', validation)
+      return NextResponse.json(
+        { error: validation.error },
+        { status: validation.status }
+      )
+    }
 
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
@@ -77,34 +103,72 @@ export async function GET(request: NextRequest) {
 
     const skip = (page - 1) * limit
 
-    // Use Prisma's safe query builder instead of raw SQL
-    console.log('🔍 Building safe query with parameters:', { search, tier, industry, startDate, endDate })
-    
+    // Get Clerk users with pagination and filters
+    console.log('🔍 Fetching users from Clerk with filters:', { search, tier, industry, startDate, endDate })
+
     try {
-      const [users, total] = await Promise.all([
-        prisma.user.findMany({
-          where,
-          select: {
-            id: true,
-            email: true,
-            businessName: true,
-            industry: true,
-            role: true,
-            subscriptionTier: true,
-            createdAt: true,
-            lastLoginAt: true
-          },
-          orderBy: { createdAt: 'desc' },
-          skip,
-          take: limit
-        }),
-        prisma.user.count({ where })
-      ])
-      
-      console.log('✅ Safe query results:', { usersCount: users.length, totalCount: total, appliedFilters: { search, tier, industry, startDate, endDate } })
-      
+      // Get all Clerk users (we'll filter in memory for now)
+      const clerkUsers = await clerkClient.users.getUserList({
+        limit: 500, // Get more users to filter
+        offset: 0
+      })
+
+      // Transform and filter Clerk users
+      let transformedUsers = clerkUsers.data.map(user => ({
+        id: user.id,
+        email: user.emailAddresses[0]?.emailAddress || '',
+        businessName: user.publicMetadata?.businessName as string || user.organizationMemberships?.[0]?.organization?.name || '',
+        industry: user.publicMetadata?.industry as string || '',
+        userRole: (user.publicMetadata?.role as string) || 'user',
+        subscriptionTier: (user.publicMetadata?.tier as string || user.publicMetadata?.subscriptionTier as string) || 'FREE',
+        createdAt: user.createdAt,
+        lastLoginAt: user.lastSignInAt,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        imageUrl: user.imageUrl
+      }))
+
+      // Apply filters
+      if (search) {
+        const searchLower = search.toLowerCase()
+        transformedUsers = transformedUsers.filter(user =>
+          user.email.toLowerCase().includes(searchLower) ||
+          user.businessName.toLowerCase().includes(searchLower) ||
+          user.industry.toLowerCase().includes(searchLower) ||
+          (user.firstName + ' ' + user.lastName).toLowerCase().includes(searchLower)
+        )
+      }
+
+      if (tier && tier !== 'all') {
+        transformedUsers = transformedUsers.filter(user =>
+          user.subscriptionTier.toUpperCase() === tier.toUpperCase()
+        )
+      }
+
+      if (industry) {
+        transformedUsers = transformedUsers.filter(user =>
+          user.industry.toLowerCase().includes(industry.toLowerCase())
+        )
+      }
+
+      if (startDate || endDate) {
+        const start = startDate ? new Date(startDate).getTime() : 0
+        const end = endDate ? new Date(endDate).getTime() : Date.now()
+        transformedUsers = transformedUsers.filter(user => {
+          const userDate = user.createdAt
+          return userDate >= start && userDate <= end
+        })
+      }
+
+      const total = transformedUsers.length
+
+      // Apply pagination
+      const paginatedUsers = transformedUsers.slice(skip, skip + limit)
+
+      console.log('✅ Clerk users fetched:', { usersCount: paginatedUsers.length, totalCount: total, appliedFilters: { search, tier, industry, startDate, endDate } })
+
       return NextResponse.json({
-        users,
+        users: paginatedUsers,
         pagination: {
           page,
           limit,

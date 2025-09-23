@@ -5,6 +5,7 @@ import TestimonialManager from '@/components/admin/TestimonialManager'
 import UserManagement from '@/components/admin/UserManagement'
 import AdminAnalytics from '@/components/admin/AdminAnalytics'
 import AdminNotifications from '@/components/admin/AdminNotifications'
+import ClerkConnectionStatus from '@/components/admin/ClerkConnectionStatus'
 
 export const metadata: Metadata = {
   title: 'Admin Dashboard - GoodBuy HQ',
@@ -12,11 +13,12 @@ export const metadata: Metadata = {
 }
 
 export default function AdminPage() {
-  // Simplified admin page without authentication for development
-
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
+        {/* Clerk Connection Status Banner */}
+        <ClerkConnectionStatus />
+
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">
             Admin Dashboard

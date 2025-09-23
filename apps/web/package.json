@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.62.0",
+    "@clerk/backend": "^2.15.0",
     "@clerk/nextjs": "^6.31.10",
     "@hookform/resolvers": "^5.2.2",
     "@prisma/client": "^6.15.0",

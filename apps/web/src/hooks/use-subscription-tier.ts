@@ -67,19 +67,23 @@ export function useSubscriptionTier(): SubscriptionTierHook {
   // Extract tier from user metadata or default to free
   const getUserTier = useCallback((): SubscriptionTier => {
     if (!user) return 'free'
-    
+
     // Check user's public metadata for subscription tier
-    const tier = user.publicMetadata?.subscriptionTier as string
-    
-    if (tier === 'premium' || tier === 'enterprise') {
-      return tier as SubscriptionTier
+    // Check both 'tier' and 'subscriptionTier' fields for compatibility
+    const tier = (user.publicMetadata?.tier as string) || (user.publicMetadata?.subscriptionTier as string)
+
+    // Convert uppercase values to lowercase for consistency
+    const normalizedTier = tier?.toLowerCase()
+
+    if (normalizedTier === 'premium' || normalizedTier === 'enterprise') {
+      return normalizedTier as SubscriptionTier
     }
-    
+
     // Fallback: check for any premium indicators
     if (user.publicMetadata?.isPremium) {
       return 'premium'
     }
-    
+
     return 'free'
   }, [user])
 
