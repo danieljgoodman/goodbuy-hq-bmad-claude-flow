@@ -35,7 +35,7 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     await signOut()
-    router.push('/sign-in')
+    router.push('/')
   }
 
   // Different navigation for authenticated vs non-authenticated users
