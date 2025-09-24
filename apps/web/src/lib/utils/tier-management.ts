@@ -195,11 +195,17 @@ const TIER_FEATURES: TierFeature[] = [
 export function getUserTier(user: any): UserTier {
   if (!user) return 'basic';
 
-  // Check for subscription tier in user metadata or subscription object
-  const tier = user.subscriptionTier || user.publicMetadata?.subscriptionTier || user.privateMetadata?.subscriptionTier;
+  // Check for subscription tier in user metadata
+  // Clerk stores this in publicMetadata
+  const publicMetadata = user.publicMetadata || user.unsafeMetadata;
+  const tier = publicMetadata?.subscriptionTier || user.subscriptionTier;
 
-  if (tier === 'enterprise') return 'enterprise';
-  if (tier === 'professional') return 'professional';
+  console.log('🔍 getUserTier - User:', user?.id);
+  console.log('🔍 getUserTier - Public Metadata:', publicMetadata);
+  console.log('🔍 getUserTier - Detected Tier:', tier);
+
+  if (tier === 'enterprise' || tier === 'ENTERPRISE') return 'enterprise';
+  if (tier === 'professional' || tier === 'PROFESSIONAL' || tier === 'premium') return 'professional';
 
   return 'basic';
 }

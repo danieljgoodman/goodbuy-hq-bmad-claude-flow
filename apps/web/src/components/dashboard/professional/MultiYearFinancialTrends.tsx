@@ -71,29 +71,35 @@ export function MultiYearFinancialTrends({
 
   // Prepare chart data based on filters
   const chartData = useMemo(() => {
-    let baseData = [...data.trends]
+    // Ensure data.trends is an array
+    const trends = Array.isArray(data?.trends) ? data.trends : []
+    const projections = Array.isArray(data?.projections) ? data.projections : []
+
+    let baseData = [...trends]
 
     // Add projections if enabled
-    if (showProjections) {
-      baseData = [...baseData, ...data.projections.map(p => ({ ...p, isProjection: true }))]
+    if (showProjections && projections.length > 0) {
+      baseData = [...baseData, ...projections.map(p => ({ ...p, isProjection: true }))]
     }
 
     // Filter by time range
-    if (timeRange === '3-year') {
-      const cutoffYear = Math.max(...baseData.map(d => d.year)) - 2
-      baseData = baseData.filter(d => d.year >= cutoffYear)
-    } else if (timeRange === '5-year') {
-      const cutoffYear = Math.max(...baseData.map(d => d.year)) - 4
-      baseData = baseData.filter(d => d.year >= cutoffYear)
-    } else if (timeRange === 'projection') {
-      baseData = data.projections
+    if (baseData.length > 0) {
+      if (timeRange === '3-year') {
+        const cutoffYear = Math.max(...baseData.map(d => d.year)) - 2
+        baseData = baseData.filter(d => d.year >= cutoffYear)
+      } else if (timeRange === '5-year') {
+        const cutoffYear = Math.max(...baseData.map(d => d.year)) - 4
+        baseData = baseData.filter(d => d.year >= cutoffYear)
+      } else if (timeRange === 'projection') {
+        baseData = projections
+      }
     }
 
     // Add benchmark data if enabled
-    if (showBenchmarks && timeRange !== 'projection') {
+    if (showBenchmarks && timeRange !== 'projection' && data?.benchmarks) {
       const trendsOnly = baseData.filter(d => !d.isProjection)
-      const industryData = data.benchmarks.industry.slice(0, trendsOnly.length)
-      const marketData = data.benchmarks.market.slice(0, trendsOnly.length)
+      const industryData = data.benchmarks?.industry?.slice(0, trendsOnly.length) || []
+      const marketData = data.benchmarks?.market?.slice(0, trendsOnly.length) || []
 
       return baseData.map((item, index) => {
         const result = { ...item }
@@ -112,8 +118,19 @@ export function MultiYearFinancialTrends({
 
   // Calculate key metrics
   const keyMetrics = useMemo(() => {
-    const latest = data.trends[data.trends.length - 1]
-    const previous = data.trends[data.trends.length - 2]
+    const trends = Array.isArray(data?.trends) ? data.trends : []
+
+    if (trends.length < 2) {
+      return {
+        revenueGrowth: 0,
+        profitGrowth: 0,
+        cashFlowGrowth: 0,
+        cagr: 0
+      }
+    }
+
+    const latest = trends[trends.length - 1]
+    const previous = trends[trends.length - 2]
 
     if (!latest || !previous) {
       return {
@@ -128,7 +145,7 @@ export function MultiYearFinancialTrends({
     const profitGrowth = FinancialAnalytics.calculateGrowthRate(latest.profit, previous.profit)
     const cashFlowGrowth = FinancialAnalytics.calculateGrowthRate(latest.cashFlow, previous.cashFlow)
 
-    const firstYear = data.trends[0]
+    const firstYear = trends[0]
     const years = latest.year - firstYear.year
     const cagr = FinancialAnalytics.calculateCAGR(firstYear.revenue, latest.revenue, years)
 
@@ -382,7 +399,7 @@ export function MultiYearFinancialTrends({
           {getMetricLines()}
           {showProjections && (
             <ReferenceLine
-              x={data.trends[data.trends.length - 1]?.year}
+              x={chartData[chartData.length - 1]?.year}
               stroke="#999"
               strokeDasharray="2 2"
               label="Projection Start"
@@ -510,7 +527,7 @@ export function MultiYearFinancialTrends({
           </div>
           <div className="professional-metric">
             <div className="professional-metric-value">
-              {formatCurrency(data.trends[data.trends.length - 1]?.revenue || 0)}
+              {formatCurrency(chartData[chartData.length - 1]?.revenue || 0)}
             </div>
             <div className="professional-metric-label">Latest Revenue</div>
           </div>

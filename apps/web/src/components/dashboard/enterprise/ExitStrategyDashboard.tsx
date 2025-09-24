@@ -253,7 +253,7 @@ const ExitOptionSelector: React.FC<{
   return (
     <div className="space-y-3">
       <h4 className="font-semibold text-tier-enterprise">Exit Strategy Options</h4>
-      {options.map((option) => (
+      {(options || []).map((option) => (
         <Card
           key={option.type}
           className={`cursor-pointer transition-all hover:shadow-md ${
@@ -319,7 +319,7 @@ const ExitValuationChart: React.FC<{
   selectedExit: string;
   timeHorizon: number;
 }> = ({ projections, selectedExit, timeHorizon }) => {
-  const projection = projections.find(p => p.exitType === selectedExit) || projections[0];
+  const projection = (projections || []).find(p => p.exitType === selectedExit) || (projections || [])[0];
 
   if (!projection) {
     return (
@@ -389,10 +389,10 @@ const TransactionReadinessScore: React.FC<{
   readiness: TransactionReadiness;
 }> = ({ readiness }) => {
   const categories = [
-    { name: 'Financial', score: readiness.financialReadiness, icon: <Banknote className="h-4 w-4" /> },
-    { name: 'Operational', score: readiness.operationalReadiness, icon: <BarChart3 className="h-4 w-4" /> },
-    { name: 'Legal', score: readiness.legalReadiness, icon: <Building2 className="h-4 w-4" /> },
-    { name: 'Market', score: readiness.marketReadiness, icon: <TrendingUp className="h-4 w-4" /> }
+    { name: 'Financial', score: readiness?.financialReadiness || 0, icon: <Banknote className="h-4 w-4" /> },
+    { name: 'Operational', score: readiness?.operationalReadiness || 0, icon: <BarChart3 className="h-4 w-4" /> },
+    { name: 'Legal', score: readiness?.legalReadiness || 0, icon: <Building2 className="h-4 w-4" /> },
+    { name: 'Market', score: readiness?.marketReadiness || 0, icon: <TrendingUp className="h-4 w-4" /> }
   ];
 
   const getScoreColor = (score: number) => {
@@ -413,10 +413,10 @@ const TransactionReadinessScore: React.FC<{
         <div className="space-y-4">
           <div className="text-center">
             <div className="text-3xl font-bold text-tier-enterprise mb-2">
-              {readiness.overallScore}%
+              {readiness?.overallScore || 0}%
             </div>
             <div className="text-sm text-gray-500">Overall Readiness Score</div>
-            <Progress value={readiness.overallScore} className="mt-2" />
+            <Progress value={readiness?.overallScore || 0} className="mt-2" />
           </div>
 
           <Separator />
@@ -435,13 +435,13 @@ const TransactionReadinessScore: React.FC<{
             ))}
           </div>
 
-          {readiness.improvementAreas.length > 0 && (
+          {(readiness?.improvementAreas?.length || 0) > 0 && (
             <>
               <Separator />
               <div>
                 <div className="text-sm font-medium mb-2">Key Improvement Areas:</div>
                 <ul className="text-sm text-gray-600 space-y-1">
-                  {readiness.improvementAreas.map((area, index) => (
+                  {(readiness?.improvementAreas || []).map((area, index) => (
                     <li key={index} className="flex items-center gap-2">
                       <div className="w-1 h-1 bg-tier-enterprise rounded-full"></div>
                       {area}
@@ -489,7 +489,7 @@ const ExitOptimizationActions: React.FC<{
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {actions.map((action) => (
+          {(actions || []).map((action) => (
             <div key={action.id} className="border rounded-lg p-4 space-y-3">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -560,16 +560,16 @@ const MarketTimingIndicator: React.FC<{
           <div className="space-y-4">
             <div>
               <div className="text-sm text-gray-500 mb-2">Market Conditions</div>
-              <Badge className={`${getConditionColor(timing.currentMarketConditions)} text-sm px-3 py-1`}>
-                {timing.currentMarketConditions.toUpperCase()}
+              <Badge className={`${getConditionColor(timing?.currentMarketConditions || 'neutral')} text-sm px-3 py-1`}>
+                {(timing?.currentMarketConditions || 'neutral').toUpperCase()}
               </Badge>
             </div>
 
             <div>
               <div className="text-sm text-gray-500 mb-2">Liquidity Index</div>
               <div className="flex items-center gap-2">
-                <Progress value={timing.liquidityIndex} className="flex-1" />
-                <span className="text-sm font-medium">{timing.liquidityIndex}%</span>
+                <Progress value={timing?.liquidityIndex || 0} className="flex-1" />
+                <span className="text-sm font-medium">{timing?.liquidityIndex || 0}%</span>
               </div>
             </div>
           </div>
@@ -579,17 +579,17 @@ const MarketTimingIndicator: React.FC<{
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm">Current</span>
-                <span className="font-semibold">{timing.sectorMultiples.current}x</span>
+                <span className="font-semibold">{timing?.sectorMultiples?.current || 0}x</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm">Historical</span>
-                <span className="text-gray-600">{timing.sectorMultiples.historical}x</span>
+                <span className="text-gray-600">{timing?.sectorMultiples?.historical || 0}x</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm">Trend</span>
                 <div className="flex items-center gap-1">
-                  {getTrendIcon(timing.sectorMultiples.trend)}
-                  <span className="text-sm capitalize">{timing.sectorMultiples.trend}</span>
+                  {getTrendIcon(timing?.sectorMultiples?.trend || 'stable')}
+                  <span className="text-sm capitalize">{timing?.sectorMultiples?.trend || 'stable'}</span>
                 </div>
               </div>
             </div>
@@ -598,7 +598,7 @@ const MarketTimingIndicator: React.FC<{
           <div>
             <div className="text-sm text-gray-500 mb-2">Key Factors</div>
             <ul className="space-y-1">
-              {timing.keyFactors.map((factor, index) => (
+              {(timing?.keyFactors || []).map((factor, index) => (
                 <li key={index} className="text-sm flex items-start gap-2">
                   <div className="w-1 h-1 bg-tier-enterprise rounded-full mt-2"></div>
                   {factor}
@@ -612,7 +612,7 @@ const MarketTimingIndicator: React.FC<{
           <Info className="h-4 w-4" />
           <div>
             <div className="font-medium">Recommendation</div>
-            <div className="text-sm">{timing.recommendedTiming}</div>
+            <div className="text-sm">{timing?.recommendedTiming || 'Assess market conditions'}</div>
           </div>
         </Alert>
       </CardContent>

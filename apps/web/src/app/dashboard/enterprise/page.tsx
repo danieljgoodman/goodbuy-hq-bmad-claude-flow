@@ -795,12 +795,41 @@ const EnterpriseDashboard: React.FC<EnterpriseDashboardProps> = ({
           <TabsContent value="scenarios" className="enterprise-slide-up">
             <StrategicScenarioMatrix
               data={{
-                scenarios: scenarios || [],
-                baseCase: metrics?.baseCase || {},
-                optimisticCase: metrics?.optimisticCase || {},
-                conservativeCase: metrics?.conservativeCase || {},
-                monteCarloSimulations: 10000,
-                confidenceInterval: 0.95
+                scenarios: scenarios.map((scenario, index) => ({
+                  id: `scenario-${index}`,
+                  name: scenario.scenario,
+                  assumptions: [{
+                    id: '1',
+                    description: scenario.description,
+                    impact: 'high',
+                    confidence: scenario.probability
+                  }],
+                  projections: [{
+                    year: new Date().getFullYear(),
+                    revenue: 0,
+                    profit: 0,
+                    growthRate: scenario.expectedReturn,
+                    marketShare: 0
+                  }],
+                  investmentRequired: 0,
+                  expectedROI: scenario.expectedReturn * 100,
+                  riskLevel: scenario.expectedReturn > 0.1 ? 'high' : scenario.expectedReturn > 0 ? 'medium' : 'low',
+                  probabilityOfSuccess: scenario.probability,
+                  valuationImpact: 0,
+                  timeline: 12,
+                  keyDrivers: [scenario.scenario]
+                })),
+                comparisonMetrics: [],
+                riskAssessment: {
+                  overallRisk: 'medium',
+                  factors: [],
+                  mitigationStrategies: []
+                },
+                recommendedPath: scenarios.length > 0 ? scenarios[0].scenario : '',
+                sensitivityAnalysis: {
+                  variables: [],
+                  results: []
+                }
               }}
             />
           </TabsContent>
@@ -811,8 +840,8 @@ const EnterpriseDashboard: React.FC<EnterpriseDashboardProps> = ({
               data={{
                 exitTimeline: '3-5 years',
                 preferredStrategies: ['strategic', 'financial'],
-                currentValuation: metrics?.currentValuation || 0,
-                projectedValuation: metrics?.projectedValuation || 0,
+                currentValuation: metrics?.totalInvestmentValue || 0,
+                projectedValuation: (metrics?.totalInvestmentValue || 0) * 1.5,
                 transactionReadiness: 75,
                 advisorsEngaged: ['broker', 'legal', 'tax']
               }}

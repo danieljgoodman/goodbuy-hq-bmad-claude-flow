@@ -53,17 +53,36 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
   // Handle tier-based routing for dashboard
   if (pathname === '/dashboard') {
     try {
-      // Get subscription tier from session claims (this is where Clerk stores public metadata)
-      // The webhook stores these as 'premium' or 'enterprise' (lowercase)
-      const subscriptionTier = (sessionClaims?.publicMetadata as any)?.subscriptionTier as string || 'free'
+      // Get subscription tier from session claims or unsafe metadata
+      // Try multiple sources as Clerk might store it differently
+      const publicMetadata = sessionClaims?.publicMetadata as any
+      const unsafeMetadata = sessionClaims?.unsafeMetadata as any
+      const metadata = sessionClaims?.metadata as any
+
+      // Check multiple possible locations for the subscription tier
+      const subscriptionTier =
+        publicMetadata?.subscriptionTier ||
+        unsafeMetadata?.subscriptionTier ||
+        metadata?.subscriptionTier ||
+        sessionClaims?.subscriptionTier as string ||
+        'free'
+
+      console.log('🔍 Middleware - User ID:', userId)
+      console.log('🔍 Middleware - Session Claims:', sessionClaims)
+      console.log('🔍 Middleware - Public Metadata:', publicMetadata)
+      console.log('🔍 Middleware - Unsafe Metadata:', unsafeMetadata)
+      console.log('🔍 Middleware - Detected Tier:', subscriptionTier)
 
       // Redirect based on tier (matching the values from Stripe webhook)
       if (subscriptionTier === 'enterprise' || subscriptionTier === 'ENTERPRISE') {
+        console.log('🚀 Redirecting to Enterprise Dashboard')
         return NextResponse.redirect(new URL('/dashboard/enterprise', req.url))
       } else if (subscriptionTier === 'premium' || subscriptionTier === 'professional' || subscriptionTier === 'PROFESSIONAL') {
+        console.log('🚀 Redirecting to Professional Dashboard')
         return NextResponse.redirect(new URL('/dashboard/professional', req.url))
       }
       // For free/basic tier or unknown, keep them on /dashboard which shows the basic dashboard
+      console.log('ℹ️ Staying on Basic Dashboard (tier:', subscriptionTier, ')')
     } catch (error) {
       console.error('Error determining user tier:', error)
       // On error, continue to regular dashboard

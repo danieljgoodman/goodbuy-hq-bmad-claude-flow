@@ -92,7 +92,7 @@ const ScenarioSelectionControls: React.FC<{
                     {scenario.riskLevel} risk
                   </Badge>
                   <span className="text-xs text-gray-500">
-                    {scenario.expectedROI.toFixed(1)}% ROI
+                    {(scenario.expectedROI || 0).toFixed(1)}% ROI
                   </span>
                 </div>
               </div>
@@ -141,13 +141,13 @@ const ScenarioSideBySideView: React.FC<{
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Expected ROI</span>
                 <span className="text-sm font-medium text-green-600">
-                  {scenario.expectedROI.toFixed(1)}%
+                  {(scenario.expectedROI || 0).toFixed(1)}%
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Investment Required</span>
                 <span className="text-sm font-medium">
-                  ${(scenario.investmentRequired / 1000000).toFixed(1)}M
+                  ${((scenario.investmentRequired || 0) / 1000000).toFixed(1)}M
                 </span>
               </div>
               <div className="flex justify-between">
@@ -188,7 +188,7 @@ const ScenarioSideBySideView: React.FC<{
             <div>
               <h5 className="text-xs font-medium text-gray-900 mb-2">Key Drivers</h5>
               <div className="flex flex-wrap gap-1">
-                {scenario.keyDrivers.slice(0, 3).map((driver, index) => (
+                {(scenario.keyDrivers || []).slice(0, 3).map((driver, index) => (
                   <Badge key={index} variant="outline" className="text-xs">
                     {driver}
                   </Badge>
@@ -200,7 +200,7 @@ const ScenarioSideBySideView: React.FC<{
             <div>
               <h5 className="text-xs font-medium text-gray-900 mb-2">Risk Factors</h5>
               <div className="flex flex-wrap gap-1">
-                {scenario.riskFactors.slice(0, 2).map((risk, index) => (
+                {(scenario.riskFactors || []).slice(0, 2).map((risk, index) => (
                   <Badge key={index} variant="secondary" className="text-xs">
                     {risk}
                   </Badge>
@@ -308,7 +308,7 @@ const ScenarioComparisonTable: React.FC<{
             {scenarios.map(scenario => (
               <TableCell key={scenario.id} className="text-center">
                 <span className="text-green-600 font-medium">
-                  {scenario.expectedROI.toFixed(1)}%
+                  {(scenario.expectedROI || 0).toFixed(1)}%
                 </span>
               </TableCell>
             ))}
@@ -317,7 +317,7 @@ const ScenarioComparisonTable: React.FC<{
             <TableCell className="font-medium">Investment Required</TableCell>
             {scenarios.map(scenario => (
               <TableCell key={scenario.id} className="text-center">
-                ${(scenario.investmentRequired / 1000000).toFixed(1)}M
+                ${((scenario.investmentRequired || 0) / 1000000).toFixed(1)}M
               </TableCell>
             ))}
           </TableRow>
@@ -356,7 +356,7 @@ const ScenarioComparisonTable: React.FC<{
             <TableCell className="font-medium">Valuation Impact</TableCell>
             {scenarios.map(scenario => (
               <TableCell key={scenario.id} className="text-center">
-                ${(scenario.valuationImpact / 1000000).toFixed(1)}M
+                ${((scenario.valuationImpact || 0) / 1000000).toFixed(1)}M
               </TableCell>
             ))}
           </TableRow>
@@ -395,21 +395,21 @@ const StrategicRecommendations: React.FC<{
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Overall Risk</span>
                 <Badge
-                  variant={riskAssessment.overallRisk === 'low' ? 'default' : riskAssessment.overallRisk === 'medium' ? 'secondary' : 'destructive'}
+                  variant={riskAssessment?.overallRisk === 'low' ? 'default' : riskAssessment?.overallRisk === 'medium' ? 'secondary' : 'destructive'}
                 >
-                  {riskAssessment.overallRisk}
+                  {riskAssessment?.overallRisk || 'medium'}
                 </Badge>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Confidence Level</span>
                 <span className="text-sm font-medium">
-                  {riskAssessment.confidenceLevel}%
+                  {riskAssessment?.confidenceLevel || 0}%
                 </span>
               </div>
               <div>
                 <h5 className="text-xs font-medium text-gray-900 mb-2">Key Risk Factors</h5>
                 <div className="space-y-1">
-                  {riskAssessment.riskFactors.slice(0, 3).map((factor, index) => (
+                  {(riskAssessment?.riskFactors || []).slice(0, 3).map((factor, index) => (
                     <div key={index} className="text-xs text-gray-600">
                       • {factor.factor}
                     </div>
@@ -429,7 +429,7 @@ const StrategicRecommendations: React.FC<{
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {riskAssessment.mitigationStrategies.slice(0, 4).map((strategy, index) => (
+              {(riskAssessment?.mitigationStrategies || []).slice(0, 4).map((strategy, index) => (
                 <div key={index} className="text-xs text-gray-600">
                   • {strategy}
                 </div>
@@ -576,12 +576,12 @@ const ScenarioMatrix: React.FC<{ data: StrategicScenarioData }> = ({ data }) => 
 
   // Initialize with first 3 scenarios
   React.useEffect(() => {
-    if (data.scenarios.length > 0 && selectedScenarios.length === 0) {
+    if (data?.scenarios?.length > 0 && selectedScenarios.length === 0) {
       setSelectedScenarios(data.scenarios.slice(0, 3).map(s => s.id));
     }
   }, [data.scenarios, selectedScenarios.length]);
 
-  const selectedScenarioData = data.scenarios.filter(s => selectedScenarios.includes(s.id));
+  const selectedScenarioData = (data?.scenarios || []).filter(s => selectedScenarios.includes(s.id));
 
   return (
     <Card className="border-tier-enterprise col-span-2">

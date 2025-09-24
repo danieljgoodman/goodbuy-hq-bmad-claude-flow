@@ -85,11 +85,12 @@ export function CompetitivePositioningChart({
 
   // Filter metrics by category
   const filteredMetrics = useMemo(() => {
+    const metrics = data?.metrics || []
     if (categoryFilter === 'all') {
-      return data.metrics
+      return metrics
     }
-    return data.metrics.filter(metric => metric.category === categoryFilter)
-  }, [data.metrics, categoryFilter])
+    return metrics.filter(metric => metric.category === categoryFilter)
+  }, [data?.metrics, categoryFilter])
 
   // Prepare radar chart data
   const radarData = useMemo(() => {
@@ -123,7 +124,7 @@ export function CompetitivePositioningChart({
     const categories = ['market', 'product', 'financial', 'operational', 'innovation'] as const
 
     return categories.map(category => {
-      const categoryMetrics = data.metrics.filter(m => m.category === category)
+      const categoryMetrics = (data?.metrics || []).filter(m => m.category === category)
       if (categoryMetrics.length === 0) return null
 
       const totalWeight = categoryMetrics.reduce((sum, m) => sum + m.weight, 0)
@@ -143,7 +144,7 @@ export function CompetitivePositioningChart({
         color: CATEGORY_COLORS[category]
       }
     }).filter(Boolean)
-  }, [data.metrics])
+  }, [data?.metrics])
 
   // Format score
   const formatScore = useCallback((value: number) => {
@@ -616,7 +617,7 @@ export function CompetitivePositioningChart({
                 Strengths
               </h4>
               <ul className="text-sm text-green-700 space-y-1">
-                {data.strengths.map((strength, index) => (
+                {(data?.strengths || []).map((strength, index) => (
                   <li key={index} className="flex items-start space-x-2">
                     <span className="text-green-600 mt-0.5">•</span>
                     <span>{strength}</span>
@@ -631,7 +632,7 @@ export function CompetitivePositioningChart({
                 Opportunities
               </h4>
               <ul className="text-sm text-blue-700 space-y-1">
-                {data.opportunities.map((opportunity, index) => (
+                {(data?.opportunities || []).map((opportunity, index) => (
                   <li key={index} className="flex items-start space-x-2">
                     <span className="text-blue-600 mt-0.5">•</span>
                     <span>{opportunity}</span>
@@ -648,7 +649,7 @@ export function CompetitivePositioningChart({
                 Weaknesses
               </h4>
               <ul className="text-sm text-yellow-700 space-y-1">
-                {data.weaknesses.map((weakness, index) => (
+                {(data?.weaknesses || []).map((weakness, index) => (
                   <li key={index} className="flex items-start space-x-2">
                     <span className="text-yellow-600 mt-0.5">•</span>
                     <span>{weakness}</span>
@@ -663,7 +664,7 @@ export function CompetitivePositioningChart({
                 Threats
               </h4>
               <ul className="text-sm text-red-700 space-y-1">
-                {data.threats.map((threat, index) => (
+                {(data?.threats || []).map((threat, index) => (
                   <li key={index} className="flex items-start space-x-2">
                     <span className="text-red-600 mt-0.5">•</span>
                     <span>{threat}</span>

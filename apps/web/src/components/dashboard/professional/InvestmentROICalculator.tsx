@@ -99,8 +99,9 @@ export function InvestmentROICalculator({
 
   // Calculate scenarios in real-time
   const calculatedScenarios = useMemo(() => {
-    return data.calculations.map(calc => {
-      const cashFlowData = calc.cashFlowProjection.map((cf, index) => ({
+    const calculations = data?.calculations || []
+    return calculations.map(calc => {
+      const cashFlowData = (calc?.cashFlowProjection || []).map((cf, index) => ({
         year: index,
         cashFlow: cf.cashFlow,
         cumulative: cf.cumulativeCashFlow,
@@ -114,7 +115,7 @@ export function InvestmentROICalculator({
         efficiency: calc.projectedROI / calc.scenario.investmentAmount * 100000 // ROI per $100k invested
       }
     })
-  }, [data.calculations])
+  }, [data?.calculations])
 
   // Filter calculations based on selection
   const filteredCalculations = useMemo(() => {
@@ -168,7 +169,7 @@ export function InvestmentROICalculator({
 
       case 'portfolio':
         return data.portfolioOptimization.recommendedMix.map(mix => {
-          const scenario = data.scenarios.find(s => s.id === mix.scenarioId)
+          const scenario = (data?.scenarios || []).find(s => s.id === mix.scenarioId)
           return {
             name: scenario?.name || 'Unknown',
             allocation: mix.allocation,
@@ -212,7 +213,7 @@ export function InvestmentROICalculator({
       category: newScenario.category || 'expansion'
     }
 
-    const updatedScenarios = [...data.scenarios, scenario]
+    const updatedScenarios = [...(data?.scenarios || []), scenario]
     if (onScenarioUpdate) {
       onScenarioUpdate(updatedScenarios)
     }
@@ -226,15 +227,15 @@ export function InvestmentROICalculator({
       riskLevel: 'medium',
       category: 'expansion'
     })
-  }, [newScenario, data.scenarios, onScenarioUpdate])
+  }, [newScenario, data?.scenarios, onScenarioUpdate])
 
   // Handle scenario deletion
   const handleDeleteScenario = useCallback((scenarioId: string) => {
-    const updatedScenarios = data.scenarios.filter(s => s.id !== scenarioId)
+    const updatedScenarios = (data?.scenarios || []).filter(s => s.id !== scenarioId)
     if (onScenarioUpdate) {
       onScenarioUpdate(updatedScenarios)
     }
-  }, [data.scenarios, onScenarioUpdate])
+  }, [data?.scenarios, onScenarioUpdate])
 
   // Custom tooltip
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -781,7 +782,7 @@ export function InvestmentROICalculator({
                     <h4 className="font-medium mb-4">Recommended Asset Allocation</h4>
                     <div className="space-y-3">
                       {data.portfolioOptimization.recommendedMix.map((mix, index) => {
-                        const scenario = data.scenarios.find(s => s.id === mix.scenarioId)
+                        const scenario = (data?.scenarios || []).find(s => s.id === mix.scenarioId)
                         return (
                           <div key={mix.scenarioId} className="flex items-center justify-between p-3 border rounded-lg">
                             <div>

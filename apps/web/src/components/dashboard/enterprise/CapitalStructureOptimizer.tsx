@@ -161,15 +161,15 @@ const CapitalStructureChart: React.FC<CapitalStructureChartProps> = ({
   const chartData = [
     {
       name: 'Current',
-      debt: current.debt,
-      equity: current.equity,
-      debtRatio: current.debtToEquity
+      debt: current?.debt || 0,
+      equity: current?.equity || 0,
+      debtRatio: current?.debtToEquity || 0
     },
     {
       name: 'Optimized',
-      debt: optimized.debt,
-      equity: optimized.equity,
-      debtRatio: optimized.debtToEquity
+      debt: optimized?.debt || 0,
+      equity: optimized?.equity || 0,
+      debtRatio: optimized?.debtToEquity || 0
     },
     {
       name: 'Target',
@@ -180,13 +180,13 @@ const CapitalStructureChart: React.FC<CapitalStructureChartProps> = ({
   ];
 
   const pieData = [
-    { name: 'Debt', value: current.debt, color: '#dc2626' },
-    { name: 'Equity', value: current.equity, color: '#059669' }
+    { name: 'Debt', value: current?.debt || 0, color: '#dc2626' },
+    { name: 'Equity', value: current?.equity || 0, color: '#059669' }
   ];
 
   const optimizedPieData = [
-    { name: 'Debt', value: optimized.debt, color: '#dc2626' },
-    { name: 'Equity', value: optimized.equity, color: '#059669' }
+    { name: 'Debt', value: optimized?.debt || 0, color: '#dc2626' },
+    { name: 'Equity', value: optimized?.equity || 0, color: '#059669' }
   ];
 
   return (
@@ -273,16 +273,16 @@ const CostOfCapitalAnalysis: React.FC<CostOfCapitalAnalysisProps> = ({
   const calculateTargetWACC = (targetDebtRatio: number) => {
     const weightDebt = targetDebtRatio / (1 + targetDebtRatio);
     const weightEquity = 1 / (1 + targetDebtRatio);
-    return (costAnalysis.costOfDebt * (1 - costAnalysis.taxRate) * weightDebt) +
-           (costAnalysis.costOfEquity * weightEquity);
+    return ((costAnalysis?.costOfDebt || 0) * (1 - (costAnalysis?.taxRate || 0)) * weightDebt) +
+           ((costAnalysis?.costOfEquity || 0) * weightEquity);
   };
 
   const targetWACC = calculateTargetWACC(targetRatio);
 
   const waccData = [
-    { component: 'Cost of Debt', current: costAnalysis.costOfDebt, target: costAnalysis.costOfDebt },
-    { component: 'Cost of Equity', current: costAnalysis.costOfEquity, target: costAnalysis.costOfEquity },
-    { component: 'WACC', current: costAnalysis.wacc, target: targetWACC }
+    { component: 'Cost of Debt', current: costAnalysis?.costOfDebt || 0, target: costAnalysis?.costOfDebt || 0 },
+    { component: 'Cost of Equity', current: costAnalysis?.costOfEquity || 0, target: costAnalysis?.costOfEquity || 0 },
+    { component: 'WACC', current: costAnalysis?.wacc || 0, target: targetWACC }
   ];
 
   return (
@@ -301,7 +301,7 @@ const CostOfCapitalAnalysis: React.FC<CostOfCapitalAnalysisProps> = ({
           <div className="space-y-2">
             <div className="flex justify-between">
               <span className="text-sm">Current WACC:</span>
-              <span className="font-bold text-lg">{(costAnalysis.wacc * 100).toFixed(2)}%</span>
+              <span className="font-bold text-lg">{((costAnalysis?.wacc || 0) * 100).toFixed(2)}%</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm">Target WACC:</span>
@@ -309,8 +309,8 @@ const CostOfCapitalAnalysis: React.FC<CostOfCapitalAnalysisProps> = ({
             </div>
             <div className="flex justify-between">
               <span className="text-sm">Potential Savings:</span>
-              <span className={`font-bold ${(costAnalysis.wacc - targetWACC) > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {((costAnalysis.wacc - targetWACC) * 100).toFixed(2)}%
+              <span className={`font-bold ${((costAnalysis?.wacc || 0) - targetWACC) > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {(((costAnalysis?.wacc || 0) - targetWACC) * 100).toFixed(2)}%
               </span>
             </div>
           </div>
@@ -318,15 +318,15 @@ const CostOfCapitalAnalysis: React.FC<CostOfCapitalAnalysisProps> = ({
           <div className="space-y-2">
             <div className="flex justify-between">
               <span className="text-sm">Cost of Debt:</span>
-              <span className="font-medium">{(costAnalysis.costOfDebt * 100).toFixed(2)}%</span>
+              <span className="font-medium">{((costAnalysis?.costOfDebt || 0) * 100).toFixed(2)}%</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm">Cost of Equity:</span>
-              <span className="font-medium">{(costAnalysis.costOfEquity * 100).toFixed(2)}%</span>
+              <span className="font-medium">{((costAnalysis?.costOfEquity || 0) * 100).toFixed(2)}%</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm">Tax Shield:</span>
-              <span className="font-medium">{(costAnalysis.taxRate * 100).toFixed(1)}%</span>
+              <span className="font-medium">{((costAnalysis?.taxRate || 0) * 100).toFixed(1)}%</span>
             </div>
           </div>
         </div>
@@ -368,7 +368,7 @@ const LeverageMetricsTable: React.FC<LeverageMetricsTableProps> = ({ metrics }) 
   const leverageData = [
     {
       metric: 'Debt-to-Equity Ratio',
-      value: metrics.debtToEquityRatio,
+      value: metrics?.debtToEquityRatio || 0,
       benchmark: 1.0,
       format: 'ratio',
       higherIsBetter: false,
@@ -376,7 +376,7 @@ const LeverageMetricsTable: React.FC<LeverageMetricsTableProps> = ({ metrics }) 
     },
     {
       metric: 'Debt-to-Asset Ratio',
-      value: metrics.debtToAssetRatio,
+      value: metrics?.debtToAssetRatio || 0,
       benchmark: 0.4,
       format: 'percentage',
       higherIsBetter: false,
@@ -384,7 +384,7 @@ const LeverageMetricsTable: React.FC<LeverageMetricsTableProps> = ({ metrics }) 
     },
     {
       metric: 'Interest Coverage',
-      value: metrics.interestCoverageRatio,
+      value: metrics?.interestCoverageRatio || 0,
       benchmark: 2.5,
       format: 'ratio',
       higherIsBetter: true,
@@ -392,7 +392,7 @@ const LeverageMetricsTable: React.FC<LeverageMetricsTableProps> = ({ metrics }) 
     },
     {
       metric: 'Debt Service Coverage',
-      value: metrics.debtServiceCoverageRatio,
+      value: metrics?.debtServiceCoverageRatio || 0,
       benchmark: 1.25,
       format: 'ratio',
       higherIsBetter: true,
@@ -400,7 +400,7 @@ const LeverageMetricsTable: React.FC<LeverageMetricsTableProps> = ({ metrics }) 
     },
     {
       metric: 'Times Interest Earned',
-      value: metrics.timesInterestEarned,
+      value: metrics?.timesInterestEarned || 0,
       benchmark: 2.0,
       format: 'ratio',
       higherIsBetter: true,
@@ -408,7 +408,7 @@ const LeverageMetricsTable: React.FC<LeverageMetricsTableProps> = ({ metrics }) 
     },
     {
       metric: 'Cash Coverage Ratio',
-      value: metrics.cashCoverageRatio,
+      value: metrics?.cashCoverageRatio || 0,
       benchmark: 1.5,
       format: 'ratio',
       higherIsBetter: true,
@@ -485,42 +485,42 @@ const CapitalOptimizationRecommendations: React.FC<CapitalOptimizationRecommenda
   const getRecommendations = () => {
     const recommendations = [];
 
-    if (optimizedStructure.debtToEquity < currentStructure.debtToEquity) {
+    if ((optimizedStructure?.debtToEquity || 0) < (currentStructure?.debtToEquity || 0)) {
       recommendations.push({
         type: 'debt_reduction',
         title: 'Reduce Debt Leverage',
-        description: `Consider reducing debt-to-equity ratio from ${currentStructure.debtToEquity.toFixed(2)} to ${optimizedStructure.debtToEquity.toFixed(2)}`,
+        description: `Consider reducing debt-to-equity ratio from ${(currentStructure?.debtToEquity || 0).toFixed(2)} to ${(optimizedStructure?.debtToEquity || 0).toFixed(2)}`,
         impact: 'high',
         timeframe: '6-12 months',
         actions: ['Pay down high-cost debt', 'Retain earnings for debt reduction', 'Consider equity financing']
       });
-    } else if (optimizedStructure.debtToEquity > currentStructure.debtToEquity) {
+    } else if ((optimizedStructure?.debtToEquity || 0) > (currentStructure?.debtToEquity || 0)) {
       recommendations.push({
         type: 'leverage_increase',
         title: 'Optimize Debt Utilization',
-        description: `Consider increasing leverage to optimize WACC from ${(currentStructure.weightedAverageCostOfCapital * 100).toFixed(2)}% to ${(optimizedStructure.weightedAverageCostOfCapital * 100).toFixed(2)}%`,
+        description: `Consider increasing leverage to optimize WACC from ${((currentStructure?.weightedAverageCostOfCapital || 0) * 100).toFixed(2)}% to ${((optimizedStructure?.weightedAverageCostOfCapital || 0) * 100).toFixed(2)}%`,
         impact: 'medium',
         timeframe: '3-6 months',
         actions: ['Evaluate low-cost debt options', 'Refinance existing debt', 'Consider strategic debt for growth']
       });
     }
 
-    if (currentStructure.creditRating !== optimizedStructure.creditRating) {
+    if (currentStructure?.creditRating !== optimizedStructure?.creditRating) {
       recommendations.push({
         type: 'credit_improvement',
         title: 'Improve Credit Profile',
-        description: `Target credit rating improvement from ${currentStructure.creditRating} to ${optimizedStructure.creditRating}`,
+        description: `Target credit rating improvement from ${currentStructure?.creditRating || 'N/A'} to ${optimizedStructure?.creditRating || 'N/A'}`,
         impact: 'high',
         timeframe: '12-18 months',
         actions: ['Improve debt service coverage', 'Strengthen balance sheet', 'Enhance financial reporting']
       });
     }
 
-    if (optimizedStructure.debtServiceCoverage > currentStructure.debtServiceCoverage * 1.2) {
+    if ((optimizedStructure?.debtServiceCoverage || 0) > (currentStructure?.debtServiceCoverage || 0) * 1.2) {
       recommendations.push({
         type: 'coverage_optimization',
         title: 'Enhance Debt Service Coverage',
-        description: `Improve coverage ratio from ${currentStructure.debtServiceCoverage.toFixed(2)} to ${optimizedStructure.debtServiceCoverage.toFixed(2)}`,
+        description: `Improve coverage ratio from ${(currentStructure?.debtServiceCoverage || 0).toFixed(2)} to ${(optimizedStructure?.debtServiceCoverage || 0).toFixed(2)}`,
         impact: 'medium',
         timeframe: '6-9 months',
         actions: ['Increase operational cash flow', 'Optimize working capital', 'Reduce non-essential expenses']
@@ -598,7 +598,7 @@ interface CapitalStructureOptimizerProps {
 }
 
 const CapitalStructureOptimizer: React.FC<CapitalStructureOptimizerProps> = ({ data }) => {
-  const [targetDebtRatio, setTargetDebtRatio] = useState(data.currentStructure.debtToEquity);
+  const [targetDebtRatio, setTargetDebtRatio] = useState(data?.currentStructure?.debtToEquity || 0);
   const [optimizationGoal, setOptimizationGoal] = useState<'wacc' | 'coverage' | 'rating'>('wacc');
 
   return (
@@ -623,22 +623,22 @@ const CapitalStructureOptimizer: React.FC<CapitalStructureOptimizerProps> = ({ d
 
           <div className="grid grid-cols-2 gap-6">
             <CapitalStructureChart
-              current={data.currentStructure}
-              optimized={data.optimizedStructure}
+              current={data?.currentStructure}
+              optimized={data?.optimizedStructure}
               target={targetDebtRatio}
             />
 
             <CostOfCapitalAnalysis
-              costAnalysis={data.costOfCapital}
+              costAnalysis={data?.costOfCapital}
               targetRatio={targetDebtRatio}
             />
           </div>
 
-          <LeverageMetricsTable metrics={data.leverageAnalysis} />
+          <LeverageMetricsTable metrics={data?.leverageAnalysis} />
 
           <CapitalOptimizationRecommendations
-            currentStructure={data.currentStructure}
-            optimizedStructure={data.optimizedStructure}
+            currentStructure={data?.currentStructure}
+            optimizedStructure={data?.optimizedStructure}
           />
         </div>
       </CardContent>

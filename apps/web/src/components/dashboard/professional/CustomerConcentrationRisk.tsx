@@ -80,9 +80,11 @@ export function CustomerConcentrationRisk({
 
   // Filter and sort customers
   const filteredCustomers = useMemo(() => {
-    let filtered = data.customers
+    // Ensure customers is an array
+    const customers = Array.isArray(data?.customers) ? data.customers : []
+    let filtered = [...customers]
 
-    if (riskFilter !== 'all') {
+    if (riskFilter !== 'all' && filtered.length > 0) {
       filtered = filtered.filter(customer => customer.riskCategory === riskFilter)
     }
 
@@ -98,7 +100,7 @@ export function CustomerConcentrationRisk({
       }
       return 0
     })
-  }, [data.customers, riskFilter, sortBy])
+  }, [data?.customers, riskFilter, sortBy])
 
   // Prepare pie chart data
   const pieChartData = useMemo(() => {
@@ -196,83 +198,90 @@ export function CustomerConcentrationRisk({
   }, [onExport])
 
   // Render overview cards
-  const renderOverviewCards = () => (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-      <Card className="professional-card">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Concentration Risk</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {data.riskMetrics.overallRiskScore.toFixed(0)}
-              </p>
-              <p className="text-xs text-gray-500">out of 100</p>
-            </div>
-            <div className={`p-3 rounded-full ${
-              data.riskMetrics.overallRiskScore > 70 ? 'bg-red-100' :
-              data.riskMetrics.overallRiskScore > 50 ? 'bg-yellow-100' : 'bg-green-100'
-            }`}>
-              <AlertTriangle className={`h-6 w-6 ${
-                data.riskMetrics.overallRiskScore > 70 ? 'text-red-600' :
-                data.riskMetrics.overallRiskScore > 50 ? 'text-yellow-600' : 'text-green-600'
-              }`} />
-            </div>
-          </div>
-          <Progress
-            value={data.riskMetrics.overallRiskScore}
-            className="mt-2"
-          />
-        </CardContent>
-      </Card>
+  const renderOverviewCards = () => {
+    const overallRiskScore = data?.riskMetrics?.overallRiskScore || 0
+    const top5Percentage = data?.topCustomersRisk?.top5Percentage || 0
+    const top10Percentage = data?.topCustomersRisk?.top10Percentage || 0
+    const diversificationScore = data?.riskMetrics?.diversificationScore || 0
 
-      <Card className="professional-card">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Top 5 Customers</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {formatPercentage(data.topCustomersRisk.top5Percentage)}
-              </p>
-              <p className="text-xs text-gray-500">of total revenue</p>
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <Card className="professional-card">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Concentration Risk</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {overallRiskScore.toFixed(0)}
+                </p>
+                <p className="text-xs text-gray-500">out of 100</p>
+              </div>
+              <div className={`p-3 rounded-full ${
+                overallRiskScore > 70 ? 'bg-red-100' :
+                overallRiskScore > 50 ? 'bg-yellow-100' : 'bg-green-100'
+              }`}>
+                <AlertTriangle className={`h-6 w-6 ${
+                  overallRiskScore > 70 ? 'text-red-600' :
+                  overallRiskScore > 50 ? 'text-yellow-600' : 'text-green-600'
+                }`} />
+              </div>
             </div>
-            <div className="p-3 rounded-full bg-blue-100">
-              <Users className="h-6 w-6 text-blue-600" />
-            </div>
-          </div>
-          <div className="mt-2 text-xs text-gray-600">
-            Top 10: {formatPercentage(data.topCustomersRisk.top10Percentage)}
-          </div>
-        </CardContent>
-      </Card>
+            <Progress
+              value={overallRiskScore}
+              className="mt-2"
+            />
+          </CardContent>
+        </Card>
 
-      <Card className="professional-card">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Diversification</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {data.riskMetrics.diversificationScore.toFixed(0)}
-              </p>
-              <p className="text-xs text-gray-500">diversity score</p>
+        <Card className="professional-card">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Top 5 Customers</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {formatPercentage(top5Percentage)}
+                </p>
+                <p className="text-xs text-gray-500">of total revenue</p>
+              </div>
+              <div className="p-3 rounded-full bg-blue-100">
+                <Users className="h-6 w-6 text-blue-600" />
+              </div>
             </div>
-            <div className={`p-3 rounded-full ${
-              data.riskMetrics.diversificationScore > 70 ? 'bg-green-100' :
-              data.riskMetrics.diversificationScore > 50 ? 'bg-yellow-100' : 'bg-red-100'
-            }`}>
-              <TrendingUp className={`h-6 w-6 ${
-                data.riskMetrics.diversificationScore > 70 ? 'text-green-600' :
-                data.riskMetrics.diversificationScore > 50 ? 'text-yellow-600' : 'text-red-600'
-              }`} />
+            <div className="mt-2 text-xs text-gray-600">
+              Top 10: {formatPercentage(top10Percentage)}
             </div>
-          </div>
-          <Progress
-            value={data.riskMetrics.diversificationScore}
-            className="mt-2"
-          />
-        </CardContent>
-      </Card>
-    </div>
-  )
+          </CardContent>
+        </Card>
+
+        <Card className="professional-card">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Diversification</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {diversificationScore.toFixed(0)}
+                </p>
+                <p className="text-xs text-gray-500">diversity score</p>
+              </div>
+              <div className={`p-3 rounded-full ${
+                diversificationScore > 70 ? 'bg-green-100' :
+                diversificationScore > 50 ? 'bg-yellow-100' : 'bg-red-100'
+              }`}>
+                <TrendingUp className={`h-6 w-6 ${
+                  diversificationScore > 70 ? 'text-green-600' :
+                  diversificationScore > 50 ? 'text-yellow-600' : 'text-red-600'
+                }`} />
+              </div>
+            </div>
+            <Progress
+              value={diversificationScore}
+              className="mt-2"
+            />
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   // Render main chart based on view mode
   const renderMainChart = () => {

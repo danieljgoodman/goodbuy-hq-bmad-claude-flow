@@ -93,7 +93,7 @@ export function OperationalCapacityUtilization({
 
   // Filter and sort metrics
   const filteredMetrics = useMemo(() => {
-    let filtered = [...data.metrics]
+    let filtered = [...(data?.metrics || [])]
 
     switch (metricFilter) {
       case 'high-utilization':
@@ -113,7 +113,7 @@ export function OperationalCapacityUtilization({
       }
       return b[sortBy] - a[sortBy]
     })
-  }, [data.metrics, metricFilter, sortBy])
+  }, [data?.metrics, metricFilter, sortBy])
 
   // Prepare chart data based on view and chart type
   const chartData = useMemo(() => {
@@ -139,7 +139,7 @@ export function OperationalCapacityUtilization({
         }))
 
       case 'bottlenecks':
-        return data.bottlenecks.map(bottleneck => ({
+        return (data?.bottlenecks || []).map(bottleneck => ({
           department: bottleneck.department,
           severity: bottleneck.severity,
           impact: bottleneck.impact,
@@ -148,7 +148,7 @@ export function OperationalCapacityUtilization({
         }))
 
       case 'forecast':
-        return data.forecasting.capacityNeeds.map(need => ({
+        return (data?.forecasting?.capacityNeeds || []).map(need => ({
           timeframe: need.timeframe,
           additionalCapacity: need.additionalCapacity,
           investment: need.investmentRequired
@@ -263,19 +263,19 @@ export function OperationalCapacityUtilization({
             <div>
               <p className="text-sm font-medium text-gray-600">Active Bottlenecks</p>
               <p className="text-2xl font-bold text-gray-900">
-                {data.bottlenecks.length}
+                {(data?.bottlenecks || []).length}
               </p>
               <p className="text-xs text-gray-500">
-                {data.bottlenecks.filter(b => b.severity === 'critical').length} critical
+                {(data?.bottlenecks || []).filter(b => b.severity === 'critical').length} critical
               </p>
             </div>
             <div className={`p-3 rounded-full ${
-              data.bottlenecks.filter(b => b.severity === 'critical').length > 0 ? 'bg-red-100' :
-              data.bottlenecks.length > 2 ? 'bg-yellow-100' : 'bg-green-100'
+              (data?.bottlenecks || []).filter(b => b.severity === 'critical').length > 0 ? 'bg-red-100' :
+              (data?.bottlenecks || []).length > 2 ? 'bg-yellow-100' : 'bg-green-100'
             }`}>
               <AlertTriangle className={`h-6 w-6 ${
-                data.bottlenecks.filter(b => b.severity === 'critical').length > 0 ? 'text-red-600' :
-                data.bottlenecks.length > 2 ? 'text-yellow-600' : 'text-green-600'
+                (data?.bottlenecks || []).filter(b => b.severity === 'critical').length > 0 ? 'text-red-600' :
+                (data?.bottlenecks || []).length > 2 ? 'text-yellow-600' : 'text-green-600'
               }`} />
             </div>
           </div>
@@ -415,7 +415,7 @@ export function OperationalCapacityUtilization({
         const pieData = viewMode === 'bottlenecks'
           ? Object.entries(BOTTLENECK_COLORS).map(([severity, color]) => ({
               name: severity.charAt(0).toUpperCase() + severity.slice(1),
-              value: data.bottlenecks.filter(b => b.severity === severity).length,
+              value: (data?.bottlenecks || []).filter(b => b.severity === severity).length,
               color
             })).filter(item => item.value > 0)
           : filteredMetrics.map(metric => ({
@@ -729,7 +729,7 @@ export function OperationalCapacityUtilization({
             </div>
 
             <div className="space-y-4">
-              {data.bottlenecks.map((bottleneck, index) => (
+              {(data?.bottlenecks || []).map((bottleneck, index) => (
                 <Card key={index} className="professional-card">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-3">
@@ -793,7 +793,7 @@ export function OperationalCapacityUtilization({
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {data.forecasting.capacityNeeds.map((need, index) => (
+                    {(data?.forecasting?.capacityNeeds || []).map((need, index) => (
                       <div key={index} className="p-3 border border-gray-200 rounded-lg">
                         <div className="flex justify-between items-center mb-2">
                           <h4 className="font-medium text-gray-900">{need.timeframe}</h4>
