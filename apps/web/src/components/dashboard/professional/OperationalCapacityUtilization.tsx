@@ -120,7 +120,7 @@ export function OperationalCapacityUtilization({
     switch (viewMode) {
       case 'overview':
         return filteredMetrics.map(metric => ({
-          department: metric.department.length > 12 ? metric.department.substring(0, 9) + '...' : metric.department,
+          department: metric.department?.length > 12 ? metric.department.substring(0, 9) + '...' : metric.department,
           fullDepartment: metric.department,
           current: metric.currentCapacity,
           maximum: metric.maximumCapacity,
@@ -168,12 +168,14 @@ export function OperationalCapacityUtilization({
   }, [])
 
   // Format percentage
-  const formatPercentage = useCallback((value: number) => {
+  const formatPercentage = useCallback((value: number | undefined | null) => {
+    if (value === undefined || value === null || isNaN(value)) return '0.0%'
     return `${value.toFixed(1)}%`
   }, [])
 
   // Format currency
-  const formatCurrency = useCallback((value: number) => {
+  const formatCurrency = useCallback((value: number | undefined | null) => {
+    if (value === undefined || value === null || isNaN(value)) return '$0'
     if (value >= 1000000) {
       return `$${(value / 1000000).toFixed(1)}M`
     } else if (value >= 1000) {
@@ -183,7 +185,10 @@ export function OperationalCapacityUtilization({
   }, [])
 
   // Get efficiency status
-  const getEfficiencyStatus = useCallback((efficiency: number) => {
+  const getEfficiencyStatus = useCallback((efficiency: number | undefined | null) => {
+    if (efficiency === undefined || efficiency === null || isNaN(efficiency)) {
+      return { label: 'Unknown', color: 'text-gray-600', bg: 'bg-gray-50' }
+    }
     if (efficiency >= 85) return { label: 'Excellent', color: 'text-green-600', bg: 'bg-green-50' }
     if (efficiency >= 70) return { label: 'Good', color: 'text-blue-600', bg: 'bg-blue-50' }
     if (efficiency >= 55) return { label: 'Fair', color: 'text-yellow-600', bg: 'bg-yellow-50' }
@@ -599,7 +604,7 @@ export function OperationalCapacityUtilization({
                   {filteredMetrics.map((metric, index) => {
                     const efficiencyStatus = getEfficiencyStatus(metric.efficiency)
                     return (
-                      <div key={metric.department} className="p-4 border border-gray-200 rounded-lg">
+                      <div key={`${metric.department}-${index}`} className="p-4 border border-gray-200 rounded-lg">
                         <div className="flex items-center justify-between mb-3">
                           <h4 className="font-medium text-gray-900">{metric.department}</h4>
                           <Badge
@@ -730,7 +735,7 @@ export function OperationalCapacityUtilization({
 
             <div className="space-y-4">
               {(data?.bottlenecks || []).map((bottleneck, index) => (
-                <Card key={index} className="professional-card">
+                <Card key={`bottleneck-${bottleneck.department}-${index}`} className="professional-card">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center space-x-3">
@@ -794,7 +799,7 @@ export function OperationalCapacityUtilization({
                 <CardContent>
                   <div className="space-y-4">
                     {(data?.forecasting?.capacityNeeds || []).map((need, index) => (
-                      <div key={index} className="p-3 border border-gray-200 rounded-lg">
+                      <div key={`capacity-${need.timeframe}-${index}`} className="p-3 border border-gray-200 rounded-lg">
                         <div className="flex justify-between items-center mb-2">
                           <h4 className="font-medium text-gray-900">{need.timeframe}</h4>
                           <Badge variant="outline">

@@ -137,7 +137,8 @@ export function CustomerConcentrationRisk({
   }, [filteredCustomers])
 
   // Format currency
-  const formatCurrency = useCallback((value: number) => {
+  const formatCurrency = useCallback((value: number | undefined | null) => {
+    if (value === undefined || value === null || isNaN(value)) return '$0'
     if (value >= 1000000) {
       return `$${(value / 1000000).toFixed(1)}M`
     } else if (value >= 1000) {
@@ -147,7 +148,8 @@ export function CustomerConcentrationRisk({
   }, [])
 
   // Format percentage
-  const formatPercentage = useCallback((value: number) => {
+  const formatPercentage = useCallback((value: number | undefined | null) => {
+    if (value === undefined || value === null || isNaN(value)) return '0.0%'
     return `${value.toFixed(1)}%`
   }, [])
 
@@ -546,7 +548,7 @@ export function CustomerConcentrationRisk({
         )}
 
         {/* Recommendations */}
-        {data.recommendations.length > 0 && (
+        {data?.recommendations && data.recommendations.length > 0 && (
           <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
             <h4 className="font-semibold text-yellow-800 mb-2 flex items-center">
               <AlertTriangle className="h-4 w-4 mr-2" />

@@ -147,7 +147,8 @@ export function CompetitivePositioningChart({
   }, [data?.metrics])
 
   // Format score
-  const formatScore = useCallback((value: number) => {
+  const formatScore = useCallback((value: number | undefined | null) => {
+    if (value === undefined || value === null || isNaN(value)) return '0.0'
     return value.toFixed(1)
   }, [])
 

@@ -158,7 +158,8 @@ export function MultiYearFinancialTrends({
   }, [data.trends])
 
   // Format currency values
-  const formatCurrency = useCallback((value: number) => {
+  const formatCurrency = useCallback((value: number | undefined | null) => {
+    if (value === undefined || value === null || isNaN(value)) return '$0'
     if (value >= 1000000) {
       return `$${(value / 1000000).toFixed(1)}M`
     } else if (value >= 1000) {
@@ -168,7 +169,8 @@ export function MultiYearFinancialTrends({
   }, [])
 
   // Format percentage values
-  const formatPercentage = useCallback((value: number) => {
+  const formatPercentage = useCallback((value: number | undefined | null) => {
+    if (value === undefined || value === null || isNaN(value)) return '0.0%'
     return `${value > 0 ? '+' : ''}${value.toFixed(1)}%`
   }, [])
 
@@ -533,21 +535,21 @@ export function MultiYearFinancialTrends({
           </div>
           <div className="professional-metric">
             <div className="professional-metric-value">
-              {data.insights.volatilityIndex.toFixed(1)}
+              {data?.insights?.volatilityIndex?.toFixed(1) || '0.0'}
             </div>
             <div className="professional-metric-label">Volatility Index</div>
           </div>
           <div className="professional-metric">
             <Badge
               variant={
-                data.insights.trendDirection === 'positive'
+                data?.insights?.trendDirection === 'positive'
                   ? 'default'
-                  : data.insights.trendDirection === 'negative'
+                  : data?.insights?.trendDirection === 'negative'
                   ? 'destructive'
                   : 'secondary'
               }
             >
-              {data.insights.trendDirection}
+              {data?.insights?.trendDirection || 'neutral'}
             </Badge>
             <div className="professional-metric-label">Trend Direction</div>
           </div>
@@ -605,7 +607,7 @@ export function MultiYearFinancialTrends({
         </div>
 
         {/* Insights and Recommendations */}
-        {data.insights.recommendations.length > 0 && (
+        {data?.insights?.recommendations && data.insights.recommendations.length > 0 && (
           <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
             <h4 className="font-semibold text-yellow-800 mb-2">Key Insights</h4>
             <ul className="text-sm text-yellow-700 space-y-1">
