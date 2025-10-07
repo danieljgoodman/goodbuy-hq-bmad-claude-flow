@@ -1,0 +1,693 @@
+/* Enterprise Dashboard - Professional Design System */
+/* Aligned with colors.md theme system */
+
+:root {
+  /* Professional Spacing System - 8px Grid */
+  --space-1: 4px;   /* 0.5 units - tight spacing */
+  --space-2: 8px;   /* 1 unit - minimal gap */
+  --space-3: 16px;  /* 2 units - default gap */
+  --space-4: 24px;  /* 3 units - section spacing */
+  --space-6: 32px;  /* 4 units - large spacing */
+  --space-8: 48px;  /* 6 units - major sections */
+  --space-12: 64px; /* 8 units - hero spacing */
+
+  /* Professional Typography Scale - Major Third (1.250) */
+  --text-xs: 12px;      /* Caption, labels */
+  --text-sm: 14px;      /* Secondary text */
+  --text-base: 16px;    /* Body, default */
+  --text-lg: 20px;      /* Section headers */
+  --text-xl: 25px;      /* Subsection headers */
+  --text-2xl: 32px;     /* Page headers */
+  --text-3xl: 40px;     /* Hero medium */
+  --text-4xl: 64px;     /* Hero large */
+
+  /* Professional Font Weights - Limited palette */
+  --font-light: 300;
+  --font-normal: 400;
+  --font-semibold: 600;
+
+  /* Line Heights - Optimized for readability */
+  --leading-tight: 1.2;    /* Headlines */
+  --leading-normal: 1.5;   /* Body text */
+  --leading-relaxed: 1.7;  /* Long form content */
+
+  /* Professional Shadows - Subtle elevation only */
+  --shadow-minimal: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  --shadow-hover: 0 4px 12px 0 rgba(0, 0, 0, 0.08);
+}
+
+/* ============================================
+   DASHBOARD CONTAINER
+   ============================================ */
+
+.enterprise-dashboard {
+  background: var(--background);
+  min-height: 100vh;
+  font-family: inherit; /* Use Inter from layout.tsx */
+  color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.enterprise-dashboard-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: var(--space-6);
+}
+
+/* ============================================
+   PROFESSIONAL HEADER
+   ============================================ */
+
+.enterprise-header {
+  padding: var(--space-8) 0 var(--space-6) 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--space-6);
+}
+
+.enterprise-header h1 {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-light);
+  color: var(--foreground);
+  letter-spacing: -0.02em;
+  margin: 0 0 var(--space-1) 0;
+}
+
+.enterprise-subtitle {
+  font-size: var(--text-sm);
+  color: var(--muted-foreground);
+  font-weight: var(--font-normal);
+  margin: 0;
+}
+
+/* ============================================
+   NAVIGATION TABS - MINIMAL DESIGN
+   ============================================ */
+
+.enterprise-nav-tabs {
+  background: transparent;
+  border-bottom: 1px solid var(--border);
+  padding: 0;
+  gap: var(--space-6);
+}
+
+.enterprise-nav-tab {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--muted-foreground);
+  font-size: var(--text-sm);
+  font-weight: var(--font-normal);
+  padding: var(--space-3) 0;
+  transition: all 0.2s ease;
+  border-radius: 0;
+}
+
+.enterprise-nav-tab:hover {
+  color: var(--foreground);
+  background: transparent;
+}
+
+.enterprise-nav-tab[data-state="active"] {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+  background: transparent;
+}
+
+.enterprise-nav-tab svg {
+  display: none; /* Remove decorative icons */
+}
+
+/* ============================================
+   CARDS - MINIMAL PROFESSIONAL STYLE
+   ============================================ */
+
+.enterprise-card {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  padding: var(--space-6) 0;
+  margin: 0;
+  box-shadow: none;
+  transition: none;
+}
+
+.enterprise-card:hover {
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+/* First card has no top border */
+.enterprise-card:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+/* Last card has no bottom border */
+.enterprise-card:last-child {
+  border-bottom: none;
+}
+
+.enterprise-card-header {
+  padding: 0 0 var(--space-3) 0;
+}
+
+.enterprise-card-title {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--foreground);
+  display: flex;
+  align-items: center;
+  gap: 0; /* Remove icon gaps */
+}
+
+.enterprise-card-title svg {
+  display: none; /* Remove all decorative icons from titles */
+}
+
+/* ============================================
+   HERO METRIC - DATA-FIRST DESIGN
+   ============================================ */
+
+.hero-metric-card {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  padding: var(--space-12) 0 var(--space-8) 0;
+  text-align: center;
+}
+
+.metric-label {
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+  margin-bottom: var(--space-2);
+}
+
+.metric-primary {
+  font-size: var(--text-4xl);
+  font-weight: var(--font-light);
+  color: var(--foreground);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.03em;
+  margin-bottom: var(--space-2);
+}
+
+.metric-change {
+  font-size: var(--text-xl);
+  font-weight: var(--font-normal);
+  margin-left: var(--space-3);
+}
+
+.metric-change.positive {
+  color: var(--success);
+}
+
+.metric-change.negative {
+  color: var(--error);
+}
+
+.metric-context {
+  font-size: var(--text-sm);
+  color: var(--muted-foreground);
+  font-weight: var(--font-normal);
+}
+
+/* ============================================
+   METRIC ROWS - BLOOMBERG STYLE
+   ============================================ */
+
+.metric-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.metric-row:last-child {
+  border-bottom: none;
+}
+
+.metric-row-label {
+  font-size: var(--text-sm);
+  color: var(--muted-foreground);
+  font-weight: var(--font-normal);
+}
+
+.metric-row-value {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--foreground);
+  font-family: var(--font-mono);
+}
+
+.metric-row-value.positive {
+  color: var(--success);
+}
+
+.metric-row-value.negative {
+  color: var(--error);
+}
+
+/* ============================================
+   SECTION LAYOUT - CONSISTENT GRID
+   ============================================ */
+
+.section-spacing {
+  padding: var(--space-6) 0;
+}
+
+.grid-layout-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: var(--space-6);
+}
+
+.grid-layout-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-4);
+}
+
+@media (max-width: 768px) {
+  .grid-layout-2,
+  .grid-layout-3 {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+}
+
+/* ============================================
+   TABLES - PROFESSIONAL STYLE
+   ============================================ */
+
+.professional-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.professional-table thead {
+  border-bottom: 2px solid var(--border);
+}
+
+.professional-table th {
+  text-align: left;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+  padding: var(--space-3) var(--space-3) var(--space-3) 0;
+}
+
+.professional-table td {
+  font-size: var(--text-sm);
+  color: var(--foreground);
+  padding: var(--space-3) var(--space-3) var(--space-3) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.professional-table tbody tr:hover {
+  background: rgba(0, 0, 0, 0.01);
+}
+
+.professional-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ============================================
+   BADGES - MINIMAL, FUNCTIONAL ONLY
+   ============================================ */
+
+.badge-minimal {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--foreground);
+}
+
+.badge-minimal.success {
+  color: var(--success);
+  border-color: var(--success);
+  background: transparent;
+}
+
+.badge-minimal.warning {
+  color: var(--warning);
+  border-color: var(--warning);
+  background: transparent;
+}
+
+.badge-minimal.error {
+  color: var(--error);
+  border-color: var(--error);
+  background: transparent;
+}
+
+/* ============================================
+   STATUS INDICATORS - SUBTLE
+   ============================================ */
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: var(--space-2);
+}
+
+.status-dot.good {
+  background: var(--status-good);
+}
+
+.status-dot.moderate {
+  background: var(--status-moderate);
+}
+
+.status-dot.critical {
+  background: var(--status-critical);
+}
+
+/* ============================================
+   BUTTONS - PROFESSIONAL MINIMAL
+   ============================================ */
+
+.btn-minimal {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: var(--font-normal);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-minimal:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: transparent;
+}
+
+.btn-minimal:active {
+  transform: translateY(0);
+}
+
+.btn-primary {
+  background: var(--primary);
+  border: 1px solid var(--primary);
+  color: var(--primary-foreground);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+/* ============================================
+   PROGRESS INDICATORS - SINGLE COLOR
+   ============================================ */
+
+.progress-container {
+  width: 100%;
+  height: 4px;
+  background: var(--muted);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--primary);
+  transition: width 0.3s ease;
+}
+
+.progress-fill.success {
+  background: var(--success);
+}
+
+.progress-fill.warning {
+  background: var(--warning);
+}
+
+.progress-fill.error {
+  background: var(--error);
+}
+
+/* ============================================
+   RISK GAUGE - CIRCULAR MINIMAL
+   ============================================ */
+
+.risk-gauge {
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+
+.risk-gauge-background {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 6;
+}
+
+.risk-gauge-progress {
+  fill: none;
+  stroke-width: 6;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.5s ease;
+}
+
+.risk-gauge-progress.good {
+  stroke: var(--status-good);
+}
+
+.risk-gauge-progress.moderate {
+  stroke: var(--status-moderate);
+}
+
+.risk-gauge-progress.critical {
+  stroke: var(--status-critical);
+}
+
+.risk-gauge-value {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  font-family: var(--font-mono);
+}
+
+/* ============================================
+   INSIGHTS - ACCORDION MINIMAL
+   ============================================ */
+
+.insight-item {
+  border-bottom: 1px solid var(--border);
+  padding: var(--space-4) 0;
+}
+
+.insight-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  cursor: pointer;
+  padding: 0;
+}
+
+.insight-priority {
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--muted-foreground);
+  font-family: var(--font-mono);
+}
+
+.insight-title {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--foreground);
+  margin: 0 0 var(--space-1) 0;
+}
+
+.insight-description {
+  font-size: var(--text-sm);
+  color: var(--muted-foreground);
+  line-height: var(--leading-normal);
+}
+
+.insight-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+  padding: var(--space-4) 0;
+  border-top: 1px solid var(--border);
+  margin-top: var(--space-3);
+}
+
+.insight-metric-item {
+  text-align: center;
+}
+
+.insight-metric-label {
+  font-size: var(--text-xs);
+  color: var(--muted-foreground);
+  margin-bottom: var(--space-1);
+}
+
+.insight-metric-value {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--foreground);
+  font-family: var(--font-mono);
+}
+
+.insight-metric-value.success {
+  color: var(--success);
+}
+
+/* ============================================
+   ANIMATIONS - SUBTLE ONLY
+   ============================================ */
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.enterprise-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+.enterprise-slide-up {
+  animation: fade-in 0.4s ease-out;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .enterprise-dashboard-container {
+    padding: var(--space-4);
+  }
+
+  .enterprise-header {
+    padding: var(--space-6) 0 var(--space-4) 0;
+  }
+
+  .metric-primary {
+    font-size: var(--text-3xl);
+  }
+}
+
+@media (max-width: 768px) {
+  .enterprise-dashboard-container {
+    padding: var(--space-3);
+  }
+
+  .enterprise-header h1 {
+    font-size: var(--text-xl);
+  }
+
+  .metric-primary {
+    font-size: var(--text-2xl);
+  }
+
+  .metric-change {
+    font-size: var(--text-lg);
+  }
+
+  .enterprise-nav-tabs {
+    gap: var(--space-3);
+  }
+
+  .enterprise-nav-tab {
+    font-size: var(--text-xs);
+    padding: var(--space-2) 0;
+  }
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+.text-caption {
+  font-size: var(--text-xs);
+  color: var(--muted-foreground);
+}
+
+.text-muted {
+  color: var(--muted-foreground);
+}
+
+.text-success {
+  color: var(--success);
+}
+
+.text-warning {
+  color: var(--warning);
+}
+
+.text-error {
+  color: var(--error);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Remove all unnecessary gradients */
+.no-gradient {
+  background: transparent;
+  background-image: none;
+}
+
+/* Hide decorative elements */
+.hide-decorative-icons svg:not(.functional-icon) {
+  display: none;
+}
+
+/* ============================================
+   DARK MODE SUPPORT
+   ============================================ */
+
+.dark .enterprise-card {
+  border-color: var(--border);
+}
+
+.dark .metric-row {
+  border-color: var(--border);
+}
+
+.dark .professional-table th,
+.dark .professional-table td {
+  border-color: var(--border);
+}
+
+.dark .professional-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}

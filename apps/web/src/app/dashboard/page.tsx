@@ -293,8 +293,8 @@ export default function DashboardPage() {
   const activityData = generateActivityFromEvaluations(evaluations);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-secondary pt-20 pb-8">
-        <div className="container mx-auto px-4 max-w-7xl">
+    <div className="min-h-screen bg-background pt-20 pb-8">
+        <div className="container mx-auto px-4">
           <DashboardLayout
             metrics={realMetrics}
             activities={activityData}

@@ -1,0 +1,349 @@
+'use client'
+
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Progress } from '@/components/ui/progress'
+import { Separator } from '@/components/ui/separator'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { 
+  CheckCircle2, 
+  Circle, 
+  Clock, 
+  Users, 
+  Lightbulb,
+  AlertTriangle,
+  Target,
+  Download,
+  BookOpen,
+  TrendingUp,
+  DollarSign
+} from 'lucide-react'
+
+interface GuideStep {
+  id: string
+  stepNumber: number
+  title: string
+  description: string
+  estimatedTime: number
+  difficulty: string
+  resources: any[]
+  tips: any[]
+  commonPitfalls: any[]
+  successMetrics: any[]
+  completed: boolean
+  completedAt?: string
+}
+
+interface ImplementationGuide {
+  id: string
+  title: string
+  description: string
+  industry: string
+  steps: GuideStep[]
+  estimatedDuration: number
+  difficultyLevel: string
+  resourceRequirements: any
+  templates: any[]
+  businessContext: any
+  version: number
+  generatedAt: string
+}
+
+interface GuideViewerProps {
+  guide: ImplementationGuide
+  userId: string
+  onStepToggle?: (stepId: string, completed: boolean) => void
+}
+
+export function GuideViewer({ guide, userId, onStepToggle }: GuideViewerProps) {
+  const [activeStep, setActiveStep] = useState<string | null>(null)
+  const [updatingStep, setUpdatingStep] = useState<string | null>(null)
+
+  const completedSteps = guide.steps.filter(step => step.completed).length
+  const progressPercentage = guide.steps.length > 0 ? (completedSteps / guide.steps.length) * 100 : 0
+  const totalEstimatedTime = guide.steps.reduce((sum, step) => sum + step.estimatedTime, 0)
+
+  const handleStepToggle = async (stepId: string, currentlyCompleted: boolean) => {
+    setUpdatingStep(stepId)
+    
+    try {
+      const response = await fetch(`/api/guides/step/${stepId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          completed: !currentlyCompleted
+        })
+      })
+
+      if (response.ok) {
+        onStepToggle?.(stepId, !currentlyCompleted)
+      } else {
+        console.error('Failed to update step completion')
+      }
+    } catch (error) {
+      console.error('Error updating step completion:', error)
+    } finally {
+      setUpdatingStep(null)
+    }
+  }
+
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty.toLowerCase()) {
+      case 'beginner': return 'bg-green-100 text-green-800'
+      case 'intermediate': return 'bg-yellow-100 text-yellow-800'
+      case 'advanced': return 'bg-red-100 text-red-800'
+      default: return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  const formatTime = (minutes: number) => {
+    if (minutes < 60) return `${minutes}m`
+    const hours = Math.floor(minutes / 60)
+    const remainingMinutes = minutes % 60
+    return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <CardTitle className="text-2xl mb-2">{guide.title}</CardTitle>
+              <CardDescription className="text-base mb-4">
+                {guide.description}
+              </CardDescription>
+              
+              <div className="flex items-center space-x-4 text-sm">
+                <Badge className={getDifficultyColor(guide.difficultyLevel)}>
+                  {guide.difficultyLevel}
+                </Badge>
+                <div className="flex items-center space-x-1">
+                  <Clock className="h-4 w-4" />
+                  <span>{guide.estimatedDuration}h total</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <BookOpen className="h-4 w-4" />
+                  <span>{guide.steps.length} steps</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <TrendingUp className="h-4 w-4" />
+                  <span>{guide.industry}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+        
+        <CardContent>
+          <div className="space-y-4">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium">Progress</span>
+                <span className="text-sm text-muted-foreground">
+                  {completedSteps} of {guide.steps.length} steps completed
+                </span>
+              </div>
+              <Progress value={progressPercentage} className="h-2" />
+            </div>
+
+            {guide.resourceRequirements && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
+                <div className="text-center">
+                  <div className="flex items-center justify-center mb-1">
+                    <DollarSign className="h-4 w-4 text-gray-600" />
+                  </div>
+                  <div className="text-sm font-medium">Estimated Budget</div>
+                  <div className="text-xs text-muted-foreground">
+                    ${guide.resourceRequirements.budget?.toLocaleString() || 'Variable'}
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="flex items-center justify-center mb-1">
+                    <Users className="h-4 w-4 text-gray-600" />
+                  </div>
+                  <div className="text-sm font-medium">Team Size</div>
+                  <div className="text-xs text-muted-foreground">
+                    {guide.resourceRequirements.team || '2-4'} people
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="flex items-center justify-center mb-1">
+                    <Clock className="h-4 w-4 text-gray-600" />
+                  </div>
+                  <div className="text-sm font-medium">Timeline</div>
+                  <div className="text-xs text-muted-foreground">
+                    {guide.resourceRequirements.timeline || guide.estimatedDuration + ' hours'}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Steps */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Implementation Steps</CardTitle>
+          <CardDescription>
+            Follow these steps to successfully implement your improvement opportunity
+          </CardDescription>
+        </CardHeader>
+        
+        <CardContent>
+          <div className="space-y-4">
+            {guide.steps.map((step, index) => (
+              <div key={step.id} className="border rounded-lg p-4">
+                <div className="flex items-start space-x-4">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="mt-1 p-1 h-8 w-8"
+                    onClick={() => handleStepToggle(step.id, step.completed)}
+                    disabled={updatingStep === step.id}
+                  >
+                    {step.completed ? (
+                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                    ) : (
+                      <Circle className="h-5 w-5 text-gray-400" />
+                    )}
+                  </Button>
+
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <h3 className={`font-medium ${step.completed ? 'line-through text-gray-500' : ''}`}>
+                          {step.stepNumber}. {step.title}
+                        </h3>
+                        <div className="flex items-center space-x-3 mt-1 text-sm text-muted-foreground">
+                          <span className="flex items-center space-x-1">
+                            <Clock className="h-3 w-3" />
+                            <span>{formatTime(step.estimatedTime)}</span>
+                          </span>
+                          <Badge variant="outline" className="text-xs">
+                            {step.difficulty}
+                          </Badge>
+                        </div>
+                      </div>
+                      
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setActiveStep(activeStep === step.id ? null : step.id)}
+                      >
+                        {activeStep === step.id ? 'Hide Details' : 'Show Details'}
+                      </Button>
+                    </div>
+
+                    <p className={`text-sm mb-3 ${step.completed ? 'text-gray-500' : ''}`}>
+                      {step.description}
+                    </p>
+
+                    {activeStep === step.id && (
+                      <Tabs defaultValue="resources" className="w-full">
+                        <TabsList className="grid w-full grid-cols-4">
+                          <TabsTrigger value="resources">Resources</TabsTrigger>
+                          <TabsTrigger value="tips">Tips</TabsTrigger>
+                          <TabsTrigger value="pitfalls">Pitfalls</TabsTrigger>
+                          <TabsTrigger value="metrics">Success</TabsTrigger>
+                        </TabsList>
+
+                        <TabsContent value="resources" className="mt-4">
+                          <div className="space-y-2">
+                            {step.resources.map((resource, idx) => (
+                              <div key={idx} className="flex items-center space-x-2">
+                                <Download className="h-4 w-4 text-blue-600" />
+                                <span className="text-sm">{resource}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </TabsContent>
+
+                        <TabsContent value="tips" className="mt-4">
+                          <div className="space-y-2">
+                            {step.tips.map((tip, idx) => (
+                              <div key={idx} className="flex items-start space-x-2">
+                                <Lightbulb className="h-4 w-4 text-yellow-500 mt-0.5 flex-shrink-0" />
+                                <span className="text-sm">{tip}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </TabsContent>
+
+                        <TabsContent value="pitfalls" className="mt-4">
+                          <div className="space-y-2">
+                            {step.commonPitfalls.map((pitfall, idx) => (
+                              <div key={idx} className="flex items-start space-x-2">
+                                <AlertTriangle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
+                                <span className="text-sm">{pitfall}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </TabsContent>
+
+                        <TabsContent value="metrics" className="mt-4">
+                          <div className="space-y-2">
+                            {step.successMetrics.map((metric, idx) => (
+                              <div key={idx} className="flex items-start space-x-2">
+                                <Target className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                                <span className="text-sm">{metric}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </TabsContent>
+                      </Tabs>
+                    )}
+
+                    {step.completed && step.completedAt && (
+                      <div className="text-xs text-green-600 mt-2">
+                        ✓ Completed on {new Date(step.completedAt).toLocaleDateString()}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Templates & Resources */}
+      {guide.templates && guide.templates.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Templates & Resources</CardTitle>
+            <CardDescription>
+              Download templates and resources to accelerate your implementation
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {guide.templates.map((template, index) => (
+                <Card key={index} className="p-4">
+                  <div className="flex items-center space-x-3">
+                    <Download className="h-5 w-5 text-blue-600" />
+                    <div className="flex-1">
+                      <h4 className="font-medium">{template.name}</h4>
+                      <p className="text-sm text-muted-foreground">{template.type}</p>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      Download
+                    </Button>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  )
+}
+
+export default GuideViewer
