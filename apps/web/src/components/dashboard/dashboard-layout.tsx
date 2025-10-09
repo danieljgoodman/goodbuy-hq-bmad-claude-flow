@@ -133,38 +133,38 @@ export default function DashboardLayout({
 
   return (
     <div className={`min-h-screen bg-background ${className}`}>
-      {/* HEADER SECTION - Clean professional design */}
-      <div className="bg-card border-b border-border">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-6">
+      {/* HEADER SECTION - Brand Colors */}
+      <div className="bg-card border-b border-border px-8 py-6">
+        <div className="max-w-7xl mx-auto">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold text-foreground tracking-tight">
+            <div className="flex items-center gap-4">
+              <h1 className="text-3xl font-bold text-foreground">
                 Business Dashboard
               </h1>
-              <Badge variant="success" className="gap-1.5">
-                <div className="h-2 w-2 rounded-full bg-current animate-pulse" />
-                <span className="font-medium">Live</span>
+              <Badge variant="secondary" className="bg-chart-1/10 text-chart-1 border-chart-1/20">
+                <div className="w-2 h-2 bg-chart-1 rounded-full mr-1 animate-pulse" />
+                Live
               </Badge>
             </div>
-
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing || isLoading} className="gap-2">
-                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            
+            <div className="flex items-center gap-3">
+              <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing || isLoading}>
+                <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
                 Refresh
               </Button>
-              <Button variant="outline" size="sm" onClick={handleExportData} className="gap-2">
-                <Download className="h-4 w-4" />
+              <Button variant="outline" size="sm" onClick={handleExportData}>
+                <Download className="h-4 w-4 mr-2" />
                 Export
               </Button>
               {onShareDashboard && (
-                <Button variant="outline" size="sm" onClick={onShareDashboard} className="gap-2">
-                  <Share className="h-4 w-4" />
+                <Button variant="outline" size="sm" onClick={onShareDashboard}>
+                  <Share className="h-4 w-4 mr-2" />
                   Share
                 </Button>
               )}
               {onCreateEvaluation && (
-                <Button size="sm" onClick={onCreateEvaluation} className="gap-2">
-                  <Plus className="h-4 w-4" />
+                <Button size="sm" className="bg-primary hover:bg-primary/90" onClick={onCreateEvaluation}>
+                  <Plus className="h-4 w-4 mr-2" />
                   New Evaluation
                 </Button>
               )}
@@ -174,7 +174,7 @@ export default function DashboardLayout({
       </div>
 
       {/* MAIN CONTENT - 70/30 Layout Structure */}
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-8 py-8">
         {/* Empty State Check */}
         {!displayMetrics ? (
           <WelcomeEmptyState onCreateEvaluation={onCreateEvaluation || (() => {})} />
@@ -182,18 +182,20 @@ export default function DashboardLayout({
           <div className="flex flex-col xl:flex-row gap-8">
             {/* LEFT COLUMN - 70% */}
             <div className="flex-1 xl:w-[70%] space-y-8">
-              {/* KPI CARDS */}
-              <KPICards metrics={displayMetrics} isLoading={isLoading} />
+              {/* KPI CARDS - 2x2 Grid */}
+              <div className="bg-card rounded-lg border border-border p-6">
+                <KPICards metrics={displayMetrics} isLoading={isLoading} />
+              </div>
 
               {/* PERFORMANCE ANALYTICS */}
-              <PerformanceAnalytics
+              <PerformanceAnalytics 
                 valuationData={displayValuationData}
                 trendData={displayTrendData}
                 healthBreakdown={displayHealthBreakdown}
               />
 
               {/* RECENT EVALUATIONS */}
-              <RecentEvaluations
+              <RecentEvaluations 
                 evaluations={evaluations}
                 onViewEvaluation={onViewEvaluation}
                 onViewAllEvaluations={onViewAllEvaluations}
@@ -204,7 +206,7 @@ export default function DashboardLayout({
             {/* RIGHT SIDEBAR - 30% */}
             <div className="xl:w-[30%] space-y-6">
               {/* QUICK ACTIONS */}
-              <QuickActions
+              <QuickActions 
                 onViewAllEvaluations={onViewAllEvaluations}
                 onViewAnalytics={onViewAnalytics}
                 onExportData={handleExportData}
@@ -221,7 +223,7 @@ export default function DashboardLayout({
               />
 
               {/* AI INSIGHTS */}
-              <AIInsights
+              <AIInsights 
                 metrics={displayMetrics}
                 className="border-border"
               />

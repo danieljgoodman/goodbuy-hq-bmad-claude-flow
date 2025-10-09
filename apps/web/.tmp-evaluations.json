@@ -1546,5 +1546,1619 @@
     "status": "completed",
     "createdAt": "2025-09-23T03:24:06.216Z",
     "updatedAt": "2025-09-23T22:45:48.957Z"
+  },
+  "eval_1760017291902_danielgoodman": {
+    "id": "eval_1760017291902_danielgoodman",
+    "userId": "user_mock_danielgoodman",
+    "userEmail": "danielgoodman14@gmail.com",
+    "businessName": "TechFlow Solutions Inc.",
+    "industry": "Software Development",
+    "createdAt": "2025-10-09T13:41:31.902Z",
+    "updatedAt": "2025-10-09T13:41:31.903Z",
+    "status": "completed",
+    "tier": "ENTERPRISE",
+    "basicData": {
+      "annualRevenue": 8500000,
+      "numberOfEmployees": 45,
+      "yearsInBusiness": 7,
+      "profitMargin": 12.5,
+      "growthRate": 18.5
+    },
+    "professionalData": {
+      "financialPerformance": {
+        "historicalData": [
+          {
+            "year": 2020,
+            "period": "FY2020",
+            "revenue": 5125553.158777646,
+            "ebitda": 1110435.7663927355,
+            "netIncome": 586960.3447717482,
+            "grossMargin": 0.594206674077095,
+            "operatingMargin": 0.22771853538004166,
+            "netMargin": 0.12316649804868084,
+            "cashFlow": 932437.5383466743,
+            "assets": 7500000,
+            "liabilities": 4000000,
+            "equity": 3500000
+          },
+          {
+            "year": 2021,
+            "period": "FY2021",
+            "revenue": 5577221.512651941,
+            "ebitda": 1216353.0399803005,
+            "netIncome": 719815.2556121951,
+            "grossMargin": 0.5980766297598514,
+            "operatingMargin": 0.22674388216633395,
+            "netMargin": 0.13011843754150548,
+            "cashFlow": 1016612.4369298138,
+            "assets": 8625000,
+            "liabilities": 4600000,
+            "equity": 4024999.9999999995
+          },
+          {
+            "year": 2022,
+            "period": "FY2022",
+            "revenue": 6600289.88506057,
+            "ebitda": 1521069.5808850906,
+            "netIncome": 773192.8828220171,
+            "grossMargin": 0.5815083707590359,
+            "operatingMargin": 0.2200883577755199,
+            "netMargin": 0.12861932232743933,
+            "cashFlow": 1219070.0932297974,
+            "assets": 9918749.999999998,
+            "liabilities": 5290000,
+            "equity": 4628749.999999999
+          },
+          {
+            "year": 2023,
+            "period": "FY2023",
+            "revenue": 7825944.071931081,
+            "ebitda": 1746480.15384717,
+            "netIncome": 913389.2221253699,
+            "grossMargin": 0.582097875100251,
+            "operatingMargin": 0.22697588604508734,
+            "netMargin": 0.13902726751157823,
+            "cashFlow": 1376882.3624337327,
+            "assets": 11406562.499999998,
+            "liabilities": 6083500,
+            "equity": 5323062.499999999
+          },
+          {
+            "year": 2024,
+            "period": "FY2024",
+            "revenue": 9124740.192325344,
+            "ebitda": 1876067.6807374512,
+            "netIncome": 1041440.390718258,
+            "grossMargin": 0.5819749448329257,
+            "operatingMargin": 0.24749296837135917,
+            "netMargin": 0.13056686116775898,
+            "cashFlow": 1624446.9470618279,
+            "assets": 13117546.874999994,
+            "liabilities": 6996024.999999997,
+            "equity": 6121521.874999997
+          }
+        ]
+      },
+      "customerRiskAnalysis": {
+        "customerProfiles": [
+          {
+            "id": "customer-1",
+            "name": "Acme Corporation",
+            "annualRevenue": 2125000,
+            "revenuePercentage": 25,
+            "contractLength": 29,
+            "relationshipYears": 4,
+            "riskLevel": "high",
+            "industrySegment": "Healthcare",
+            "growthTrend": "stable",
+            "paymentHistory": 97.94632940776125,
+            "renewalProbability": 90.13934783578297
+          },
+          {
+            "id": "customer-2",
+            "name": "TechGlobal Inc",
+            "annualRevenue": 1530000,
+            "revenuePercentage": 18,
+            "contractLength": 21,
+            "relationshipYears": 6,
+            "riskLevel": "high",
+            "industrySegment": "Finance",
+            "growthTrend": "stable",
+            "paymentHistory": 98.89469320950958,
+            "renewalProbability": 70.80248019953254
+          },
+          {
+            "id": "customer-3",
+            "name": "InnovateCo",
+            "annualRevenue": 1020000,
+            "revenuePercentage": 12,
+            "contractLength": 22,
+            "relationshipYears": 6,
+            "riskLevel": "high",
+            "industrySegment": "Retail",
+            "growthTrend": "stable",
+            "paymentHistory": 96.51783162193445,
+            "renewalProbability": 77.85079426562574
+          },
+          {
+            "id": "customer-4",
+            "name": "Enterprise Systems Ltd",
+            "annualRevenue": 295974.9692250096,
+            "revenuePercentage": 3.4820584614707015,
+            "contractLength": 37,
+            "relationshipYears": 8,
+            "riskLevel": "medium",
+            "industrySegment": "Finance",
+            "growthTrend": "declining",
+            "paymentHistory": 97.60325162161374,
+            "renewalProbability": 87.23189052130277
+          },
+          {
+            "id": "customer-5",
+            "name": "Digital Solutions Group",
+            "annualRevenue": 348567.84447018354,
+            "revenuePercentage": 4.100798170237454,
+            "contractLength": 20,
+            "relationshipYears": 5,
+            "riskLevel": "medium",
+            "industrySegment": "Finance",
+            "growthTrend": "declining",
+            "paymentHistory": 96.52871427549987,
+            "renewalProbability": 88.36394125985869
+          },
+          {
+            "id": "customer-6",
+            "name": "Quantum Technologies",
+            "annualRevenue": 350317.41868753935,
+            "revenuePercentage": 4.121381396323992,
+            "contractLength": 38,
+            "relationshipYears": 7,
+            "riskLevel": "medium",
+            "industrySegment": "Retail",
+            "growthTrend": "growing",
+            "paymentHistory": 98.51179084338615,
+            "renewalProbability": 92.06617401723979
+          },
+          {
+            "id": "customer-7",
+            "name": "NexGen Industries",
+            "annualRevenue": 316845.30174131686,
+            "revenuePercentage": 3.727591785191963,
+            "contractLength": 15,
+            "relationshipYears": 6,
+            "riskLevel": "medium",
+            "industrySegment": "Manufacturing",
+            "growthTrend": "growing",
+            "paymentHistory": 99.06803628209016,
+            "renewalProbability": 70.00440177255031
+          },
+          {
+            "id": "customer-8",
+            "name": "Strategic Partners LLC",
+            "annualRevenue": 280384.97691430466,
+            "revenuePercentage": 3.2986467872271135,
+            "contractLength": 28,
+            "relationshipYears": 4,
+            "riskLevel": "medium",
+            "industrySegment": "Healthcare",
+            "growthTrend": "growing",
+            "paymentHistory": 95.72815895288964,
+            "renewalProbability": 72.75599499269423
+          },
+          {
+            "id": "customer-9",
+            "name": "Global Markets Inc",
+            "annualRevenue": 312163.0579482553,
+            "revenuePercentage": 3.672506564097121,
+            "contractLength": 15,
+            "relationshipYears": 6,
+            "riskLevel": "low",
+            "industrySegment": "Finance",
+            "growthTrend": "declining",
+            "paymentHistory": 97.31799097948232,
+            "renewalProbability": 92.85242436833067
+          },
+          {
+            "id": "customer-10",
+            "name": "Venture Capital Group",
+            "annualRevenue": 297749.4356446829,
+            "revenuePercentage": 3.5029345369962694,
+            "contractLength": 38,
+            "relationshipYears": 5,
+            "riskLevel": "low",
+            "industrySegment": "Manufacturing",
+            "growthTrend": "growing",
+            "paymentHistory": 98.22084734741652,
+            "renewalProbability": 73.92075960852792
+          },
+          {
+            "id": "customer-11",
+            "name": "SmartTech Solutions",
+            "annualRevenue": 284084.77496847324,
+            "revenuePercentage": 3.3421738231585083,
+            "contractLength": 36,
+            "relationshipYears": 1,
+            "riskLevel": "low",
+            "industrySegment": "Retail",
+            "growthTrend": "growing",
+            "paymentHistory": 98.68501270428337,
+            "renewalProbability": 87.35189922495856
+          },
+          {
+            "id": "customer-12",
+            "name": "Future Dynamics",
+            "annualRevenue": 370697.6037273234,
+            "revenuePercentage": 4.361148279144982,
+            "contractLength": 23,
+            "relationshipYears": 2,
+            "riskLevel": "low",
+            "industrySegment": "Manufacturing",
+            "growthTrend": "growing",
+            "paymentHistory": 96.3677320479348,
+            "renewalProbability": 80.86236014232834
+          },
+          {
+            "id": "customer-13",
+            "name": "CoreBusiness Systems",
+            "annualRevenue": 360483.570694073,
+            "revenuePercentage": 4.2409831846361525,
+            "contractLength": 43,
+            "relationshipYears": 3,
+            "riskLevel": "low",
+            "industrySegment": "Technology",
+            "growthTrend": "declining",
+            "paymentHistory": 98.33580033431775,
+            "renewalProbability": 72.58887487717087
+          },
+          {
+            "id": "customer-14",
+            "name": "Advanced Analytics Co",
+            "annualRevenue": 286993.3247279047,
+            "revenuePercentage": 3.3763920556224085,
+            "contractLength": 23,
+            "relationshipYears": 3,
+            "riskLevel": "low",
+            "industrySegment": "Manufacturing",
+            "growthTrend": "growing",
+            "paymentHistory": 97.14820128769438,
+            "renewalProbability": 89.08909750196406
+          },
+          {
+            "id": "customer-15",
+            "name": "PremierTech",
+            "annualRevenue": 326632.42061218276,
+            "revenuePercentage": 3.842734360143327,
+            "contractLength": 22,
+            "relationshipYears": 2,
+            "riskLevel": "low",
+            "industrySegment": "Technology",
+            "growthTrend": "stable",
+            "paymentHistory": 99.27573008122562,
+            "renewalProbability": 70.1029540803117
+          }
+        ]
+      },
+      "competitiveAnalysis": {
+        "marketPosition": {
+          "marketShare": 12.5,
+          "marketRank": 3,
+          "totalMarketSize": 75000000,
+          "growthRate": 18.5
+        },
+        "competitors": [
+          {
+            "name": "Market Leader Inc",
+            "marketShare": 28,
+            "growthRate": 15,
+            "strength": 85
+          },
+          {
+            "name": "IndustryPro Solutions",
+            "marketShare": 22,
+            "growthRate": 20,
+            "strength": 80
+          },
+          {
+            "name": "Your Company",
+            "marketShare": 12.5,
+            "growthRate": 18.5,
+            "strength": 75
+          },
+          {
+            "name": "Challenger Corp",
+            "marketShare": 10,
+            "growthRate": 25,
+            "strength": 70
+          },
+          {
+            "name": "NichePlayers LLC",
+            "marketShare": 8,
+            "growthRate": 12,
+            "strength": 60
+          }
+        ],
+        "competitiveMetrics": [
+          {
+            "category": "Product Innovation",
+            "yourScore": 78,
+            "industryAvg": 72,
+            "topCompetitor": 85
+          },
+          {
+            "category": "Customer Service",
+            "yourScore": 82,
+            "industryAvg": 75,
+            "topCompetitor": 80
+          },
+          {
+            "category": "Pricing Strategy",
+            "yourScore": 70,
+            "industryAvg": 70,
+            "topCompetitor": 75
+          },
+          {
+            "category": "Market Presence",
+            "yourScore": 68,
+            "industryAvg": 65,
+            "topCompetitor": 88
+          },
+          {
+            "category": "Technology Stack",
+            "yourScore": 85,
+            "industryAvg": 70,
+            "topCompetitor": 82
+          },
+          {
+            "category": "Brand Recognition",
+            "yourScore": 65,
+            "industryAvg": 70,
+            "topCompetitor": 90
+          }
+        ],
+        "swotAnalysis": {
+          "strengths": [
+            "Strong technical capabilities and innovation pipeline",
+            "High customer satisfaction scores (82%)",
+            "Efficient operations with healthy margins",
+            "Experienced leadership team"
+          ],
+          "weaknesses": [
+            "Limited brand recognition compared to market leaders",
+            "Smaller marketing budget",
+            "Customer concentration risk with top 3 clients",
+            "Geographic concentration in North America"
+          ],
+          "opportunities": [
+            "Expanding into European markets",
+            "Strategic partnerships with industry leaders",
+            "New product line development",
+            "M&A opportunities for market consolidation"
+          ],
+          "threats": [
+            "Aggressive pricing from new market entrants",
+            "Technology disruption in the industry",
+            "Economic downturn affecting client budgets",
+            "Talent acquisition challenges"
+          ]
+        }
+      },
+      "investmentScenarios": {
+        "scenarios": [
+          {
+            "id": "growth-expansion",
+            "name": "Market Expansion Strategy",
+            "investmentAmount": 2500000,
+            "expectedROI": 185,
+            "timeHorizon": 36,
+            "confidenceLevel": 78,
+            "npv": 3200000,
+            "irr": 32.5,
+            "paybackPeriod": 28,
+            "riskLevel": "medium",
+            "description": "Expand into 3 new geographic markets with dedicated sales teams"
+          },
+          {
+            "id": "product-development",
+            "name": "New Product Line Launch",
+            "investmentAmount": 1800000,
+            "expectedROI": 220,
+            "timeHorizon": 24,
+            "confidenceLevel": 85,
+            "npv": 2900000,
+            "irr": 38.2,
+            "paybackPeriod": 20,
+            "riskLevel": "low",
+            "description": "Develop and launch AI-powered analytics platform"
+          },
+          {
+            "id": "acquisition",
+            "name": "Strategic Acquisition",
+            "investmentAmount": 5000000,
+            "expectedROI": 165,
+            "timeHorizon": 48,
+            "confidenceLevel": 65,
+            "npv": 6500000,
+            "irr": 28.7,
+            "paybackPeriod": 42,
+            "riskLevel": "high",
+            "description": "Acquire competitor to increase market share by 8%"
+          }
+        ],
+        "portfolioMetrics": {
+          "totalInvested": 12000000,
+          "currentValue": 18500000,
+          "overallROI": 54.2,
+          "annualizedReturn": 18.7,
+          "sharpeRatio": 1.8,
+          "volatility": 12.5
+        }
+      },
+      "operationalMetrics": {
+        "capacityMetrics": [
+          {
+            "department": "Engineering",
+            "currentCapacity": 85,
+            "optimalCapacity": 90,
+            "utilizationRate": 94,
+            "efficiency": 88,
+            "bottlenecks": [
+              "Code review process",
+              "Testing infrastructure"
+            ],
+            "recommendations": [
+              "Hire 2 senior engineers",
+              "Automate testing pipeline"
+            ]
+          },
+          {
+            "department": "Sales",
+            "currentCapacity": 78,
+            "optimalCapacity": 85,
+            "utilizationRate": 92,
+            "efficiency": 82,
+            "bottlenecks": [
+              "Lead qualification",
+              "CRM system limitations"
+            ],
+            "recommendations": [
+              "Implement AI lead scoring",
+              "Upgrade CRM platform"
+            ]
+          },
+          {
+            "department": "Customer Support",
+            "currentCapacity": 72,
+            "optimalCapacity": 80,
+            "utilizationRate": 90,
+            "efficiency": 85,
+            "bottlenecks": [
+              "Peak hour coverage",
+              "Knowledge base gaps"
+            ],
+            "recommendations": [
+              "Add night shift team",
+              "Expand self-service options"
+            ]
+          },
+          {
+            "department": "Operations",
+            "currentCapacity": 88,
+            "optimalCapacity": 92,
+            "utilizationRate": 96,
+            "efficiency": 90,
+            "bottlenecks": [
+              "Manual reporting",
+              "Cross-team coordination"
+            ],
+            "recommendations": [
+              "Automate reporting",
+              "Implement project management tool"
+            ]
+          }
+        ],
+        "overallMetrics": {
+          "averageUtilization": 93,
+          "efficiencyScore": 86,
+          "bottleneckCount": 8,
+          "improvementPotential": 12
+        },
+        "timeSeriesData": [
+          {
+            "month": "2024-01-01T05:00:00.000Z",
+            "utilization": 87.98781107928767,
+            "efficiency": 85.52742122698037,
+            "throughput": 1099.990684108578
+          },
+          {
+            "month": "2024-02-01T05:00:00.000Z",
+            "utilization": 90.00823683646874,
+            "efficiency": 82.93452061035904,
+            "throughput": 1101.8747359239371
+          },
+          {
+            "month": "2024-03-01T05:00:00.000Z",
+            "utilization": 87.08726366484592,
+            "efficiency": 85.91267947197363,
+            "throughput": 1188.0633526376207
+          },
+          {
+            "month": "2024-04-01T04:00:00.000Z",
+            "utilization": 91.03776346479906,
+            "efficiency": 84.71961997889741,
+            "throughput": 1160.6405019792853
+          },
+          {
+            "month": "2024-05-01T04:00:00.000Z",
+            "utilization": 85.60580442244715,
+            "efficiency": 84.21130229855778,
+            "throughput": 1020.1244429228753
+          },
+          {
+            "month": "2024-06-01T04:00:00.000Z",
+            "utilization": 86.2079611510271,
+            "efficiency": 83.62688846562229,
+            "throughput": 1198.8981683236036
+          },
+          {
+            "month": "2024-07-01T04:00:00.000Z",
+            "utilization": 93.88658185443921,
+            "efficiency": 87.43662899757659,
+            "throughput": 1104.330105618652
+          },
+          {
+            "month": "2024-08-01T04:00:00.000Z",
+            "utilization": 88.86386190817791,
+            "efficiency": 84.76716113061694,
+            "throughput": 1036.9161863949769
+          },
+          {
+            "month": "2024-09-01T04:00:00.000Z",
+            "utilization": 90.97379438174865,
+            "efficiency": 84.88418666981237,
+            "throughput": 1020.0606313576144
+          },
+          {
+            "month": "2024-10-01T04:00:00.000Z",
+            "utilization": 89.65040230619628,
+            "efficiency": 89.96583706247496,
+            "throughput": 1162.306482171722
+          },
+          {
+            "month": "2024-11-01T04:00:00.000Z",
+            "utilization": 94.09068089706145,
+            "efficiency": 85.65194828675749,
+            "throughput": 1013.6585128609058
+          },
+          {
+            "month": "2024-12-01T05:00:00.000Z",
+            "utilization": 89.25801400397613,
+            "efficiency": 88.49250192836008,
+            "throughput": 1124.0351494402694
+          }
+        ]
+      }
+    },
+    "enterpriseData": {
+      "strategicScenarios": [
+        {
+          "id": "scenario-1",
+          "name": "Aggressive Growth",
+          "assumptions": [
+            {
+              "id": "a1",
+              "description": "25% YoY revenue growth",
+              "impact": "high",
+              "confidence": 0.75
+            }
+          ],
+          "projections": [
+            {
+              "year": 2025,
+              "revenue": 10625000,
+              "profit": 1593750,
+              "growthRate": 0.25,
+              "marketShare": 12.5
+            },
+            {
+              "year": 2026,
+              "revenue": 13281250,
+              "profit": 1992187.5,
+              "growthRate": 0.25,
+              "marketShare": 14.5
+            },
+            {
+              "year": 2027,
+              "revenue": 16601562.5,
+              "profit": 2490234.375,
+              "growthRate": 0.25,
+              "marketShare": 16.5
+            },
+            {
+              "year": 2028,
+              "revenue": 20751953.125,
+              "profit": 3112792.96875,
+              "growthRate": 0.25,
+              "marketShare": 18.5
+            },
+            {
+              "year": 2029,
+              "revenue": 25939941.40625,
+              "profit": 3890991.2109375,
+              "growthRate": 0.25,
+              "marketShare": 20.5
+            }
+          ],
+          "investmentRequired": 5000000,
+          "expectedROI": 180,
+          "riskLevel": "high",
+          "probabilityOfSuccess": 0.68,
+          "valuationImpact": 12000000,
+          "timeline": 60,
+          "keyDrivers": [
+            "Market expansion",
+            "Product innovation",
+            "Strategic partnerships"
+          ]
+        },
+        {
+          "id": "scenario-2",
+          "name": "Steady Growth",
+          "assumptions": [
+            {
+              "id": "a2",
+              "description": "15% YoY revenue growth",
+              "impact": "medium",
+              "confidence": 0.85
+            }
+          ],
+          "projections": [
+            {
+              "year": 2025,
+              "revenue": 9775000,
+              "profit": 1759500,
+              "growthRate": 0.15,
+              "marketShare": 12.5
+            },
+            {
+              "year": 2026,
+              "revenue": 11241249.999999998,
+              "profit": 2023424.9999999995,
+              "growthRate": 0.15,
+              "marketShare": 13.5
+            },
+            {
+              "year": 2027,
+              "revenue": 12927437.499999998,
+              "profit": 2326938.7499999995,
+              "growthRate": 0.15,
+              "marketShare": 14.5
+            },
+            {
+              "year": 2028,
+              "revenue": 14866553.124999994,
+              "profit": 2675979.562499999,
+              "growthRate": 0.15,
+              "marketShare": 15.5
+            },
+            {
+              "year": 2029,
+              "revenue": 17096536.093749996,
+              "profit": 3077376.4968749993,
+              "growthRate": 0.15,
+              "marketShare": 16.5
+            }
+          ],
+          "investmentRequired": 2500000,
+          "expectedROI": 210,
+          "riskLevel": "medium",
+          "probabilityOfSuccess": 0.82,
+          "valuationImpact": 8000000,
+          "timeline": 48,
+          "keyDrivers": [
+            "Operational efficiency",
+            "Customer retention",
+            "Organic growth"
+          ]
+        },
+        {
+          "id": "scenario-3",
+          "name": "Conservative Growth",
+          "assumptions": [
+            {
+              "id": "a3",
+              "description": "8% YoY revenue growth",
+              "impact": "low",
+              "confidence": 0.92
+            }
+          ],
+          "projections": [
+            {
+              "year": 2025,
+              "revenue": 9180000,
+              "profit": 1836000,
+              "growthRate": 0.08,
+              "marketShare": 12.5
+            },
+            {
+              "year": 2026,
+              "revenue": 9914400,
+              "profit": 1982880,
+              "growthRate": 0.08,
+              "marketShare": 13
+            },
+            {
+              "year": 2027,
+              "revenue": 10707552.000000004,
+              "profit": 2141510.400000001,
+              "growthRate": 0.08,
+              "marketShare": 13.5
+            },
+            {
+              "year": 2028,
+              "revenue": 11564156.160000002,
+              "profit": 2312831.2320000003,
+              "growthRate": 0.08,
+              "marketShare": 14
+            },
+            {
+              "year": 2029,
+              "revenue": 12489288.652800005,
+              "profit": 2497857.730560001,
+              "growthRate": 0.08,
+              "marketShare": 14.5
+            }
+          ],
+          "investmentRequired": 1000000,
+          "expectedROI": 185,
+          "riskLevel": "low",
+          "probabilityOfSuccess": 0.9,
+          "valuationImpact": 4000000,
+          "timeline": 36,
+          "keyDrivers": [
+            "Profit optimization",
+            "Cost management",
+            "Core competency focus"
+          ]
+        }
+      ],
+      "exitStrategy": {
+        "exitTimeline": "3-5 years",
+        "preferredStrategies": [
+          "strategic",
+          "financial"
+        ],
+        "currentValuation": 45000000,
+        "projectedValuation": 72000000,
+        "transactionReadiness": 72,
+        "advisorsEngaged": [
+          "broker",
+          "legal",
+          "tax"
+        ]
+      },
+      "capitalStructure": {
+        "currentDebtEquityRatio": 0.42,
+        "optimalDebtEquityRatio": 0.35,
+        "wacc": 8.2,
+        "creditRating": "BBB+",
+        "debtCapacity": 8000000,
+        "interestCoverage": 4.5,
+        "debtServiceCoverage": 2.1
+      }
+    },
+    "dataQuality": {
+      "overallScore": 95,
+      "completeness": 98,
+      "accuracy": 94,
+      "freshness": 96,
+      "consistency": 95
+    }
+  },
+  "eval_1760017317126_danielgoodman": {
+    "id": "eval_1760017317126_danielgoodman",
+    "userId": "user_32stUPem7n3j3SmVZ76HOr1SNPv",
+    "userEmail": "danielgoodman14@gmail.com",
+    "businessName": "TechFlow Solutions Inc.",
+    "industry": "Software Development",
+    "createdAt": "2025-10-09T13:41:57.126Z",
+    "updatedAt": "2025-10-09T13:41:57.127Z",
+    "status": "completed",
+    "tier": "ENTERPRISE",
+    "basicData": {
+      "annualRevenue": 8500000,
+      "numberOfEmployees": 45,
+      "yearsInBusiness": 7,
+      "profitMargin": 12.5,
+      "growthRate": 18.5
+    },
+    "professionalData": {
+      "financialPerformance": {
+        "historicalData": [
+          {
+            "year": 2020,
+            "period": "FY2020",
+            "revenue": 4876472.14450033,
+            "ebitda": 1070200.2182856272,
+            "netIncome": 605093.4429430133,
+            "grossMargin": 0.5647729807705998,
+            "operatingMargin": 0.22982140739224763,
+            "netMargin": 0.1368778318203578,
+            "cashFlow": 869986.4312103962,
+            "assets": 7500000,
+            "liabilities": 4000000,
+            "equity": 3500000
+          },
+          {
+            "year": 2021,
+            "period": "FY2021",
+            "revenue": 5813037.204586955,
+            "ebitda": 1229909.6300978437,
+            "netIncome": 657853.1150162972,
+            "grossMargin": 0.58117346577037,
+            "operatingMargin": 0.230427097601675,
+            "netMargin": 0.1269180265062241,
+            "cashFlow": 988588.72310655,
+            "assets": 8625000,
+            "liabilities": 4600000,
+            "equity": 4024999.9999999995
+          },
+          {
+            "year": 2022,
+            "period": "FY2022",
+            "revenue": 6299622.247418349,
+            "ebitda": 1522341.0963720512,
+            "netIncome": 801831.6230303663,
+            "grossMargin": 0.5754132087819972,
+            "operatingMargin": 0.2343181087471125,
+            "netMargin": 0.12267344916282534,
+            "cashFlow": 1190518.8346282917,
+            "assets": 9918749.999999998,
+            "liabilities": 5290000,
+            "equity": 4628749.999999999
+          },
+          {
+            "year": 2023,
+            "period": "FY2023",
+            "revenue": 7280335.3173935935,
+            "ebitda": 1674466.3233175045,
+            "netIncome": 868418.5311842544,
+            "grossMargin": 0.5590997258340463,
+            "operatingMargin": 0.22740986735468707,
+            "netMargin": 0.12397620949228864,
+            "cashFlow": 1314163.1809416253,
+            "assets": 11406562.499999998,
+            "liabilities": 6083500,
+            "equity": 5323062.499999999
+          },
+          {
+            "year": 2024,
+            "period": "FY2024",
+            "revenue": 8946722.378031883,
+            "ebitda": 1990029.9004210015,
+            "netIncome": 1055941.4053647474,
+            "grossMargin": 0.5644619171046817,
+            "operatingMargin": 0.22236612970644912,
+            "netMargin": 0.1209557970054718,
+            "cashFlow": 1610178.058920838,
+            "assets": 13117546.874999994,
+            "liabilities": 6996024.999999997,
+            "equity": 6121521.874999997
+          }
+        ]
+      },
+      "customerRiskAnalysis": {
+        "customerProfiles": [
+          {
+            "id": "customer-1",
+            "name": "Acme Corporation",
+            "annualRevenue": 2125000,
+            "revenuePercentage": 25,
+            "contractLength": 15,
+            "relationshipYears": 1,
+            "riskLevel": "high",
+            "industrySegment": "Finance",
+            "growthTrend": "declining",
+            "paymentHistory": 99.88660516068009,
+            "renewalProbability": 91.85853584245635
+          },
+          {
+            "id": "customer-2",
+            "name": "TechGlobal Inc",
+            "annualRevenue": 1530000,
+            "revenuePercentage": 18,
+            "contractLength": 37,
+            "relationshipYears": 8,
+            "riskLevel": "high",
+            "industrySegment": "Technology",
+            "growthTrend": "growing",
+            "paymentHistory": 96.00992820539895,
+            "renewalProbability": 75.80877449983772
+          },
+          {
+            "id": "customer-3",
+            "name": "InnovateCo",
+            "annualRevenue": 1020000,
+            "revenuePercentage": 12,
+            "contractLength": 38,
+            "relationshipYears": 7,
+            "riskLevel": "high",
+            "industrySegment": "Retail",
+            "growthTrend": "stable",
+            "paymentHistory": 98.5006965515018,
+            "renewalProbability": 80.74709781440767
+          },
+          {
+            "id": "customer-4",
+            "name": "Enterprise Systems Ltd",
+            "annualRevenue": 372813.41073199647,
+            "revenuePercentage": 4.386040126258782,
+            "contractLength": 22,
+            "relationshipYears": 5,
+            "riskLevel": "medium",
+            "industrySegment": "Healthcare",
+            "growthTrend": "stable",
+            "paymentHistory": 96.46290685436864,
+            "renewalProbability": 85.07134003465077
+          },
+          {
+            "id": "customer-5",
+            "name": "Digital Solutions Group",
+            "annualRevenue": 276058.9864847936,
+            "revenuePercentage": 3.2477527821740426,
+            "contractLength": 36,
+            "relationshipYears": 6,
+            "riskLevel": "medium",
+            "industrySegment": "Retail",
+            "growthTrend": "stable",
+            "paymentHistory": 98.69938772356063,
+            "renewalProbability": 86.76569459448764
+          },
+          {
+            "id": "customer-6",
+            "name": "Quantum Technologies",
+            "annualRevenue": 313307.8163528455,
+            "revenuePercentage": 3.685974310033477,
+            "contractLength": 12,
+            "relationshipYears": 7,
+            "riskLevel": "medium",
+            "industrySegment": "Retail",
+            "growthTrend": "stable",
+            "paymentHistory": 99.45961609658221,
+            "renewalProbability": 88.88290792124428
+          },
+          {
+            "id": "customer-7",
+            "name": "NexGen Industries",
+            "annualRevenue": 292915.4813141889,
+            "revenuePercentage": 3.4460644860492815,
+            "contractLength": 32,
+            "relationshipYears": 7,
+            "riskLevel": "medium",
+            "industrySegment": "Retail",
+            "growthTrend": "growing",
+            "paymentHistory": 95.34237557829029,
+            "renewalProbability": 73.86802891770145
+          },
+          {
+            "id": "customer-8",
+            "name": "Strategic Partners LLC",
+            "annualRevenue": 312501.6346058419,
+            "revenuePercentage": 3.6764898188922577,
+            "contractLength": 31,
+            "relationshipYears": 5,
+            "riskLevel": "medium",
+            "industrySegment": "Manufacturing",
+            "growthTrend": "growing",
+            "paymentHistory": 95.69524329004368,
+            "renewalProbability": 81.15287081871809
+          },
+          {
+            "id": "customer-9",
+            "name": "Global Markets Inc",
+            "annualRevenue": 287469.16750371014,
+            "revenuePercentage": 3.381990205926002,
+            "contractLength": 32,
+            "relationshipYears": 2,
+            "riskLevel": "low",
+            "industrySegment": "Retail",
+            "growthTrend": "growing",
+            "paymentHistory": 97.65901288176897,
+            "renewalProbability": 93.06115423209535
+          },
+          {
+            "id": "customer-10",
+            "name": "Venture Capital Group",
+            "annualRevenue": 369922.22668155556,
+            "revenuePercentage": 4.352026196253595,
+            "contractLength": 47,
+            "relationshipYears": 2,
+            "riskLevel": "low",
+            "industrySegment": "Finance",
+            "growthTrend": "stable",
+            "paymentHistory": 99.75986130872784,
+            "renewalProbability": 86.81691058515109
+          },
+          {
+            "id": "customer-11",
+            "name": "SmartTech Solutions",
+            "annualRevenue": 356318.3497399482,
+            "revenuePercentage": 4.191980585175861,
+            "contractLength": 26,
+            "relationshipYears": 7,
+            "riskLevel": "low",
+            "industrySegment": "Healthcare",
+            "growthTrend": "growing",
+            "paymentHistory": 95.61883240073968,
+            "renewalProbability": 94.68470630707371
+          },
+          {
+            "id": "customer-12",
+            "name": "Future Dynamics",
+            "annualRevenue": 325706.9164624359,
+            "revenuePercentage": 3.8318460760286577,
+            "contractLength": 44,
+            "relationshipYears": 6,
+            "riskLevel": "low",
+            "industrySegment": "Retail",
+            "growthTrend": "declining",
+            "paymentHistory": 96.17578208583241,
+            "renewalProbability": 87.05506283170138
+          },
+          {
+            "id": "customer-13",
+            "name": "CoreBusiness Systems",
+            "annualRevenue": 275488.1621582992,
+            "revenuePercentage": 3.2410372018623437,
+            "contractLength": 29,
+            "relationshipYears": 1,
+            "riskLevel": "low",
+            "industrySegment": "Healthcare",
+            "growthTrend": "declining",
+            "paymentHistory": 96.37075418590919,
+            "renewalProbability": 93.7863135344939
+          },
+          {
+            "id": "customer-14",
+            "name": "Advanced Analytics Co",
+            "annualRevenue": 289641.0682352914,
+            "revenuePercentage": 3.4075419792387223,
+            "contractLength": 40,
+            "relationshipYears": 6,
+            "riskLevel": "low",
+            "industrySegment": "Finance",
+            "growthTrend": "growing",
+            "paymentHistory": 96.10015837717485,
+            "renewalProbability": 77.85358622903163
+          },
+          {
+            "id": "customer-15",
+            "name": "PremierTech",
+            "annualRevenue": 260051.5915590402,
+            "revenuePercentage": 3.0594304889298845,
+            "contractLength": 25,
+            "relationshipYears": 7,
+            "riskLevel": "low",
+            "industrySegment": "Healthcare",
+            "growthTrend": "growing",
+            "paymentHistory": 99.50294119080117,
+            "renewalProbability": 74.66651886545458
+          }
+        ]
+      },
+      "competitiveAnalysis": {
+        "marketPosition": {
+          "marketShare": 12.5,
+          "marketRank": 3,
+          "totalMarketSize": 75000000,
+          "growthRate": 18.5
+        },
+        "competitors": [
+          {
+            "name": "Market Leader Inc",
+            "marketShare": 28,
+            "growthRate": 15,
+            "strength": 85
+          },
+          {
+            "name": "IndustryPro Solutions",
+            "marketShare": 22,
+            "growthRate": 20,
+            "strength": 80
+          },
+          {
+            "name": "Your Company",
+            "marketShare": 12.5,
+            "growthRate": 18.5,
+            "strength": 75
+          },
+          {
+            "name": "Challenger Corp",
+            "marketShare": 10,
+            "growthRate": 25,
+            "strength": 70
+          },
+          {
+            "name": "NichePlayers LLC",
+            "marketShare": 8,
+            "growthRate": 12,
+            "strength": 60
+          }
+        ],
+        "competitiveMetrics": [
+          {
+            "category": "Product Innovation",
+            "yourScore": 78,
+            "industryAvg": 72,
+            "topCompetitor": 85
+          },
+          {
+            "category": "Customer Service",
+            "yourScore": 82,
+            "industryAvg": 75,
+            "topCompetitor": 80
+          },
+          {
+            "category": "Pricing Strategy",
+            "yourScore": 70,
+            "industryAvg": 70,
+            "topCompetitor": 75
+          },
+          {
+            "category": "Market Presence",
+            "yourScore": 68,
+            "industryAvg": 65,
+            "topCompetitor": 88
+          },
+          {
+            "category": "Technology Stack",
+            "yourScore": 85,
+            "industryAvg": 70,
+            "topCompetitor": 82
+          },
+          {
+            "category": "Brand Recognition",
+            "yourScore": 65,
+            "industryAvg": 70,
+            "topCompetitor": 90
+          }
+        ],
+        "swotAnalysis": {
+          "strengths": [
+            "Strong technical capabilities and innovation pipeline",
+            "High customer satisfaction scores (82%)",
+            "Efficient operations with healthy margins",
+            "Experienced leadership team"
+          ],
+          "weaknesses": [
+            "Limited brand recognition compared to market leaders",
+            "Smaller marketing budget",
+            "Customer concentration risk with top 3 clients",
+            "Geographic concentration in North America"
+          ],
+          "opportunities": [
+            "Expanding into European markets",
+            "Strategic partnerships with industry leaders",
+            "New product line development",
+            "M&A opportunities for market consolidation"
+          ],
+          "threats": [
+            "Aggressive pricing from new market entrants",
+            "Technology disruption in the industry",
+            "Economic downturn affecting client budgets",
+            "Talent acquisition challenges"
+          ]
+        }
+      },
+      "investmentScenarios": {
+        "scenarios": [
+          {
+            "id": "growth-expansion",
+            "name": "Market Expansion Strategy",
+            "investmentAmount": 2500000,
+            "expectedROI": 185,
+            "timeHorizon": 36,
+            "confidenceLevel": 78,
+            "npv": 3200000,
+            "irr": 32.5,
+            "paybackPeriod": 28,
+            "riskLevel": "medium",
+            "description": "Expand into 3 new geographic markets with dedicated sales teams"
+          },
+          {
+            "id": "product-development",
+            "name": "New Product Line Launch",
+            "investmentAmount": 1800000,
+            "expectedROI": 220,
+            "timeHorizon": 24,
+            "confidenceLevel": 85,
+            "npv": 2900000,
+            "irr": 38.2,
+            "paybackPeriod": 20,
+            "riskLevel": "low",
+            "description": "Develop and launch AI-powered analytics platform"
+          },
+          {
+            "id": "acquisition",
+            "name": "Strategic Acquisition",
+            "investmentAmount": 5000000,
+            "expectedROI": 165,
+            "timeHorizon": 48,
+            "confidenceLevel": 65,
+            "npv": 6500000,
+            "irr": 28.7,
+            "paybackPeriod": 42,
+            "riskLevel": "high",
+            "description": "Acquire competitor to increase market share by 8%"
+          }
+        ],
+        "portfolioMetrics": {
+          "totalInvested": 12000000,
+          "currentValue": 18500000,
+          "overallROI": 54.2,
+          "annualizedReturn": 18.7,
+          "sharpeRatio": 1.8,
+          "volatility": 12.5
+        }
+      },
+      "operationalMetrics": {
+        "capacityMetrics": [
+          {
+            "department": "Engineering",
+            "currentCapacity": 85,
+            "optimalCapacity": 90,
+            "utilizationRate": 94,
+            "efficiency": 88,
+            "bottlenecks": [
+              "Code review process",
+              "Testing infrastructure"
+            ],
+            "recommendations": [
+              "Hire 2 senior engineers",
+              "Automate testing pipeline"
+            ]
+          },
+          {
+            "department": "Sales",
+            "currentCapacity": 78,
+            "optimalCapacity": 85,
+            "utilizationRate": 92,
+            "efficiency": 82,
+            "bottlenecks": [
+              "Lead qualification",
+              "CRM system limitations"
+            ],
+            "recommendations": [
+              "Implement AI lead scoring",
+              "Upgrade CRM platform"
+            ]
+          },
+          {
+            "department": "Customer Support",
+            "currentCapacity": 72,
+            "optimalCapacity": 80,
+            "utilizationRate": 90,
+            "efficiency": 85,
+            "bottlenecks": [
+              "Peak hour coverage",
+              "Knowledge base gaps"
+            ],
+            "recommendations": [
+              "Add night shift team",
+              "Expand self-service options"
+            ]
+          },
+          {
+            "department": "Operations",
+            "currentCapacity": 88,
+            "optimalCapacity": 92,
+            "utilizationRate": 96,
+            "efficiency": 90,
+            "bottlenecks": [
+              "Manual reporting",
+              "Cross-team coordination"
+            ],
+            "recommendations": [
+              "Automate reporting",
+              "Implement project management tool"
+            ]
+          }
+        ],
+        "overallMetrics": {
+          "averageUtilization": 93,
+          "efficiencyScore": 86,
+          "bottleneckCount": 8,
+          "improvementPotential": 12
+        },
+        "timeSeriesData": [
+          {
+            "month": "2024-01-01T05:00:00.000Z",
+            "utilization": 88.91668042634048,
+            "efficiency": 85.41644015489118,
+            "throughput": 1137.360039983842
+          },
+          {
+            "month": "2024-02-01T05:00:00.000Z",
+            "utilization": 88.0891580021878,
+            "efficiency": 84.22519269567508,
+            "throughput": 1180.6899293710126
+          },
+          {
+            "month": "2024-03-01T05:00:00.000Z",
+            "utilization": 93.35768396747912,
+            "efficiency": 86.7272821887372,
+            "throughput": 1093.750172359115
+          },
+          {
+            "month": "2024-04-01T04:00:00.000Z",
+            "utilization": 93.59389448199059,
+            "efficiency": 83.05578186281998,
+            "throughput": 1102.0155310034304
+          },
+          {
+            "month": "2024-05-01T04:00:00.000Z",
+            "utilization": 93.97794041100504,
+            "efficiency": 84.89503310582276,
+            "throughput": 1054.889821931965
+          },
+          {
+            "month": "2024-06-01T04:00:00.000Z",
+            "utilization": 91.63581812299793,
+            "efficiency": 88.9121925330681,
+            "throughput": 1196.1345806592508
+          },
+          {
+            "month": "2024-07-01T04:00:00.000Z",
+            "utilization": 94.30519197156839,
+            "efficiency": 89.21733470190598,
+            "throughput": 1109.264242937694
+          },
+          {
+            "month": "2024-08-01T04:00:00.000Z",
+            "utilization": 94.43979097776672,
+            "efficiency": 84.42103883266391,
+            "throughput": 1154.752361287191
+          },
+          {
+            "month": "2024-09-01T04:00:00.000Z",
+            "utilization": 93.04532680009243,
+            "efficiency": 83.37394249473857,
+            "throughput": 1106.088504361803
+          },
+          {
+            "month": "2024-10-01T04:00:00.000Z",
+            "utilization": 87.88722741340617,
+            "efficiency": 83.33282174363113,
+            "throughput": 1109.7924455793793
+          },
+          {
+            "month": "2024-11-01T04:00:00.000Z",
+            "utilization": 86.60205430900264,
+            "efficiency": 88.92830225917015,
+            "throughput": 1085.1472758029256
+          },
+          {
+            "month": "2024-12-01T05:00:00.000Z",
+            "utilization": 87.43536062104911,
+            "efficiency": 89.10890836212513,
+            "throughput": 1140.518675648869
+          }
+        ]
+      }
+    },
+    "enterpriseData": {
+      "strategicScenarios": [
+        {
+          "id": "scenario-1",
+          "name": "Aggressive Growth",
+          "assumptions": [
+            {
+              "id": "a1",
+              "description": "25% YoY revenue growth",
+              "impact": "high",
+              "confidence": 0.75
+            }
+          ],
+          "projections": [
+            {
+              "year": 2025,
+              "revenue": 10625000,
+              "profit": 1593750,
+              "growthRate": 0.25,
+              "marketShare": 12.5
+            },
+            {
+              "year": 2026,
+              "revenue": 13281250,
+              "profit": 1992187.5,
+              "growthRate": 0.25,
+              "marketShare": 14.5
+            },
+            {
+              "year": 2027,
+              "revenue": 16601562.5,
+              "profit": 2490234.375,
+              "growthRate": 0.25,
+              "marketShare": 16.5
+            },
+            {
+              "year": 2028,
+              "revenue": 20751953.125,
+              "profit": 3112792.96875,
+              "growthRate": 0.25,
+              "marketShare": 18.5
+            },
+            {
+              "year": 2029,
+              "revenue": 25939941.40625,
+              "profit": 3890991.2109375,
+              "growthRate": 0.25,
+              "marketShare": 20.5
+            }
+          ],
+          "investmentRequired": 5000000,
+          "expectedROI": 180,
+          "riskLevel": "high",
+          "probabilityOfSuccess": 0.68,
+          "valuationImpact": 12000000,
+          "timeline": 60,
+          "keyDrivers": [
+            "Market expansion",
+            "Product innovation",
+            "Strategic partnerships"
+          ]
+        },
+        {
+          "id": "scenario-2",
+          "name": "Steady Growth",
+          "assumptions": [
+            {
+              "id": "a2",
+              "description": "15% YoY revenue growth",
+              "impact": "medium",
+              "confidence": 0.85
+            }
+          ],
+          "projections": [
+            {
+              "year": 2025,
+              "revenue": 9775000,
+              "profit": 1759500,
+              "growthRate": 0.15,
+              "marketShare": 12.5
+            },
+            {
+              "year": 2026,
+              "revenue": 11241249.999999998,
+              "profit": 2023424.9999999995,
+              "growthRate": 0.15,
+              "marketShare": 13.5
+            },
+            {
+              "year": 2027,
+              "revenue": 12927437.499999998,
+              "profit": 2326938.7499999995,
+              "growthRate": 0.15,
+              "marketShare": 14.5
+            },
+            {
+              "year": 2028,
+              "revenue": 14866553.124999994,
+              "profit": 2675979.562499999,
+              "growthRate": 0.15,
+              "marketShare": 15.5
+            },
+            {
+              "year": 2029,
+              "revenue": 17096536.093749996,
+              "profit": 3077376.4968749993,
+              "growthRate": 0.15,
+              "marketShare": 16.5
+            }
+          ],
+          "investmentRequired": 2500000,
+          "expectedROI": 210,
+          "riskLevel": "medium",
+          "probabilityOfSuccess": 0.82,
+          "valuationImpact": 8000000,
+          "timeline": 48,
+          "keyDrivers": [
+            "Operational efficiency",
+            "Customer retention",
+            "Organic growth"
+          ]
+        },
+        {
+          "id": "scenario-3",
+          "name": "Conservative Growth",
+          "assumptions": [
+            {
+              "id": "a3",
+              "description": "8% YoY revenue growth",
+              "impact": "low",
+              "confidence": 0.92
+            }
+          ],
+          "projections": [
+            {
+              "year": 2025,
+              "revenue": 9180000,
+              "profit": 1836000,
+              "growthRate": 0.08,
+              "marketShare": 12.5
+            },
+            {
+              "year": 2026,
+              "revenue": 9914400,
+              "profit": 1982880,
+              "growthRate": 0.08,
+              "marketShare": 13
+            },
+            {
+              "year": 2027,
+              "revenue": 10707552.000000004,
+              "profit": 2141510.400000001,
+              "growthRate": 0.08,
+              "marketShare": 13.5
+            },
+            {
+              "year": 2028,
+              "revenue": 11564156.160000002,
+              "profit": 2312831.2320000003,
+              "growthRate": 0.08,
+              "marketShare": 14
+            },
+            {
+              "year": 2029,
+              "revenue": 12489288.652800005,
+              "profit": 2497857.730560001,
+              "growthRate": 0.08,
+              "marketShare": 14.5
+            }
+          ],
+          "investmentRequired": 1000000,
+          "expectedROI": 185,
+          "riskLevel": "low",
+          "probabilityOfSuccess": 0.9,
+          "valuationImpact": 4000000,
+          "timeline": 36,
+          "keyDrivers": [
+            "Profit optimization",
+            "Cost management",
+            "Core competency focus"
+          ]
+        }
+      ],
+      "exitStrategy": {
+        "exitTimeline": "3-5 years",
+        "preferredStrategies": [
+          "strategic",
+          "financial"
+        ],
+        "currentValuation": 45000000,
+        "projectedValuation": 72000000,
+        "transactionReadiness": 72,
+        "advisorsEngaged": [
+          "broker",
+          "legal",
+          "tax"
+        ]
+      },
+      "capitalStructure": {
+        "currentDebtEquityRatio": 0.42,
+        "optimalDebtEquityRatio": 0.35,
+        "wacc": 8.2,
+        "creditRating": "BBB+",
+        "debtCapacity": 8000000,
+        "interestCoverage": 4.5,
+        "debtServiceCoverage": 2.1
+      }
+    },
+    "dataQuality": {
+      "overallScore": 95,
+      "completeness": 98,
+      "accuracy": 94,
+      "freshness": 96,
+      "consistency": 95
+    }
   }
 }

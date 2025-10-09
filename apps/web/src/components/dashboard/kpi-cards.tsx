@@ -1,12 +1,12 @@
 'use client'
 
-import { Card, CardContent } from '@/components/ui/card'
-import {
-  TrendingUp,
-  ArrowUp,
-  Heart,
-  DollarSign,
-  TrendingUpIcon,
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { 
+  TrendingUp, 
+  ArrowUp, 
+  Heart, 
+  DollarSign, 
+  TrendingUpIcon, 
   Shield,
   Info
 } from 'lucide-react'
@@ -24,7 +24,7 @@ const StarRating = ({ filled, total }: { filled: number, total: number }) => {
       {Array.from({ length: total }).map((_, index) => (
         <svg
           key={index}
-          className={`w-3 h-3 ${index < filled ? 'text-warning fill-current' : 'text-muted-foreground/30'}`}
+          className={`w-3 h-3 ${index < filled ? 'text-chart-1 fill-current' : 'text-muted'}`}
           viewBox="0 0 20 20"
         >
           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
@@ -48,25 +48,25 @@ const generateRealKPICards = (metrics: DashboardMetrics) => {
   }
 
   // Calculate trend indicators
-  const healthTrend = metrics.healthScore >= 80 ? '+Good' :
+  const healthTrend = metrics.healthScore >= 80 ? '+Good' : 
                      metrics.healthScore >= 60 ? 'Fair' : 'Needs Work'
+  
+  const healthTrendColor = metrics.healthScore >= 80 ? 'text-chart-1' : 
+                          metrics.healthScore >= 60 ? 'text-chart-2' : 'text-destructive'
 
-  const healthTrendColor = metrics.healthScore >= 80 ? 'text-success' :
-                          metrics.healthScore >= 60 ? 'text-warning' : 'text-error'
-
-  const valuationTrend = metrics.growthRate > 0 ? `+${metrics.growthRate}%` :
+  const valuationTrend = metrics.growthRate > 0 ? `+${metrics.growthRate}%` : 
                         metrics.growthRate === 0 ? 'Stable' : `${metrics.growthRate}%`
+  
+  const valuationTrendColor = metrics.growthRate > 0 ? 'text-chart-1' : 
+                             metrics.growthRate === 0 ? 'text-muted-foreground' : 'text-destructive'
 
-  const valuationTrendColor = metrics.growthRate > 0 ? 'text-success' :
-                             metrics.growthRate === 0 ? 'text-muted-foreground' : 'text-error'
-
-  const growthStatus = metrics.growthRate > 10 ? 'Strong Growth' :
+  const growthStatus = metrics.growthRate > 10 ? 'Strong Growth' : 
                       metrics.growthRate > 0 ? 'Growing' :
                       metrics.growthRate === 0 ? 'Stable' : 'Declining'
 
   // Risk level calculations
   const riskDisplay = metrics.riskLevel.charAt(0).toUpperCase() + metrics.riskLevel.slice(1)
-  const riskStars = metrics.riskLevel === 'low' ? 4 :
+  const riskStars = metrics.riskLevel === 'low' ? 4 : 
                    metrics.riskLevel === 'medium' ? 2 : 1
 
   return [
@@ -74,10 +74,10 @@ const generateRealKPICards = (metrics: DashboardMetrics) => {
       id: 'health-score',
       title: 'Health Score',
       icon: Heart,
-      iconColor: 'text-success',
+      iconColor: 'text-chart-1',
       value: metrics.healthScore.toString(),
       suffix: '/100',
-      valueColor: 'text-foreground',
+      valueColor: 'text-chart-1',
       trend: healthTrend,
       trendColor: healthTrendColor,
       hasTooltip: true
@@ -89,7 +89,7 @@ const generateRealKPICards = (metrics: DashboardMetrics) => {
       iconColor: 'text-primary',
       value: formatValue(metrics.businessValuation),
       suffix: '',
-      valueColor: 'text-foreground',
+      valueColor: 'text-primary',
       trend: valuationTrend,
       trendColor: valuationTrendColor,
       hasTooltip: false
@@ -98,24 +98,24 @@ const generateRealKPICards = (metrics: DashboardMetrics) => {
       id: 'growth-rate',
       title: 'Growth Rate',
       icon: TrendingUpIcon,
-      iconColor: 'text-info',
+      iconColor: 'text-chart-5',
       value: metrics.growthRate > 0 ? `+${metrics.growthRate}%` : `${metrics.growthRate}%`,
       suffix: '30d',
-      valueColor: 'text-foreground',
+      valueColor: 'text-chart-5',
       trend: growthStatus,
-      trendColor: metrics.growthRate > 0 ? 'text-success' : 'text-muted-foreground',
+      trendColor: metrics.growthRate > 0 ? 'text-chart-5' : 'text-muted-foreground',
       hasTooltip: false
     },
     {
       id: 'risk-level',
       title: 'Risk Level',
       icon: Shield,
-      iconColor: 'text-warning',
+      iconColor: 'text-chart-2',
       value: riskDisplay,
       suffix: '',
-      valueColor: 'text-foreground',
+      valueColor: 'text-chart-2',
       trend: `${riskDisplay} Risk`,
-      trendColor: 'text-warning',
+      trendColor: 'text-chart-2',
       hasStars: true,
       starRating: { filled: riskStars, total: 5 },
       hasTooltip: false
@@ -126,16 +126,16 @@ const generateRealKPICards = (metrics: DashboardMetrics) => {
 export default function KPICards({ metrics, isLoading = false }: KPICardsProps) {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div className="grid grid-cols-2 gap-4 lg:gap-6">
         {Array.from({ length: 4 }).map((_, index) => (
           <Card key={index} className="animate-pulse">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="h-9 w-9 bg-muted rounded-lg"></div>
-                <div className="h-4 w-24 bg-muted rounded"></div>
-              </div>
-              <div className="h-10 w-32 bg-muted rounded mb-3"></div>
-              <div className="h-5 w-20 bg-muted rounded"></div>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <div className="h-4 w-20 bg-muted rounded"></div>
+              <div className="h-5 w-5 bg-muted rounded"></div>
+            </CardHeader>
+            <CardContent>
+              <div className="h-8 w-24 bg-muted rounded mb-2"></div>
+              <div className="h-4 w-16 bg-muted rounded"></div>
             </CardContent>
           </Card>
         ))}
@@ -150,39 +150,34 @@ export default function KPICards({ metrics, isLoading = false }: KPICardsProps) 
   const kpiCards = generateRealKPICards(metrics)
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+    <div className="grid grid-cols-2 gap-4 lg:gap-6">
       {kpiCards.map((card) => {
         const IconComponent = card.icon
-
+        
         return (
-          <Card
-            key={card.id}
-            className="group hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 border-border"
-          >
-            <CardContent className="p-6">
+          <Card key={card.id} className="bg-card border border-border shadow-sm rounded-lg hover:shadow-md transition-shadow">
+            <CardContent className="p-5">
               {/* Header with icon and title */}
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <div className={`p-2 rounded-lg ${card.iconColor} bg-current/10 group-hover:bg-current/15 transition-colors`}>
-                    <IconComponent className="h-5 w-5" />
-                  </div>
-                  <span className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                  <IconComponent className={`h-5 w-5 ${card.iconColor}`} />
+                  <span className="text-sm font-medium text-muted-foreground">
                     {card.title}
                   </span>
                   {card.hasTooltip && (
-                    <Info className="h-4 w-4 text-muted-foreground" />
+                    <Info className="h-3 w-3 text-muted-foreground" />
                   )}
                 </div>
               </div>
 
               {/* Main value */}
               <div className="mb-3">
-                <div className="flex items-baseline gap-2">
-                  <span className={`text-3xl font-bold ${card.valueColor} tracking-tight`}>
+                <div className="flex items-baseline gap-1">
+                  <span className={`text-3xl font-bold ${card.valueColor}`}>
                     {card.value}
                   </span>
                   {card.suffix && (
-                    <span className="text-base text-muted-foreground font-medium">
+                    <span className="text-sm text-muted-foreground">
                       {card.suffix}
                     </span>
                   )}
@@ -190,34 +185,42 @@ export default function KPICards({ metrics, isLoading = false }: KPICardsProps) 
               </div>
 
               {/* Trend or status */}
-              <div className="flex items-center gap-2">
-                {(card.id === 'health-score' || card.id === 'business-value') && (
-                  <div className="flex items-center gap-1.5">
-                    <ArrowUp className="h-4 w-4 text-success" />
-                    <span className={`text-sm font-semibold ${card.trendColor}`}>
+              <div className="flex items-center justify-between">
+                {card.id === 'health-score' && (
+                  <div className="flex items-center gap-1">
+                    <ArrowUp className="h-3 w-3 text-chart-1" />
+                    <span className={`text-sm font-medium ${card.trendColor}`}>
+                      {card.trend}
+                    </span>
+                  </div>
+                )}
+
+                {card.id === 'business-value' && (
+                  <div className="flex items-center gap-1">
+                    <ArrowUp className="h-3 w-3 text-chart-1" />
+                    <span className={`text-sm font-medium ${card.trendColor}`}>
                       {card.trend}
                     </span>
                   </div>
                 )}
 
                 {card.id === 'growth-rate' && (
-                  <div className="flex items-center gap-1.5">
-                    <TrendingUp className="h-4 w-4 text-info" />
-                    <span className={`text-sm font-semibold ${card.trendColor}`}>
+                  <div className="flex flex-col">
+                    <span className={`text-xs ${card.trendColor}`}>
                       {card.trend}
                     </span>
                   </div>
                 )}
 
                 {card.id === 'risk-level' && (
-                  <div className="flex items-center gap-2">
-                    <span className={`text-sm font-semibold ${card.trendColor}`}>
+                  <div className="flex flex-col items-start gap-1">
+                    <span className={`text-xs ${card.trendColor}`}>
                       {card.trend}
                     </span>
                     {card.hasStars && card.starRating && (
-                      <StarRating
-                        filled={card.starRating.filled}
-                        total={card.starRating.total}
+                      <StarRating 
+                        filled={card.starRating.filled} 
+                        total={card.starRating.total} 
                       />
                     )}
                   </div>

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { TierValidationMiddleware } from '@/lib/middleware/tier-validation'
+import { TierValidationMiddleware } from '@/middleware/tier-validation'
 
 /**
  * Test endpoint to demonstrate tier validation middleware

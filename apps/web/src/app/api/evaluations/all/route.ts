@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { evaluationStorage } from '@/lib/evaluation-storage'
-import { TierValidationMiddleware } from '@/lib/middleware/tier-validation'
+import { TierValidationMiddleware } from '@/middleware/tier-validation'
 
 export async function GET(request: NextRequest) {
   try {

@@ -15,7 +15,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { rateLimit } from '@/lib/utils/rate-limit'
-import { TierValidationMiddleware } from '@/lib/middleware/tier-validation'
+import { TierValidationMiddleware } from '@/middleware/tier-validation'
 import { enhancedAnalysisEngine } from '@/lib/ai/enhanced-analysis-engine'
 import type { AnalysisRequest, AnalysisResult } from '@/lib/ai/enhanced-analysis-engine'
 import { CreateAnalysisRequestSchema } from '@/lib/validations/ai-analysis-schemas'
