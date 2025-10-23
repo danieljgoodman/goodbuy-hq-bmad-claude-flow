@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PremiumAccessService } from '@/lib/services/PremiumAccessService'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getServerAuth } from '@/lib/clerk'
 
 // Simplified report templates without complex dependencies
 const reportTemplates = [

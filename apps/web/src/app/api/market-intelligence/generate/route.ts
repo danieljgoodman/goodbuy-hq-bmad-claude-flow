@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
+import { getServerAuth } from '@/lib/clerk'
 import { MarketIntelligenceService } from '@/lib/services/MarketIntelligenceService'
 import { z } from 'zod'
 
@@ -18,8 +17,8 @@ const GenerateRequestSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     // Authentication check
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    const user = await getServerAuth()
+    if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -38,7 +37,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { industry, sector, businessData } = validationResult.data
-    const userId = session.user.id
+    const userId = user.userId
 
     const marketIntelligenceService = new MarketIntelligenceService()
     
@@ -71,15 +70,15 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     // Authentication check
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    const user = await getServerAuth()
+    if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       )
     }
 
-    const userId = session.user.id
+    const userId = user.userId
 
     const marketIntelligenceService = new MarketIntelligenceService()
     const intelligence = await marketIntelligenceService.getMarketIntelligenceForUser(userId)

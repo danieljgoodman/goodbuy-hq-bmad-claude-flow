@@ -13,18 +13,23 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Bell, ChevronDown, Crown, User, Settings, LogOut, CreditCard, Menu, X, Plus, FileText, BarChart3, HelpCircle, BookOpen, PlayCircle, Users, TrendingUp, Target, Activity } from 'lucide-react'
-import { useAuthStore } from '@/stores/auth-store'
+import { useUser, useClerk, SignInButton, UserButton } from '@clerk/nextjs'
 
 export default function Navbar() {
-  const { user, signOut } = useAuthStore()
+  const { isLoaded, isSignedIn, user } = useUser()
+  const { signOut } = useClerk()
   const router = useRouter()
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const handleLogout = async () => {
     await signOut()
-    router.push('/auth/login')
+    router.push('/')
   }
+
+  // Extract user data from Clerk user object
+  const userEmail = user?.emailAddresses?.[0]?.emailAddress || ''
+  const businessName = (user?.publicMetadata?.businessName as string) || user?.fullName || 'Business Owner'
 
   // Different navigation for authenticated vs non-authenticated users
   const publicNavItems = [
@@ -36,10 +41,10 @@ export default function Navbar() {
     { href: '/dashboard', label: 'Dashboard' },
   ]
 
-  const navItems = user ? authenticatedNavItems : publicNavItems
+  const navItems = isSignedIn ? authenticatedNavItems : publicNavItems
 
   // Add admin link for admin users (mock check - in production would check user role)
-  const isAdmin = user?.email === 'admin@goodbuyhq.com' || user?.email?.includes('admin')
+  const isAdmin = userEmail === 'admin@goodbuyhq.com' || userEmail?.includes('admin')
 
   return (
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -69,7 +74,7 @@ export default function Navbar() {
               ))}
 
               {/* Features Dropdown - Only for authenticated users */}
-              {user && (
+              {isSignedIn && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="text-sm font-medium text-muted-foreground hover:text-primary">
@@ -262,7 +267,7 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center space-x-4">
-            {user ? (
+            {isSignedIn && isLoaded ? (
               <>
                 {/* Notification Bell */}
                 <Link href="/notifications">
@@ -285,7 +290,7 @@ export default function Navbar() {
                         <User className="h-4 w-4 text-primary" />
                       </div>
                       <span className="text-sm text-muted-foreground hidden sm:block">
-                        {user.businessName || user.email}
+                        {businessName}
                       </span>
                       <ChevronDown className="h-3 w-3" />
                     </Button>
@@ -330,16 +335,16 @@ export default function Navbar() {
               </>
             ) : (
               <div className="space-x-2">
-                <Link href="/auth/login">
+                <SignInButton mode="modal">
                   <Button variant="ghost" size="sm">
                     Login
                   </Button>
-                </Link>
-                <Link href="/auth/register">
+                </SignInButton>
+                <SignInButton mode="modal">
                   <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
                     Get Started
                   </Button>
-                </Link>
+                </SignInButton>
               </div>
             )}
           </div>
@@ -362,7 +367,7 @@ export default function Navbar() {
               ))}
 
               {/* Authenticated User Menu Items */}
-              {user && (
+              {isSignedIn && (
                 <>
                   {/* Features Section */}
                   <div className="space-y-3">
@@ -483,7 +488,7 @@ export default function Navbar() {
               </Link>
 
               {/* User Account Actions */}
-              {user && (
+              {isSignedIn && (
                 <div className="pt-6 border-t space-y-3">
                   <Link
                     href="/account/profile"
@@ -521,18 +526,18 @@ export default function Navbar() {
               )}
 
               {/* Auth buttons for non-authenticated users */}
-              {!user && (
+              {!isSignedIn && (
                 <div className="pt-6 border-t space-y-3">
-                  <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start">
+                  <SignInButton mode="modal">
+                    <Button variant="ghost" className="w-full justify-start" onClick={() => setMobileMenuOpen(false)}>
                       Login
                     </Button>
-                  </Link>
-                  <Link href="/auth/register" onClick={() => setMobileMenuOpen(false)}>
-                    <Button className="w-full">
+                  </SignInButton>
+                  <SignInButton mode="modal">
+                    <Button className="w-full" onClick={() => setMobileMenuOpen(false)}>
                       Get Started
                     </Button>
-                  </Link>
+                  </SignInButton>
                 </div>
               )}
             </div>

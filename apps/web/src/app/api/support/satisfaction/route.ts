@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
+import { getServerAuth } from '@/lib/clerk'
 import { SupportService } from '@/lib/services/SupportService'
 
 const satisfactionSchema = z.object({
@@ -12,8 +11,8 @@ const satisfactionSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.email) {
+    const user = await getServerAuth()
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -21,7 +20,7 @@ export async function POST(request: NextRequest) {
     const { ticketId, rating, feedback } = satisfactionSchema.parse(body)
 
     const result = await SupportService.submitSatisfactionRating(
-      session.user.id,
+      user.userId,
       ticketId,
       rating,
       feedback

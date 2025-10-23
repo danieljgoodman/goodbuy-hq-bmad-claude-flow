@@ -1,24 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getServerAuth } from '@/lib/clerk'
 import { prisma } from '@/lib/prisma'
 
 // Admin middleware for role validation
-async function validateAdminAccess(session: any) {
-  if (!session?.user?.id) {
+async function validateAdminAccess() {
+  const user = await getServerAuth()
+
+  if (!user) {
     return { error: 'Unauthorized', status: 401 }
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { userRole: true }
-  })
-
-  if (!user || (user.userRole !== 'admin' && user.userRole !== 'super_admin')) {
+  if (user.role !== 'admin' && user.role !== 'super_admin') {
     return { error: 'Admin access required', status: 403 }
   }
 
-  return { user: session.user, userRole: user.userRole }
+  return { user, userRole: user.role }
 }
 
 // Update user profile
@@ -27,17 +23,16 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    console.log('🔧 DEBUG MODE: Admin user update API called for user:', params.id)
-    
-    // COMPLETELY BYPASS AUTH FOR NOW
-    // const session = await getServerSession(authOptions)
-    // const validation = await validateAdminAccess(session)
-    // if ('error' in validation) {
-    //   return NextResponse.json(
-    //     { error: validation.error }, 
-    //     { status: validation.status }
-    //   )
-    // }
+    console.log('Admin user update API called for user:', params.id)
+
+    // Authentication check
+    const validation = await validateAdminAccess()
+    if ('error' in validation) {
+      return NextResponse.json(
+        { error: validation.error },
+        { status: validation.status }
+      )
+    }
 
     const body = await request.json()
     const { subscriptionTier, userRole } = body

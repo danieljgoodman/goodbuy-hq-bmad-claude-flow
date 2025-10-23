@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import { ClerkProvider } from '@clerk/nextjs'
 import Navbar from '@/components/layout/navbar'
 import EnhancedNavbar from '@/components/layout/enhanced-navbar'
 import BreadcrumbNavigation from '@/components/layout/breadcrumb-navigation'
@@ -26,29 +27,39 @@ export default function RootLayout({
 }) {
   // Feature flag for enhanced navigation (Story 9.6a)
   const USE_ENHANCED_NAVIGATION = process.env.NEXT_PUBLIC_EPIC9_6A_ENABLED === 'true'
-  
+
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <AccessibilityProvider>
-          <NavigationProvider>
-            <OnboardingProvider>
-              <HelpProvider>
-                <SmartHelpTrigger>
-                  <SkipLinks />
-                  <AuthInitializer />
-                  {USE_ENHANCED_NAVIGATION ? <EnhancedNavbar /> : <Navbar />}
-                  {USE_ENHANCED_NAVIGATION && <BreadcrumbNavigation />}
-                  <main role="main" id="main-content" tabIndex={-1}>
-                    {children}
-                  </main>
-                  <OnboardingModal />
-                </SmartHelpTrigger>
-              </HelpProvider>
-            </OnboardingProvider>
-          </NavigationProvider>
-        </AccessibilityProvider>
-      </body>
-    </html>
+    <ClerkProvider
+      appearance={{
+        variables: {
+          colorPrimary: '#1e40af',
+          colorBackground: '#ffffff',
+          colorText: '#1f2937',
+        },
+      }}
+    >
+      <html lang="en">
+        <body className={inter.className}>
+          <AccessibilityProvider>
+            <NavigationProvider>
+              <OnboardingProvider>
+                <HelpProvider>
+                  <SmartHelpTrigger>
+                    <SkipLinks />
+                    <AuthInitializer />
+                    {USE_ENHANCED_NAVIGATION ? <EnhancedNavbar /> : <Navbar />}
+                    {USE_ENHANCED_NAVIGATION && <BreadcrumbNavigation />}
+                    <main role="main" id="main-content" tabIndex={-1}>
+                      {children}
+                    </main>
+                    <OnboardingModal />
+                  </SmartHelpTrigger>
+                </HelpProvider>
+              </OnboardingProvider>
+            </NavigationProvider>
+          </AccessibilityProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   )
 }

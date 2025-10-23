@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { evaluationStorage } from '@/lib/evaluation-storage'
 import { BusinessEvaluationRepository } from '@/lib/repositories/BusinessEvaluationRepository'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getServerAuth } from '@/lib/clerk'
 
 export async function GET(
   request: NextRequest,
@@ -80,18 +79,18 @@ export async function DELETE(
 ) {
   try {
     // Check authentication
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    const user = await getServerAuth()
+    if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' }, 
         { status: 401 }
       )
     }
 
-    console.log('🗑️ DELETE evaluation:', params.id, 'for user:', session.user.id)
+    console.log('🗑️ DELETE evaluation:', params.id, 'for user:', user.userId)
     
     // Attempt soft delete with user ownership validation
-    const deleted = await BusinessEvaluationRepository.softDelete(params.id, session.user.id)
+    const deleted = await BusinessEvaluationRepository.softDelete(params.id, user.userId)
     
     if (!deleted) {
       return NextResponse.json(

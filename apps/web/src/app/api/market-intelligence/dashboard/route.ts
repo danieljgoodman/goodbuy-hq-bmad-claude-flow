@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
+import { getServerAuth } from '@/lib/clerk'
 import { MarketIntelligenceService } from '@/lib/services/MarketIntelligenceService'
 import { MarketAlertRepository } from '@/lib/repositories/MarketAlertRepository'
 
 export async function GET(request: NextRequest) {
   try {
     // Authentication check
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    const user = await getServerAuth()
+    if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -16,10 +15,10 @@ export async function GET(request: NextRequest) {
     }
 
     const searchParams = request.nextUrl.searchParams
-    const userId = searchParams.get('userId') || session.user.id
+    const userId = searchParams.get('userId') || user.userId
 
     // Authorization check - users can only access their own data
-    if (userId !== session.user.id) {
+    if (userId !== user.userId) {
       return NextResponse.json(
         { error: 'Forbidden' },
         { status: 403 }

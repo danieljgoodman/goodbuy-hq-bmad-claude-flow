@@ -1,24 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getServerAuth } from '@/lib/clerk'
 import { prisma } from '@/lib/prisma'
 
 // Admin middleware for role validation
-async function validateAdminAccess(session: any) {
-  if (!session?.user?.id) {
+async function validateAdminAccess() {
+  const user = await getServerAuth()
+
+  if (!user) {
     return { error: 'Unauthorized', status: 401 }
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { userRole: true }
-  })
-
-  if (!user || (user.userRole !== 'admin' && user.userRole !== 'super_admin')) {
+  if (user.role !== 'admin' && user.role !== 'super_admin') {
     return { error: 'Admin access required', status: 403 }
   }
 
-  return { adminUser: session.user, userRole: user.userRole }
+  return { adminUser: user, userRole: user.role }
 }
 
 // Log admin action for audit trail
@@ -41,12 +37,11 @@ async function logAdminAction(adminUserId: string, action: string) {
 // Export user data as CSV
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    const validation = await validateAdminAccess(session)
-    
+    const validation = await validateAdminAccess()
+
     if ('error' in validation) {
       return NextResponse.json(
-        { error: validation.error }, 
+        { error: validation.error },
         { status: validation.status }
       )
     }
@@ -82,13 +77,13 @@ export async function GET(request: NextRequest) {
     })
 
     // Log export action
-    await logAdminAction(validation.adminUser.id, `User data export (${format}, ${users.length} users)`)
+    await logAdminAction(validation.adminUser.userId, `User data export (${format}, ${users.length} users)`)
 
     if (format === 'json') {
-      return NextResponse.json({ 
+      return NextResponse.json({
         users,
         exportedAt: new Date().toISOString(),
-        exportedBy: validation.adminUser.id,
+        exportedBy: validation.adminUser.userId,
         totalUsers: users.length
       })
     }
@@ -123,7 +118,7 @@ export async function GET(request: NextRequest) {
 
     const csvContent = csvRows.join('\n')
 
-    console.log(`✅ Admin ${validation.adminUser.id} exported ${users.length} users as ${format}`)
+    console.log(`✅ Admin ${validation.adminUser.userId} exported ${users.length} users as ${format}`)
 
     return new Response(csvContent, {
       headers: {

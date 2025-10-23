@@ -2,33 +2,30 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuthStore } from '@/stores/auth-store'
+import { useAuth } from '@clerk/nextjs'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
   redirectTo?: string
 }
 
-export default function ProtectedRoute({ 
-  children, 
-  redirectTo = '/auth/login' 
+export default function ProtectedRoute({
+  children,
+  redirectTo = '/sign-in'
 }: ProtectedRouteProps) {
   const router = useRouter()
-  const { isAuthenticated, isLoading, initialize } = useAuthStore()
+  const { isLoaded, isSignedIn } = useAuth()
 
   useEffect(() => {
-    initialize()
-  }, [initialize])
-
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    if (isLoaded && !isSignedIn) {
       const currentPath = window.location.pathname
-      const redirectUrl = `${redirectTo}?redirect=${encodeURIComponent(currentPath)}`
+      const redirectUrl = `${redirectTo}?redirect_url=${encodeURIComponent(currentPath)}`
       router.push(redirectUrl)
     }
-  }, [isLoading, isAuthenticated, router, redirectTo])
+  }, [isLoaded, isSignedIn, router, redirectTo])
 
-  if (isLoading) {
+  // Show loading state while Clerk is initializing
+  if (!isLoaded) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -39,7 +36,8 @@ export default function ProtectedRoute({
     )
   }
 
-  if (!isAuthenticated) {
+  // Return null while redirecting
+  if (!isSignedIn) {
     return null
   }
 

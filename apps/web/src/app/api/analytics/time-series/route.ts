@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
+import { getServerAuth } from '@/lib/clerk'
 import { PrismaClient } from '@prisma/client'
 import { VisualizationService } from '@/lib/services/VisualizationService'
 import { z } from 'zod'
@@ -24,8 +23,8 @@ const AnalyticsEventSchema = z.object({
 export async function GET(request: NextRequest) {
   try {
     // Authentication check
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    const user = await getServerAuth()
+    if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -53,7 +52,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const userId = session.user.id
+    const userId = user.userId
     const validatedData = validationResult.data
 
     if (validatedData.metrics.length === 0) {
@@ -128,8 +127,8 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Authentication check
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    const user = await getServerAuth()
+    if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -137,7 +136,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    
+
     // Input validation
     const validationResult = AnalyticsEventSchema.safeParse(body)
     if (!validationResult.success) {
@@ -147,7 +146,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const userId = session.user.id
+    const userId = user.userId
     const { metric, value, category, metadata } = validationResult.data
 
     const visualizationService = new VisualizationService(prisma)

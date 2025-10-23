@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
+import { getServerAuth } from '@/lib/clerk'
 import { CustomerSuccessService } from '@/lib/services/CustomerSuccessService'
 
 const completeStepSchema = z.object({
@@ -10,12 +9,12 @@ const completeStepSchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.email) {
+    const user = await getServerAuth()
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const progress = await CustomerSuccessService.getOnboardingProgress(session.user.id)
+    const progress = await CustomerSuccessService.getOnboardingProgress(user.userId)
 
     return NextResponse.json({
       success: true,
@@ -34,8 +33,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.email) {
+    const user = await getServerAuth()
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -43,7 +42,7 @@ export async function POST(request: NextRequest) {
     const action = searchParams.get('action')
 
     if (action === 'initialize') {
-      const progress = await CustomerSuccessService.initializePremiumOnboarding(session.user.id)
+      const progress = await CustomerSuccessService.initializePremiumOnboarding(user.userId)
       
       return NextResponse.json({
         success: true,
@@ -58,7 +57,7 @@ export async function POST(request: NextRequest) {
       const { stepName } = completeStepSchema.parse(body)
 
       const result = await CustomerSuccessService.completeOnboardingStep(
-        session.user.id,
+        user.userId,
         stepName
       )
 

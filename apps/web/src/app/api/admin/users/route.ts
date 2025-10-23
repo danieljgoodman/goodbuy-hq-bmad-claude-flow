@@ -1,40 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getServerAuth } from '@/lib/clerk'
 import { prisma } from '@/lib/prisma'
 import { UserRole } from '@prisma/client'
 
 // Admin middleware for role validation
-async function validateAdminAccess(session: any) {
-  if (!session?.user?.id) {
+async function validateAdminAccess() {
+  const user = await getServerAuth()
+
+  if (!user) {
     return { error: 'Unauthorized', status: 401 }
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { role: true }
-  })
-
-  if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) {
+  if (user.role !== 'admin' && user.role !== 'super_admin') {
     return { error: 'Admin access required', status: 403 }
   }
 
-  return { user: session.user, userRole: user.role }
+  return { user, userRole: user.role }
 }
 
 // Get paginated user list with search and filters
 export async function GET(request: NextRequest) {
   try {
-    // TEMPORARY: Bypass authentication to see users in development
-    console.log('🚧 DEVELOPMENT MODE: Bypassing authentication checks')
-    // const session = await getServerSession(authOptions)
-    // const validation = await validateAdminAccess(session)
-    // if ('error' in validation) {
-    //   return NextResponse.json(
-    //     { error: validation.error }, 
-    //     { status: validation.status }
-    //   )
-    // }
+    // Authentication check
+    const validation = await validateAdminAccess()
+    if ('error' in validation) {
+      return NextResponse.json(
+        { error: validation.error },
+        { status: validation.status }
+      )
+    }
 
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')

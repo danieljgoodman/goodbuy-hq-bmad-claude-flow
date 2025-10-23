@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
+import { getServerAuth } from '@/lib/clerk'
 import { SupportService } from '@/lib/services/SupportService'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.email) {
+    const user = await getServerAuth()
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const metrics = await SupportService.getUserSupportMetrics(session.user.id)
+    const metrics = await SupportService.getUserSupportMetrics(user.userId)
 
     return NextResponse.json({
       success: true,

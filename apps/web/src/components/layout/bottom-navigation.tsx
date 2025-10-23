@@ -3,15 +3,15 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
-import { 
-  Home, 
-  Plus, 
-  Clock, 
-  User, 
+import {
+  Home,
+  Plus,
+  Clock,
+  User,
   Bell,
   BarChart3
 } from 'lucide-react'
-import { useAuthStore } from '@/stores/auth-store'
+import { useUser } from '@clerk/nextjs'
 
 interface QuickAction {
   label: string
@@ -27,16 +27,16 @@ interface BottomNavigationProps {
   notificationCount?: number
 }
 
-export default function BottomNavigation({ 
-  currentPath, 
-  notificationCount = 3 
+export default function BottomNavigation({
+  currentPath,
+  notificationCount = 3
 }: BottomNavigationProps) {
-  const { user } = useAuthStore()
+  const { isLoaded, isSignedIn } = useUser()
   const pathname = usePathname()
 
   // Don't show bottom navigation on certain pages
-  const hiddenPaths = ['/auth/login', '/auth/register', '/', '/pricing']
-  if (hiddenPaths.includes(pathname) || !user) {
+  const hiddenPaths = ['/sign-in', '/sign-up', '/', '/pricing']
+  if (hiddenPaths.includes(pathname) || !isLoaded || !isSignedIn) {
     return null
   }
 
@@ -81,7 +81,7 @@ export default function BottomNavigation({
 
   // Filter actions based on screen size and priority
   const displayedActions = quickActions
-    .filter(action => !action.requiresAuth || user)
+    .filter(action => !action.requiresAuth || isSignedIn)
     .slice(0, 5) // Limit to 5 actions max for optimal mobile UX
 
   const QuickActionButton = ({ action }: { action: QuickAction }) => {

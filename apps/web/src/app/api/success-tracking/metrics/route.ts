@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
+import { getServerAuth } from '@/lib/clerk'
 import { SuccessTrackingService } from '@/lib/services/SuccessTrackingService'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.email) {
+    const user = await getServerAuth()
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -15,7 +14,7 @@ export async function GET(request: NextRequest) {
 
     if (type === 'user') {
       // Get current user's success metrics
-      const metrics = await SuccessTrackingService.calculateUserSuccessMetrics(session.user.id)
+      const metrics = await SuccessTrackingService.calculateUserSuccessMetrics(user.userId)
       
       return NextResponse.json({
         success: true,
@@ -27,7 +26,7 @@ export async function GET(request: NextRequest) {
 
     if (type === 'journey') {
       // Get current user's success journey
-      const journey = await SuccessTrackingService.getUserSuccessJourney(session.user.id)
+      const journey = await SuccessTrackingService.getUserSuccessJourney(user.userId)
       
       return NextResponse.json({
         success: true,

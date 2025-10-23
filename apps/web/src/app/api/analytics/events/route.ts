@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
+import { getServerAuth } from '@/lib/clerk'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 
@@ -54,12 +53,12 @@ function checkRateLimit(userId: string): boolean {
 
 export async function POST(request: NextRequest) {
   try {
-    // Get session but allow anonymous users for homepage analytics
-    const session = await getServerSession(authOptions)
-    const userId = session?.user?.id || 'anonymous'
+    // Get user but allow anonymous users for homepage analytics
+    const user = await getServerAuth()
+    const userId = user?.userId || 'anonymous'
 
     // Rate limiting - use IP for anonymous users
-    const rateLimitKey = session?.user?.id || request.headers.get('x-forwarded-for') || 'unknown'
+    const rateLimitKey = user?.userId || request.headers.get('x-forwarded-for') || 'unknown'
     if (!checkRateLimit(rateLimitKey)) {
       return NextResponse.json(
         { error: 'Rate limit exceeded. Maximum 100 events per minute.' },
@@ -119,13 +118,13 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     // Authentication check
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    const user = await getServerAuth()
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const { searchParams } = new URL(request.url)
-    
+
     // Input validation
     const validationResult = EventQuerySchema.safeParse({
       start_date: searchParams.get('start_date'),
@@ -142,7 +141,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { start_date, end_date, event_type, limit } = validationResult.data
-    const userId = session.user.id
+    const userId = user.userId
 
     // Build where clause - only show user's own events
     const whereClause: any = {

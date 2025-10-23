@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
+import { getServerAuth } from '@/lib/clerk'
 import { FeedbackService } from '@/lib/services/FeedbackService'
 
 const npsSchema = z.object({
@@ -12,8 +11,8 @@ const npsSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.email) {
+    const user = await getServerAuth()
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -21,7 +20,7 @@ export async function POST(request: NextRequest) {
     const { score, comment, surveyType } = npsSchema.parse(body)
 
     const response = await FeedbackService.submitNPSScore(
-      session.user.id,
+      user.userId,
       score,
       comment,
       surveyType
@@ -52,15 +51,15 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.email) {
+    const user = await getServerAuth()
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const { searchParams } = new URL(request.url)
     const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 10
 
-    const history = await FeedbackService.getUserFeedbackHistory(session.user.id, limit)
+    const history = await FeedbackService.getUserFeedbackHistory(user.userId, limit)
 
     return NextResponse.json({
       success: true,

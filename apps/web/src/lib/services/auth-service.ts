@@ -1,119 +1,173 @@
-import { supabase } from '@/lib/supabase'
+import { auth, currentUser, clerkClient } from '@clerk/nextjs/server'
+import { PrismaClient } from '@prisma/client'
 import type { User } from '@/types'
 
+const prisma = new PrismaClient()
+
 export class AuthService {
-  static async signUp(email: string, password: string, userData: Partial<User>) {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    })
+  /**
+   * Get the current authenticated user
+   * This is a server-side method that should be used in API routes and server components
+   */
+  static async getCurrentUser(): Promise<User | null> {
+    const { userId } = await auth()
 
-    if (error) throw error
-    if (!data.user) throw new Error('No user returned from signup')
-
-    const userProfile: Omit<User, 'id'> & { id: string } = {
-      id: data.user.id,
-      email,
-      businessName: userData.businessName || '',
-      industry: userData.industry || '',
-      role: userData.role || 'owner',
-      subscriptionTier: 'free',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      lastLoginAt: new Date(),
+    if (!userId) {
+      return null
     }
 
-    const { error: profileError } = await supabase
-      .from('users')
-      .insert(userProfile)
+    const clerkUser = await currentUser()
 
-    if (profileError) throw profileError
+    if (!clerkUser) {
+      return null
+    }
 
-    return userProfile
-  }
-
-  static async signIn(email: string, password: string) {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+    // Get or create user in database
+    const user = await prisma.user.upsert({
+      where: { clerkId: userId },
+      update: {
+        email: clerkUser.emailAddresses[0]?.emailAddress || '',
+        firstName: clerkUser.firstName || '',
+        lastName: clerkUser.lastName || '',
+        imageUrl: clerkUser.imageUrl || '',
+        lastLoginAt: new Date(),
+      },
+      create: {
+        clerkId: userId,
+        email: clerkUser.emailAddresses[0]?.emailAddress || '',
+        firstName: clerkUser.firstName || '',
+        lastName: clerkUser.lastName || '',
+        imageUrl: clerkUser.imageUrl || '',
+        subscriptionTier: 'free',
+        role: 'OWNER',
+        userRole: 'user',
+        lastLoginAt: new Date(),
+      },
     })
 
-    if (error) throw error
-    if (!data.user) throw new Error('No user returned from signin')
-
-    const { data: userData } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', data.user.id)
-      .single()
-
-    if (!userData) throw new Error('User profile not found')
-
-    await supabase
-      .from('users')
-      .update({ lastLoginAt: new Date() })
-      .eq('id', data.user.id)
-
-    return { ...userData, lastLoginAt: new Date() }
+    return user as User
   }
 
-  static async signOut() {
-    const { error } = await supabase.auth.signOut()
-    if (error) throw error
+  /**
+   * Get user by Clerk ID
+   */
+  static async getUserByClerkId(clerkId: string): Promise<User | null> {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { clerkId },
+      })
+
+      return user as User | null
+    } catch (error) {
+      console.error('Error getting user by Clerk ID:', error)
+      return null
+    }
   }
 
-  static async resetPassword(email: string, redirectTo?: string) {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: redirectTo || `${window.location.origin}/auth/reset-password`,
-    })
-    if (error) throw error
-  }
-
-  static async updatePassword(newPassword: string) {
-    const { error } = await supabase.auth.updateUser({
-      password: newPassword,
-    })
-    if (error) throw error
-  }
-
-  static async getCurrentUser(): Promise<User | null> {
-    const { data: { session } } = await supabase.auth.getSession()
-    
-    if (!session?.user) return null
-
-    const { data: userData } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', session.user.id)
-      .single()
-
-    return userData || null
-  }
-
+  /**
+   * Update user profile
+   */
   static async updateProfile(userId: string, userData: Partial<User>) {
     const updatedData = {
       ...userData,
       updatedAt: new Date(),
     }
 
-    const { error } = await supabase
-      .from('users')
-      .update(updatedData)
-      .eq('id', userId)
+    try {
+      const user = await prisma.user.update({
+        where: { id: userId },
+        data: updatedData,
+      })
 
-    if (error) throw error
-
-    return updatedData
+      return user as User
+    } catch (error) {
+      console.error('Error updating user profile:', error)
+      throw error
+    }
   }
 
-  static onAuthStateChange(callback: (user: User | null) => void) {
-    return supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        const user = await this.getCurrentUser()
-        callback(user)
-      } else {
-        callback(null)
-      }
-    })
+  /**
+   * Update user metadata in Clerk
+   */
+  static async updateClerkMetadata(clerkId: string, metadata: Record<string, any>) {
+    try {
+      await clerkClient.users.updateUser(clerkId, {
+        publicMetadata: metadata,
+      })
+    } catch (error) {
+      console.error('Error updating Clerk metadata:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Sync user data from Clerk to database
+   */
+  static async syncUserFromClerk(clerkId: string) {
+    try {
+      const clerkUser = await clerkClient.users.getUser(clerkId)
+
+      const user = await prisma.user.upsert({
+        where: { clerkId },
+        update: {
+          email: clerkUser.emailAddresses[0]?.emailAddress || '',
+          firstName: clerkUser.firstName || '',
+          lastName: clerkUser.lastName || '',
+          imageUrl: clerkUser.imageUrl || '',
+        },
+        create: {
+          clerkId,
+          email: clerkUser.emailAddresses[0]?.emailAddress || '',
+          firstName: clerkUser.firstName || '',
+          lastName: clerkUser.lastName || '',
+          imageUrl: clerkUser.imageUrl || '',
+          subscriptionTier: 'free',
+          role: 'OWNER',
+          userRole: 'user',
+        },
+      })
+
+      return user as User
+    } catch (error) {
+      console.error('Error syncing user from Clerk:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Delete user from database
+   */
+  static async deleteUser(clerkId: string) {
+    try {
+      await prisma.user.delete({
+        where: { clerkId },
+      })
+    } catch (error) {
+      console.error('Error deleting user:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Check if user has specific role
+   */
+  static async hasRole(role: string): Promise<boolean> {
+    const user = await this.getCurrentUser()
+    return user?.userRole === role
+  }
+
+  /**
+   * Check if user has subscription tier or higher
+   */
+  static async hasSubscriptionTier(tier: 'free' | 'basic' | 'professional' | 'enterprise'): Promise<boolean> {
+    const user = await this.getCurrentUser()
+
+    if (!user) return false
+
+    const tiers = ['free', 'basic', 'professional', 'enterprise']
+    const userTierIndex = tiers.indexOf(user.subscriptionTier)
+    const requiredTierIndex = tiers.indexOf(tier)
+
+    return userTierIndex >= requiredTierIndex
   }
 }

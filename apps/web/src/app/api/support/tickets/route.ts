@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
+import { getServerAuth } from '@/lib/clerk'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 
@@ -23,8 +22,8 @@ const CreateTicketSchema = z.object({
 export async function GET(req: NextRequest) {
   try {
     // Authentication check
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    const user = await getServerAuth()
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -47,7 +46,7 @@ export async function GET(req: NextRequest) {
     }
 
     const { search, status, priority, limit, offset } = validationResult.data
-    const userId = session.user.id
+    const userId = user.userId
 
     // Build where clause
     const where: any = {
@@ -106,8 +105,8 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     // Authentication check
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    const user = await getServerAuth()
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -123,7 +122,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { subject, description, category, priority, attachments } = validationResult.data
-    const userId = session.user.id
+    const userId = user.userId
 
     // Get user's subscription tier from database
     const user = await prisma.user.findUnique({

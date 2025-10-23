@@ -34,7 +34,7 @@ import {
   Plus,
   Shield
 } from 'lucide-react'
-import { useAuthStore } from '@/stores/auth-store'
+import { useUser, useClerk, SignInButton } from '@clerk/nextjs'
 import MobileNavigationDrawer from './mobile-navigation-drawer'
 import BottomNavigation from './bottom-navigation'
 import { useNavigationGestures } from '@/hooks/use-touch-gestures'
@@ -52,7 +52,8 @@ interface NavigationItem {
 }
 
 export default function EnhancedNavbar() {
-  const { user, signOut } = useAuthStore()
+  const { isLoaded, isSignedIn, user } = useUser()
+  const { signOut } = useClerk()
   const router = useRouter()
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -60,8 +61,13 @@ export default function EnhancedNavbar() {
 
   const handleLogout = async () => {
     await signOut()
-    router.push('/auth/login')
+    router.push('/')
   }
+
+  // Extract user data from Clerk user object
+  const userEmail = user?.emailAddresses?.[0]?.emailAddress || ''
+  const businessName = (user?.publicMetadata?.businessName as string) || user?.fullName || 'Business Owner'
+  const userTier = ((user?.publicMetadata?.subscriptionTier as string) || 'free') as 'free' | 'premium'
 
   // Enhanced navigation structure with tier-based access
   const mainNavigation: NavigationItem[] = [
@@ -170,17 +176,16 @@ export default function EnhancedNavbar() {
     { href: '/pricing', label: 'Pricing' },
   ]
 
-  // Check user subscription tier
-  const userTier = user?.subscriptionTier || 'free'
-  const isAdmin = user?.email === 'admin@goodbuyhq.com' || user?.email?.includes('admin')
+  // Check admin status
+  const isAdmin = userEmail === 'admin@goodbuyhq.com' || userEmail?.includes('admin')
 
   // Filter navigation items based on user tier and auth status
   const getFilteredNavigation = () => {
-    if (!user) return []
-    
+    if (!isSignedIn) return []
+
     return mainNavigation.filter(item => {
       // Check authentication requirement
-      if (item.requiresAuth && !user) return false
+      if (item.requiresAuth && !isSignedIn) return false
       
       // Check tier requirement
       if (item.requiredTier && userTier === 'free') {
@@ -334,7 +339,7 @@ export default function EnhancedNavbar() {
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-6">
-              {user ? (
+              {isSignedIn ? (
                 // Authenticated navigation
                 filteredNavigation.map((item) => (
                   <NavigationItem key={item.href} item={item} />
@@ -371,7 +376,7 @@ export default function EnhancedNavbar() {
 
           {/* Right side navigation */}
           <div className="flex items-center space-x-4">
-            {user ? (
+            {isSignedIn && isLoaded ? (
               <>
                 {/* Notification Bell */}
                 <Link href="/notifications">
@@ -395,7 +400,7 @@ export default function EnhancedNavbar() {
                       </div>
                       <div className="hidden sm:block text-left">
                         <div className="text-sm font-medium">
-                          {user.businessName || 'Business Owner'}
+                          {businessName}
                         </div>
                         <div className="text-xs text-muted-foreground flex items-center">
                           {userTier === 'premium' ? (
@@ -410,8 +415,8 @@ export default function EnhancedNavbar() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-64">
                     <div className="px-3 py-2 border-b">
-                      <div className="font-medium">{user.businessName || user.email}</div>
-                      <div className="text-xs text-muted-foreground">{user.email}</div>
+                      <div className="font-medium">{businessName}</div>
+                      <div className="text-xs text-muted-foreground">{userEmail}</div>
                     </div>
                     
                     <DropdownMenuItem asChild>
@@ -467,16 +472,16 @@ export default function EnhancedNavbar() {
               </>
             ) : (
               <div className="space-x-2">
-                <Link href="/auth/login">
+                <SignInButton mode="modal">
                   <Button variant="ghost" size="sm">
                     Login
                   </Button>
-                </Link>
-                <Link href="/auth/register">
+                </SignInButton>
+                <SignInButton mode="modal">
                   <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
                     Get Started
                   </Button>
-                </Link>
+                </SignInButton>
               </div>
             )}
           </div>
@@ -486,7 +491,7 @@ export default function EnhancedNavbar() {
         {mobileMenuOpen && (
           <div className="md:hidden border-t bg-background">
             <div className="px-4 py-6 space-y-6">
-              {user ? (
+              {isSignedIn ? (
                 // Authenticated mobile navigation
                 <div className="space-y-4">
                   {filteredNavigation.map((item) => (
@@ -512,7 +517,7 @@ export default function EnhancedNavbar() {
               )}
 
               {/* User Account Actions */}
-              {user && (
+              {isSignedIn && (
                 <div className="pt-6 border-t space-y-3">
                   <Link
                     href="/account/profile"
@@ -559,18 +564,18 @@ export default function EnhancedNavbar() {
               )}
 
               {/* Auth buttons for non-authenticated users */}
-              {!user && (
+              {!isSignedIn && (
                 <div className="pt-6 border-t space-y-3">
-                  <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start">
+                  <SignInButton mode="modal">
+                    <Button variant="ghost" className="w-full justify-start" onClick={() => setMobileMenuOpen(false)}>
                       Login
                     </Button>
-                  </Link>
-                  <Link href="/auth/register" onClick={() => setMobileMenuOpen(false)}>
-                    <Button className="w-full">
+                  </SignInButton>
+                  <SignInButton mode="modal">
+                    <Button className="w-full" onClick={() => setMobileMenuOpen(false)}>
                       Get Started
                     </Button>
-                  </Link>
+                  </SignInButton>
                 </div>
               )}
             </div>
@@ -578,7 +583,7 @@ export default function EnhancedNavbar() {
         )}
 
         {/* Breadcrumb Navigation for authenticated users */}
-        {user && pathname !== '/' && pathname !== '/dashboard' && (
+        {isSignedIn && pathname !== '/' && pathname !== '/dashboard' && (
           <div className="py-2 border-t bg-muted/20">
             <div className="flex items-center space-x-2 text-xs text-muted-foreground">
               {generateBreadcrumbs().map((crumb, index, array) => (

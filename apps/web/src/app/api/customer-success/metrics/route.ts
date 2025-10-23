@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
+import { getServerAuth } from '@/lib/clerk'
 import { CustomerSuccessService } from '@/lib/services/CustomerSuccessService'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.email) {
+    const user = await getServerAuth()
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -14,7 +13,7 @@ export async function GET(request: NextRequest) {
     const type = searchParams.get('type')
 
     if (type === 'success-metrics') {
-      const metrics = await CustomerSuccessService.getSuccessMetrics(session.user.id)
+      const metrics = await CustomerSuccessService.getSuccessMetrics(user.userId)
       
       return NextResponse.json({
         success: true,
@@ -25,7 +24,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (type === 'churn-risk') {
-      const churnRisk = await CustomerSuccessService.detectChurnRisk(session.user.id)
+      const churnRisk = await CustomerSuccessService.detectChurnRisk(user.userId)
       
       return NextResponse.json({
         success: true,
@@ -36,7 +35,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (type === 'scheduled-events') {
-      const events = await CustomerSuccessService.getScheduledEvents(session.user.id)
+      const events = await CustomerSuccessService.getScheduledEvents(user.userId)
       
       return NextResponse.json({
         success: true,
@@ -47,7 +46,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (type === 'schedule-touchpoints') {
-      const touchpoints = await CustomerSuccessService.scheduleSuccessTouchpoints(session.user.id)
+      const touchpoints = await CustomerSuccessService.scheduleSuccessTouchpoints(user.userId)
       
       return NextResponse.json({
         success: true,

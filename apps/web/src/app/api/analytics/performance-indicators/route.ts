@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
+import { getServerAuth } from '@/lib/clerk'
 import { PrismaClient } from '@prisma/client'
 import { VisualizationService } from '@/lib/services/VisualizationService'
 import { z } from 'zod'
@@ -14,8 +13,8 @@ const PerformanceIndicatorsSchema = z.object({
 export async function GET(request: NextRequest) {
   try {
     // Authentication check
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    const user = await getServerAuth()
+    if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -34,7 +33,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const userId = session.user.id
+    const userId = user.userId
 
     // Default metrics if none specified
     const metricsToQuery = metrics.length > 0 ? metrics : [

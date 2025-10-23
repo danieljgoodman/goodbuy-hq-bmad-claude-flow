@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
+import { getServerAuth } from '@/lib/clerk'
 import { TestimonialService } from '@/lib/services/TestimonialService'
 
 const submitTestimonialSchema = z.object({
@@ -18,8 +17,8 @@ const submitTestimonialSchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.email) {
+    const user = await getServerAuth()
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -49,8 +48,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.email) {
+    const user = await getServerAuth()
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -58,7 +57,7 @@ export async function POST(request: NextRequest) {
     const testimonialData = submitTestimonialSchema.parse(body)
 
     const testimonial = await TestimonialService.submitTestimonial(
-      session.user.id,
+      user.userId,
       testimonialData
     )
 

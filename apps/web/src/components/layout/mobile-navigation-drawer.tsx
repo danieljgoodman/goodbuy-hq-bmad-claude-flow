@@ -17,7 +17,7 @@ import {
   CreditCard,
   Shield
 } from 'lucide-react'
-import { useAuthStore } from '@/stores/auth-store'
+import { useUser, useClerk } from '@clerk/nextjs'
 
 interface NavigationItem {
   label: string
@@ -37,16 +37,21 @@ interface MobileNavigationDrawerProps {
   userTier: 'free' | 'premium'
 }
 
-export default function MobileNavigationDrawer({ 
-  isOpen, 
-  onClose, 
-  navigationItems, 
-  userTier 
+export default function MobileNavigationDrawer({
+  isOpen,
+  onClose,
+  navigationItems,
+  userTier
 }: MobileNavigationDrawerProps) {
-  const { user, signOut } = useAuthStore()
+  const { user } = useUser()
+  const { signOut } = useClerk()
   const pathname = usePathname()
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set())
-  const isAdmin = user?.email === 'admin@goodbuyhq.com' || user?.email?.includes('admin')
+
+  // Extract user data from Clerk user object
+  const userEmail = user?.emailAddresses?.[0]?.emailAddress || ''
+  const businessName = (user?.publicMetadata?.businessName as string) || user?.fullName || 'Business Owner'
+  const isAdmin = userEmail === 'admin@goodbuyhq.com' || userEmail?.includes('admin')
 
   // Close drawer on route change
   useEffect(() => {
@@ -206,7 +211,7 @@ export default function MobileNavigationDrawer({
               </div>
               <div>
                 <div className="font-medium text-sm">
-                  {user?.businessName || 'Business Owner'}
+                  {businessName}
                 </div>
                 <div className="text-xs text-muted-foreground flex items-center">
                   {userTier === 'premium' ? (
